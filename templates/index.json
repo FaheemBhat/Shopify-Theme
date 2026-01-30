@@ -38,6 +38,58 @@
       ],
       "settings": {}
     },
+    "collections_grid": {
+      "type": "collections-grid",
+      "blocks": {
+        "collection_1": {
+          "type": "collection",
+          "settings": {
+            "size": "large",
+            "subtitle": "HOT LIST",
+            "title": "WOMEN COLLECTION",
+            "button_text": "SHOP NOW",
+            "link": "/collections/women"
+          }
+        },
+        "collection_2": {
+          "type": "collection",
+          "settings": {
+            "size": "small",
+            "subtitle": "HOT LIST",
+            "title": "MEN COLLECTION",
+            "button_text": "SHOP NOW",
+            "link": "/collections/men"
+          }
+        },
+        "collection_3": {
+          "type": "collection",
+          "settings": {
+            "size": "small",
+            "subtitle": "HOT LIST",
+            "title": "KIDS COLLECTION",
+            "button_text": "SHOP NOW",
+            "link": "/collections/kids"
+          }
+        },
+        "collection_4": {
+          "type": "collection",
+          "settings": {
+            "size": "small",
+            "subtitle": "",
+            "title": "E-GIFT CARDS",
+            "button_text": "SHOP NOW",
+            "link": "/products/gift-card"
+          }
+        }
+      },
+      "block_order": [
+        "collection_1",
+        "collection_2",
+        "collection_3",
+        "collection_4"
+      ],
+      "settings": {}
+    },
     "main": {
       "type": "hello-world",
       "settings": {}
@@ -45,6 +97,7 @@
   },
   "order": [
     "banner_slideshow",
+    "collections_grid",
     "main"
   ]
 }
