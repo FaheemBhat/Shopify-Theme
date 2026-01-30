@@ -1,0 +1,50 @@
+{
+  "sections": {
+    "banner_slideshow": {
+      "type": "banner",
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "heading": "Welcome to Our Store",
+            "subheading": "Discover amazing products",
+            "button_text": "Shop Now",
+            "link": ""
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "heading": "New Arrivals",
+            "subheading": "Check out our latest collection",
+            "button_text": "View Collection",
+            "link": ""
+          }
+        },
+        "slide_3": {
+          "type": "slide",
+          "settings": {
+            "heading": "Special Offer",
+            "subheading": "Save up to 50% on selected items",
+            "button_text": "Shop Sale",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "slide_1",
+        "slide_2",
+        "slide_3"
+      ],
+      "settings": {}
+    },
+    "main": {
+      "type": "hello-world",
+      "settings": {}
+    }
+  },
+  "order": [
+    "banner_slideshow",
+    "main"
+  ]
+}
