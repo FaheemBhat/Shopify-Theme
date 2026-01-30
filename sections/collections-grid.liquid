@@ -1,4 +1,4 @@
-<div class="collections-grid">
+<div class="collections-grid section-spacing">
   <div class="collections-container">
     {% for block in section.blocks %}
       <div class="collection-item 
@@ -113,6 +113,15 @@
   letter-spacing: 2px;
   border-bottom: 2px solid #000;
   padding-bottom: 6px;
+}
+.section-spacing {
+  margin-top: 80px;
+}
+
+@media (max-width: 768px) {
+  .section-spacing {
+    margin-top: 50px;
+  }
 }
 
 @media(max-width: 900px){
