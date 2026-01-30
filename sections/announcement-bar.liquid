@@ -1,0 +1,159 @@
+{% if section.blocks.size > 0 %}
+<div class="announcement-bar" data-interval="{{ section.settings.slide_time | times: 1000 }}">
+  <div class="announcement-slider">
+
+    {% for block in section.blocks %}
+      <div class="announcement-slide" {{ block.shopify_attributes }}>
+        {% if block.settings.link != blank %}
+          <a href="{{ block.settings.link }}">
+        {% endif %}
+          <span>{{ block.settings.text }}</span>
+        {% if block.settings.link != blank %}
+          </a>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+  </div>
+
+  {% if section.settings.show_arrows %}
+  <button class="announcement-prev">‹</button>
+  <button class="announcement-next">›</button>
+  {% endif %}
+</div>
+{% endif %}
+
+<style>
+.announcement-bar {
+  background: #000;
+  color: #fff;
+  font-size: 13px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.announcement-slider {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+
+.announcement-slide {
+  min-width: 100%;
+  padding: 10px 20px;
+}
+
+.announcement-slide a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.announcement-prev,
+.announcement-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.announcement-prev { left: 10px; }
+.announcement-next { right: 10px; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const bar = document.querySelector(".announcement-bar");
+  if (!bar) return;
+
+  const slides = bar.querySelectorAll(".announcement-slide");
+  const slider = bar.querySelector(".announcement-slider");
+  const interval = parseInt(bar.dataset.interval);
+  let index = 0;
+
+  function showSlide(i) {
+    slider.style.transform = `translateX(-${i * 100}%)`;
+  }
+
+  function next() {
+    index = (index + 1) % slides.length;
+    showSlide(index);
+  }
+
+  let timer = setInterval(next, interval);
+
+  const prevBtn = bar.querySelector(".announcement-prev");
+  const nextBtn = bar.querySelector(".announcement-next");
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      clearInterval(timer);
+      index = (index - 1 + slides.length) % slides.length;
+      showSlide(index);
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      clearInterval(timer);
+      next();
+    });
+  }
+});
+</script>
+
+{% schema %}
+{
+  "name": "Announcement Bar",
+  "settings": [
+    {
+      "type": "range",
+      "id": "slide_time",
+      "label": "Slide change (seconds)",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show navigation arrows",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "announcement",
+      "name": "Announcement",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Announcement text",
+          "default": "Free shipping on orders above ₹999"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Optional link"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 5,
+  "presets": [
+    {
+      "name": "Announcement Bar",
+      "blocks": [
+        { "type": "announcement", "settings": { "text": "Free shipping on orders above ₹999" }},
+        { "type": "announcement", "settings": { "text": "Republic Day Sale – Flat 20% OFF" }},
+        { "type": "announcement", "settings": { "text": "Extra 10% off on prepaid orders" }}
+      ]
+    }
+  ]
+}
+{% endschema %}
