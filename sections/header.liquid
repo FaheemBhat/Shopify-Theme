@@ -986,13 +986,28 @@ body.has-sticky-header {
 // Sticky Header Scroll Effect
 document.addEventListener('DOMContentLoaded', function() {
   const header = document.querySelector('.site-header');
+  const announcementBar = document.querySelector('.announcement-bar');
 
   if (header && header.classList.contains('header-sticky')) {
-    // Set header height as CSS variable
+    // Set header height and position accounting for announcement bar
     const setHeaderHeight = () => {
+      const announcementBarHeight = announcementBar ? announcementBar.offsetHeight : 0;
       const headerHeight = header.offsetHeight;
+      const totalHeight = announcementBarHeight + headerHeight;
+
+      // Set CSS variables
       document.documentElement.style.setProperty('--header-height', headerHeight + 'px');
+      document.documentElement.style.setProperty('--announcement-bar-height', announcementBarHeight + 'px');
+      document.documentElement.style.setProperty('--total-header-height', totalHeight + 'px');
+
+      // Position header below announcement bar when sticky
+      if (announcementBar) {
+        header.style.top = announcementBarHeight + 'px';
+      }
+
+      // Add padding to body for total height
       document.body.classList.add('has-sticky-header');
+      document.body.style.paddingTop = totalHeight + 'px';
     };
 
     setHeaderHeight();
