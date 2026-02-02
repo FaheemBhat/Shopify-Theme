@@ -2,6 +2,26 @@
 
 🚨 MANDATORY: YOU MUST CALL "learn_shopify_api" ONCE WHEN WORKING WITH LIQUID THEMES.
 
+## Quick Reference
+
+### Commands
+- **Preview**: `shopify theme dev`
+- **Lint**: `shopify theme check` (uses `.theme-check.yml` with recommended rules)
+- **Deploy**: `shopify theme push`
+
+### Architecture
+Shopify Liquid theme: `sections/` (full-width modules), `blocks/` (nestable components), `snippets/` (reusable fragments), `layout/` (page wrappers), `templates/` (JSON page structures), `config/` (settings), `locales/` (i18n), `assets/` (static files).
+
+### Code Style
+- Use `{% doc %}` headers in snippets and static blocks with `@param` documentation
+- Use `{% schema %}` in sections/blocks for merchant-editable settings
+- Use `{% stylesheet %}` and `{% javascript %}` tags (not global CSS/JS files)
+- CSS: Use CSS variables for single-property settings, classes for multi-property
+- Translations: Always use `{{ 'key' | t }}` filter; update `locales/en.default.json`
+- Use sentence case for UI text; no ternary operators (use `{% if %}` instead)
+
+---
+
 ## Theme Architecture
 
 **Key principles: focus on generating snippets, blocks, and sections; users may create templates using the theme editor**

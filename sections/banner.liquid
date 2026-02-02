@@ -1,4 +1,4 @@
-<div class="banner-slideshow">
+<div class="banner-slideshow  full-width color-{{ section.settings.color_scheme }}">
   <div class="slideshow-container">
     {% for block in section.blocks %}
       <div class="slide fade">
@@ -73,6 +73,9 @@
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   .slideshow-container {
@@ -109,10 +112,11 @@
   .placeholder-image {
     width: 100%;
     height: 100%;
-    background: #f0f0f0;
+    background: var(--color-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background 0.3s ease;
   }
 
   .placeholder-svg {
@@ -126,10 +130,11 @@
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
-    color: white;
+    color: var(--color-foreground);
     z-index: 2;
     width: 80%;
     max-width: 1200px;
+    transition: color 0.3s ease;
   }
 
   .slide-heading {
@@ -137,27 +142,31 @@
     font-weight: bold;
     margin-bottom: 16px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    color: var(--color-foreground);
+    transition: color 0.3s ease;
   }
 
   .slide-subheading {
     font-size: 24px;
     margin-bottom: 24px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    color: var(--color-foreground);
+    transition: color 0.3s ease;
   }
 
   .slide-button {
     display: inline-block;
     padding: 12px 32px;
-    background: white;
-    color: #333;
+    background: var(--color-primary);
+    color: var(--color-background);
     text-decoration: none;
     border-radius: 4px;
     font-weight: bold;
-    transition: background 0.3s ease;
+    transition: background 0.3s ease, color 0.3s ease, opacity 0.3s ease;
   }
 
   .slide-button:hover {
-    background: #f0f0f0;
+    opacity: 0.9;
   }
 
   /* Navigation arrows */
@@ -168,13 +177,13 @@
     width: auto;
     margin-top: -22px;
     padding: 16px;
-    color: white;
+    color: var(--color-foreground);
     font-weight: bold;
     font-size: 24px;
     transition: 0.3s ease;
     border-radius: 0 3px 3px 0;
     user-select: none;
-    background-color: rgba(0,0,0,0.3);
+    background-color: var(--color-secondary);
     z-index: 3;
   }
 
@@ -184,7 +193,7 @@
   }
 
   .prev:hover, .next:hover {
-    background-color: rgba(0,0,0,0.8);
+    background-color: var(--color-primary);
   }
 
   /* Dots */
@@ -202,14 +211,14 @@
     height: 15px;
     width: 15px;
     margin: 0 5px;
-    background-color: rgba(255,255,255,0.5);
+    background-color: var(--color-secondary);
     border-radius: 50%;
     display: inline-block;
     transition: background-color 0.3s ease;
   }
 
   .active, .dot:hover {
-    background-color: white;
+    background-color: var(--color-primary);
   }
 
   /* Fade animation */
@@ -297,7 +306,14 @@
   "name": "Banner Slideshow",
   "tag": "section",
   "class": "section-banner",
-  "settings": [],
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    }
+  ],
   "blocks": [
     {
       "type": "slide",

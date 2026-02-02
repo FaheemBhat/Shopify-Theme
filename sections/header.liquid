@@ -1,251 +1,1361 @@
-<header class="site-header">
-  <!-- Logo -->
-  <h2 class="header__title">
-    {{ shop.name | link_to: routes.root_url }}
-  </h2>
+{% liquid
+  assign logo_position = section.settings.logo_position
+  assign menu_type_desktop = section.settings.menu_type_desktop
+  assign enable_sticky_header = section.settings.enable_sticky_header
+  assign show_search = section.settings.show_search
+  assign menu = section.settings.menu
+%}
 
-  <!-- Menu -->
-  <nav class="header__menu">
-    {% for link in linklists.main-menu.links %}
-      <a href="{{ link.url }}" class="header__menu-link">
-        {{ link.title }}
+<header
+  class="site-header color-{{ section.settings.color_scheme }} header-layout-{{ logo_position }} {% if enable_sticky_header %}header-sticky{% endif %}"
+  style="
+    margin-top: {{ section.settings.margin_top }}px;
+    margin-bottom: {{ section.settings.margin_bottom }}px;
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  "
+  data-section-id="{{ section.id }}"
+  data-menu-type="{{ menu_type_desktop }}"
+>
+  <div class="header-wrapper">
+    <!-- Mobile Menu Button (Left) -->
+    <button class="header__mobile-menu-btn mobile-only" aria-label="Open menu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <!-- Logo Section -->
+    <div class="header__logo">
+      <a href="{{ routes.root_url }}" class="header__logo-link">
+        {% if settings.logo != blank %}
+          <img
+            src="{{ settings.logo | image_url: width: section.settings.logo_width }}"
+            alt="{{ shop.name }}"
+            width="{{ section.settings.logo_width }}"
+            height="auto"
+            loading="eager"
+            class="header__logo-image"
+          />
+        {% else %}
+          <h1 class="header__title">{{ shop.name }}</h1>
+        {% endif %}
       </a>
-    {% endfor %}
-  </nav>
-
-  <!-- Right Section -->
-  <div class="header__right">
-
-    <!-- Search -->
-    <div class="header__search">
-      <form action="{{ routes.search_url }}" method="get" role="search">
-        <input type="hidden" name="type" value="product">
-
-        <input
-          type="search"
-          id="HeaderSearchInput"
-          name="q"
-          placeholder="Search products..."
-          autocomplete="off"
-          class="search-input"
-        />
-
-        <button type="submit" class="search-btn">🔍</button>
-      </form>
-
-      <div id="PredictiveResults" class="predictive-search"></div>
-      <div id="RecentSearches" class="recent-searches"></div>
-
     </div>
 
-    <!-- Icons -->
-    <div class="header__icons">
-      {% if shop.customer_accounts_enabled %}
-        {{ 'icon-account.svg' | inline_asset_content | link_to: routes.account_url }}
+    <!-- Desktop Menu -->
+    <nav class="header__menu desktop-only" aria-label="Main navigation">
+      {% if menu_type_desktop == 'standard' %}
+        <ul class="header__menu-list">
+          {% for link in linklists[menu].links %}
+            <li class="header__menu-item {% if link.links != blank %}has-dropdown{% endif %}">
+              <a href="{{ link.url }}" class="header__menu-link">
+                {{ link.title }}
+                {% if link.links != blank %}
+                  <svg width="12" height="12" viewBox="0 0 12 12" class="dropdown-icon">
+                    <path d="M6 8L2 4h8z" fill="currentColor"/>
+                  </svg>
+                {% endif %}
+              </a>
+
+              {% if link.links != blank %}
+                <ul class="header__submenu">
+                  {% for child_link in link.links %}
+                    <li class="header__submenu-item">
+                      <a href="{{ child_link.url }}" class="header__submenu-link">
+                        {{ child_link.title }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% elsif menu_type_desktop == 'mega' %}
+        <ul class="header__menu-list header__menu-mega">
+          {% for link in linklists[menu].links %}
+            <li class="header__menu-item {% if link.links != blank %}has-mega-menu{% endif %}">
+              <a href="{{ link.url }}" class="header__menu-link">
+                {{ link.title }}
+                {% if link.links != blank %}
+                  <svg width="12" height="12" viewBox="0 0 12 12" class="dropdown-icon">
+                    <path d="M6 8L2 4h8z" fill="currentColor"/>
+                  </svg>
+                {% endif %}
+              </a>
+
+              {% if link.links != blank %}
+                <div class="header__mega-menu">
+                  <div class="mega-menu-container">
+                    {% for child_link in link.links %}
+                      <div class="mega-menu-column">
+                        <a href="{{ child_link.url }}" class="mega-menu-title">
+                          {{ child_link.title }}
+                        </a>
+                        {% if child_link.links != blank %}
+                          <ul class="mega-menu-list">
+                            {% for grandchild_link in child_link.links %}
+                              <li>
+                                <a href="{{ grandchild_link.url }}">{{ grandchild_link.title }}</a>
+                              </li>
+                            {% endfor %}
+                          </ul>
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </nav>
+
+    <!-- Right Section -->
+    <div class="header__right">
+      <!-- Search -->
+      {% if show_search %}
+        <div class="header__search">
+          <button class="header__search-toggle desktop-only" aria-label="Search">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+              <path d="M12.5 12.5L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+
+          <div class="header__search-form">
+            <form action="{{ routes.search_url }}" method="get" role="search">
+              <input type="hidden" name="type" value="product">
+              <input
+                type="search"
+                id="HeaderSearchInput"
+                name="q"
+                placeholder="Search products..."
+                autocomplete="off"
+                class="search-input"
+              />
+              <button type="submit" class="search-btn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12.5 12.5L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </form>
+            <div id="PredictiveResults" class="predictive-search"></div>
+            <div id="RecentSearches" class="recent-searches"></div>
+          </div>
+        </div>
       {% endif %}
 
-      <a href="{{ routes.cart_url }}">
-        {% if cart.item_count > 0 %}
-          <sup>{{ cart.item_count }}</sup>
-        {% endif %}
-        {{ 'icon-cart.svg' | inline_asset_content }}
-      </a>
-    </div>
+      <!-- Theme Toggle (if available) -->
+      {% if section.settings.show_theme_toggle %}
+        {% render 'theme-toggle' %}
+      {% endif %}
 
+      <!-- Icons -->
+      <div class="header__icons">
+        {% if shop.customer_accounts_enabled %}
+          <a href="{{ routes.account_url }}" class="header__icon" aria-label="Account">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="2"/>
+              <path d="M4 18c0-3.5 2.5-6 6-6s6 2.5 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </a>
+        {% endif %}
+
+        <a href="{{ routes.cart_url }}" class="header__icon header__cart-icon" aria-label="Cart" data-cart-type="{{ settings.cart_type }}">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M2 2h2l1.5 10h11l2-8H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="7" cy="17" r="1" fill="currentColor"/>
+            <circle cx="15" cy="17" r="1" fill="currentColor"/>
+          </svg>
+          {% if cart.item_count > 0 %}
+            <span class="cart-count">{{ cart.item_count }}</span>
+          {% endif %}
+        </a>
+      </div>
+    </div>
   </div>
 </header>
+
+<!-- Mobile Menu Drawer - Outside header for proper z-index stacking -->
+<div class="mobile-menu-drawer mobile-only">
+  <div class="mobile-menu-header">
+    <button class="mobile-menu-close" aria-label="Close menu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <nav class="mobile-menu-nav" aria-label="Mobile navigation">
+    <ul class="mobile-menu-list">
+      {% for link in linklists[section.settings.mobile_menu].links %}
+        <li class="mobile-menu-item">
+          <a href="{{ link.url }}" class="mobile-menu-link">
+            {{ link.title }}
+          </a>
+          {% if link.links != blank %}
+            <button class="mobile-submenu-toggle" aria-label="Toggle submenu">
+              <svg width="12" height="12" viewBox="0 0 12 12">
+                <path d="M6 8L2 4h8z" fill="currentColor"/>
+              </svg>
+            </button>
+            <ul class="mobile-submenu">
+              {% for child_link in link.links %}
+                <li>
+                  <a href="{{ child_link.url }}">{{ child_link.title }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+
+  {% if section.settings.show_search_mobile %}
+    <div class="mobile-menu-search">
+      <form action="{{ routes.search_url }}" method="get" role="search">
+        <input type="hidden" name="type" value="product">
+        <input type="search" name="q" placeholder="Search..." class="mobile-search-input">
+        <button type="submit" class="mobile-search-btn">Search</button>
+      </form>
+    </div>
+  {% endif %}
+</div>
+
+<div class="mobile-menu-overlay mobile-only"></div>
+
 {% stylesheet %}
+/* Header Base Styles */
 .site-header {
-  height: 5rem;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  transition: all 0.3s ease;
+  width: 100%;
+  position: relative;
+  z-index: 100;
+}
+
+.header-sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  will-change: transform;
+  transform: translateY(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.header-sticky.scrolled {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.header-sticky.hidden {
+  transform: translateY(-100%);
+}
+
+/* Add spacer when header is fixed to prevent content jump */
+body.has-sticky-header {
+  padding-top: var(--header-height, 70px);
+}
+
+.header-wrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  min-height: 70px;
 }
 
-.site-header a {
+/* Logo Positioning Layouts */
+.header-layout-top-left .header-wrapper {
+  justify-content: flex-start;
+}
+
+.header-layout-top-left .header__logo {
+  order: 1;
+}
+
+.header-layout-top-left .header__menu {
+  order: 2;
+  margin-left: 40px;
+}
+
+.header-layout-top-left .header__right {
+  order: 3;
+  margin-left: auto;
+}
+
+.header-layout-top-center .header-wrapper {
+  flex-direction: column;
+  min-height: auto;
+  padding: 15px 20px;
+}
+
+.header-layout-top-center .header__logo {
+  order: 1;
+  margin-bottom: 15px;
+}
+
+.header-layout-top-center .header__menu {
+  order: 2;
+}
+
+.header-layout-top-center .header__right {
+  order: 3;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+.header-layout-top-right .header-wrapper {
+  justify-content: flex-end;
+}
+
+.header-layout-top-right .header__logo {
+  order: 3;
+}
+
+.header-layout-top-right .header__menu {
+  order: 2;
+  margin-right: 40px;
+}
+
+.header-layout-top-right .header__right {
+  order: 1;
+  margin-right: auto;
+}
+
+.header-layout-middle-left .header-wrapper,
+.header-layout-middle-center .header-wrapper,
+.header-layout-middle-right .header-wrapper {
+  align-items: center;
+}
+
+.header-layout-middle-center .header__logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.header-layout-middle-center .header__menu {
+  margin-right: auto;
+}
+
+.header-layout-middle-right .header__logo {
+  order: 3;
+  margin-left: auto;
+}
+
+/* Logo Styles */
+.header__logo-link {
+  display: block;
   text-decoration: none;
   color: var(--color-foreground);
 }
 
+.header__logo-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.header__title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-foreground);
+}
+
+/* Desktop Menu Styles */
 .header__menu {
+  flex: 1;
+}
+
+.header__menu-list {
   display: flex;
-  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 30px;
+  align-items: center;
 }
 
 .header__menu-link {
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  color: var(--color-foreground);
+  font-size: 15px;
   font-weight: 500;
+  padding: 10px 0;
+  transition: color 0.2s;
 }
 
-.header__right {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+.header__menu-link:hover {
+  color: var(--color-primary);
 }
 
-.header__icons {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.dropdown-icon {
+  transition: transform 0.2s;
 }
 
-.header__icons a {
+.header__menu-item:hover .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+/* Standard Dropdown */
+.header__submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--color-background);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  padding: 10px 0;
+  list-style: none;
+  margin: 0;
+  min-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.header__menu-item {
   position: relative;
 }
 
-.header__icons sup {
+.header__menu-item:hover .header__submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.header__submenu-link {
+  display: block;
+  padding: 10px 20px;
+  color: var(--color-foreground);
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.header__submenu-link:hover {
+  background: var(--color-secondary);
+}
+
+/* Mega Menu */
+.header__mega-menu {
   position: absolute;
-  top: -6px;
-  right: -8px;
-  background: black;
-  color: white;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 20px;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-background);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  padding: 30px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.has-mega-menu:hover .header__mega-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.mega-menu-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.mega-menu-title {
+  display: block;
+  font-weight: 600;
+  color: var(--color-foreground);
+  margin-bottom: 15px;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.mega-menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mega-menu-list a {
+  display: block;
+  padding: 8px 0;
+  color: var(--color-foreground);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.mega-menu-list a:hover {
+  color: var(--color-primary);
+}
+
+/* Header Right Section */
+.header__right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 /* Search */
-
 .header__search {
   position: relative;
 }
 
-.header__search form {
+.header__search-toggle {
+  background: none;
+  border: none;
+  color: var(--color-foreground);
+  cursor: pointer;
+  padding: 8px;
   display: flex;
   align-items: center;
-  background: #f1f1f1;
-  border-radius: 30px;
-  padding: 6px 14px;
-  width: 220px;
+  justify-content: center;
+}
+
+.header__search-form {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: var(--color-background);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  padding: 15px;
+  width: 320px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.header__search:hover .header__search-form,
+.header__search-form:focus-within {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.header__search-form form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-secondary);
+  border-radius: 6px;
+  padding: 8px 12px;
 }
 
 .search-input {
-  width: 100%;
+  flex: 1;
   border: none;
   background: transparent;
   outline: none;
+  color: var(--color-foreground);
   font-size: 14px;
 }
 
 .search-btn {
   background: none;
   border: none;
+  color: var(--color-foreground);
   cursor: pointer;
-  font-size: 16px;
+  padding: 0;
+  display: flex;
+  align-items: center;
 }
 
-/* Predictive dropdown */
-
-.predictive-search {
+/* Predictive Search */
+.predictive-search,
+.recent-searches {
   position: absolute;
-  top: 110%;
+  top: calc(100% + 10px);
   left: 0;
   width: 100%;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  background: var(--color-background);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   overflow: hidden;
   display: none;
   z-index: 99;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
-.predictive-search a {
+.predictive-search a,
+.recent-searches div {
   display: block;
   padding: 12px 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-secondary);
   font-size: 14px;
-  color: #333;
+  color: var(--color-foreground);
+  text-decoration: none;
 }
 
-.predictive-search a:hover {
-  background: #f6f6f6;
+.predictive-search a:hover,
+.recent-searches div:hover {
+  background: var(--color-secondary);
 }
+
 .search-item {
   display: flex !important;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
 }
 
 .search-item img {
-  width: 42px;
-  height: 42px;
+  width: 50px;
+  height: 50px;
   object-fit: cover;
-  border-radius: 8px;
-}
-
-.search-info {
-  display: flex;
-  flex-direction: column;
+  border-radius: 6px;
 }
 
 .search-title {
-  font-size: 14px;
   font-weight: 500;
 }
 
 .search-price {
   font-size: 13px;
-  color: #888;
+  opacity: 0.7;
 }
+
 .no-results {
-  padding: 15px;
-  font-size: 14px;
-  color: #666;
+  padding: 20px;
   text-align: center;
-}
-/* Skeleton */
-.skeleton {
-  display: flex;
-  gap: 10px;
-  padding: 12px;
-}
-.skeleton-img {
-  width: 40px;
-  height: 40px;
-  background: #eee;
-  border-radius: 8px;
-}
-.skeleton-lines span {
-  display: block;
-  width: 120px;
-  height: 10px;
-  background: #eee;
-  margin-bottom: 6px;
-  border-radius: 4px;
+  color: var(--color-foreground);
+  opacity: 0.7;
 }
 
-/* Highlight */
-.highlight {
-  background: #fff3c4;
-}
-
-/* View all */
 .view-all {
-  text-align: center;
-  padding: 10px;
   font-weight: 600;
-  background: #f7f7f7;
+  text-align: center;
+  background: var(--color-secondary);
 }
 
-/* Recent searches */
-.recent-searches {
+/* Header Icons */
+.header__icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header__icon {
+  color: var(--color-foreground);
+  text-decoration: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  transition: color 0.2s;
+}
+
+.header__icon:hover {
+  color: var(--color-primary);
+}
+
+.cart-count {
   position: absolute;
-  top: 110%;
-  width: 100%;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0,0,0,.1);
-  display: none;
-  z-index: 50;
-}
-.recent-searches div {
-  padding: 10px 15px;
-  cursor: pointer;
-}
-.recent-searches div:hover {
-  background: #f2f2f2;
+  top: 0;
+  right: 0;
+  background: var(--color-primary);
+  color: var(--color-background);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
 }
 
+/* Mobile Styles */
+.mobile-only {
+  display: none;
+}
+
+.desktop-only {
+  display: flex;
+}
+
+/* Mobile Menu Button */
+.header__mobile-menu-btn {
+  background: none;
+  border: none;
+  color: var(--color-foreground);
+  cursor: pointer;
+  padding: 8px;
+  align-items: center;
+  transition: transform 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.header__mobile-menu-btn:active {
+  transform: scale(0.9);
+}
+
+/* Mobile Menu Drawer */
+.mobile-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 280px;
+  max-width: 85%;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  background: var(--color-background);
+  box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10000 !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  will-change: left;
+}
+
+.mobile-menu-drawer.active {
+  left: 0 !important;
+  visibility: visible !important;
+  display: block !important;
+}
+
+.mobile-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 2px solid var(--color-secondary);
+  background: var(--color-background);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.mobile-menu-header::before {
+  content: "Menu";
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.mobile-menu-close {
+  background: var(--color-secondary);
+  border: none;
+  color: var(--color-foreground);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.mobile-menu-close:hover {
+  background: var(--color-primary);
+  color: var(--color-background);
+}
+
+.mobile-menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 10px 0;
+}
+
+.mobile-menu-item {
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  position: relative;
+}
+
+.mobile-menu-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-menu-link {
+  display: block;
+  padding: 16px 20px;
+  color: var(--color-foreground);
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background 0.2s ease, padding-left 0.2s ease;
+}
+
+.mobile-menu-link:hover,
+.mobile-menu-link:active {
+  background: var(--color-secondary);
+  padding-left: 28px;
+}
+
+.mobile-submenu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: none;
+  background: rgba(0,0,0,0.02);
+}
+
+.mobile-submenu.active {
+  display: block;
+}
+
+.mobile-submenu a {
+  display: block;
+  padding: 12px 20px 12px 40px;
+  color: var(--color-foreground);
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.2s ease, padding-left 0.2s ease;
+  opacity: 0.85;
+}
+
+.mobile-submenu a:hover,
+.mobile-submenu a:active {
+  background: var(--color-secondary);
+  padding-left: 48px;
+  opacity: 1;
+}
+
+.mobile-submenu-toggle {
+  background: none;
+  border: none;
+  color: var(--color-foreground);
+  cursor: pointer;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.mobile-submenu-toggle.active {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.mobile-menu-search {
+  padding: 20px;
+  border-top: 2px solid var(--color-secondary);
+  margin-top: auto;
+  background: rgba(0,0,0,0.02);
+}
+
+.mobile-search-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--color-secondary);
+  border-radius: 8px;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-size: 15px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s ease;
+}
+
+.mobile-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.mobile-search-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--color-primary);
+  color: var(--color-background);
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.mobile-search-btn:active {
+  transform: scale(0.98);
+}
+
+.mobile-search-btn:hover {
+  opacity: 0.9;
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height */
+  background: rgba(0,0,0,0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 9999 !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+.mobile-menu-overlay.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  display: block !important;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: block;
+  }
+
+  .header__mobile-menu-btn {
+    display: flex;
+  }
+
+  .header-wrapper {
+    padding: 0 15px;
+    min-height: 60px;
+  }
+
+  .header__logo-image {
+    max-height: 40px;
+  }
+
+  .header__title {
+    font-size: 18px;
+  }
+
+  /* Reset layout positioning for mobile */
+  .header-layout-top-center .header-wrapper,
+  .header-layout-middle-center .header-wrapper {
+    flex-direction: row;
+    min-height: 60px;
+  }
+
+  .header-layout-top-center .header__logo,
+  .header-layout-middle-center .header__logo {
+    position: static;
+    transform: none;
+    margin: 0;
+  }
+
+  .header-layout-top-center .header__right,
+  .header-layout-middle-center .header__right {
+    position: static;
+  }
+}
+
+@media screen and (min-width: 769px) {
+  .header__menu {
+    display: block !important;
+  }
+}
 {% endstylesheet %}
+
+<script>
+// Sticky Header Scroll Effect
+document.addEventListener('DOMContentLoaded', function() {
+  const header = document.querySelector('.site-header');
+
+  if (header && header.classList.contains('header-sticky')) {
+    // Set header height as CSS variable
+    const setHeaderHeight = () => {
+      const headerHeight = header.offsetHeight;
+      document.documentElement.style.setProperty('--header-height', headerHeight + 'px');
+      document.body.classList.add('has-sticky-header');
+    };
+
+    setHeaderHeight();
+
+    // Update on resize
+    window.addEventListener('resize', setHeaderHeight, { passive: true });
+
+    let lastScrollTop = 0;
+    let ticking = false;
+
+    window.addEventListener('scroll', function() {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      if (!ticking) {
+        window.requestAnimationFrame(function() {
+          // Add scrolled class when scrolled down
+          if (scrollTop > 50) {
+            header.classList.add('scrolled');
+          } else {
+            header.classList.remove('scrolled');
+          }
+
+          // Optional: Hide header when scrolling down, show when scrolling up
+          // Uncomment the following if you want this behavior
+          /*
+          if (scrollTop > lastScrollTop && scrollTop > 200) {
+            // Scrolling down
+            header.classList.add('hidden');
+          } else {
+            // Scrolling up
+            header.classList.remove('hidden');
+          }
+          */
+
+          lastScrollTop = scrollTop;
+          ticking = false;
+        });
+
+        ticking = true;
+      }
+    }, { passive: true });
+  }
+
+  // Mobile Menu Toggle
+  const menuBtn = document.querySelector('.header__mobile-menu-btn');
+  const menuDrawer = document.querySelector('.mobile-menu-drawer');
+  const menuClose = document.querySelector('.mobile-menu-close');
+  const menuOverlay = document.querySelector('.mobile-menu-overlay');
+
+  console.log('Mobile Menu Elements:', { menuBtn, menuDrawer, menuClose, menuOverlay });
+
+  if (menuBtn && menuDrawer && menuOverlay) {
+    menuBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Hamburger clicked!');
+      menuDrawer.classList.add('active');
+      menuOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      console.log('Menu should be visible now');
+    });
+  } else {
+    console.error('Mobile menu elements not found!');
+  }
+
+  function closeMobileMenu() {
+    console.log('Closing mobile menu');
+    if (menuDrawer) menuDrawer.classList.remove('active');
+    if (menuOverlay) menuOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  if (menuClose) {
+    menuClose.addEventListener('click', function(e) {
+      e.preventDefault();
+      closeMobileMenu();
+    });
+  }
+
+  if (menuOverlay) {
+    menuOverlay.addEventListener('click', closeMobileMenu);
+  }
+
+  // Mobile Submenu Toggle
+  const submenuToggles = document.querySelectorAll('.mobile-submenu-toggle');
+  submenuToggles.forEach(toggle => {
+    toggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      const submenu = this.nextElementSibling;
+      if (submenu) {
+        submenu.classList.toggle('active');
+        this.classList.toggle('active');
+      }
+    });
+  });
+
+  // Predictive Search (reuse from theme.liquid)
+  const input = document.getElementById('HeaderSearchInput');
+  const results = document.getElementById('PredictiveResults');
+  const recentBox = document.getElementById('RecentSearches');
+
+  if (input && results) {
+    let controller;
+
+    function highlight(text, query) {
+      const reg = new RegExp(`(${query})`, 'gi');
+      return text.replace(reg, '<span class="highlight">$1</span>');
+    }
+
+    function saveRecent(query) {
+      let searches = JSON.parse(localStorage.getItem('recent_searches') || '[]');
+      searches = searches.filter(s => s !== query);
+      searches.unshift(query);
+      localStorage.setItem('recent_searches', JSON.stringify(searches.slice(0, 5)));
+    }
+
+    function showRecent() {
+      const searches = JSON.parse(localStorage.getItem('recent_searches') || '[]');
+      if (!searches.length) return;
+
+      recentBox.innerHTML = searches.map(s => `<div>${s}</div>`).join('');
+      recentBox.style.display = 'block';
+    }
+
+    input.addEventListener('focus', showRecent);
+
+    if (recentBox) {
+      recentBox.addEventListener('click', e => {
+        input.value = e.target.innerText;
+        input.dispatchEvent(new Event('input'));
+        recentBox.style.display = 'none';
+      });
+    }
+
+    input.addEventListener('input', async () => {
+      const query = input.value.trim();
+      if (recentBox) recentBox.style.display = 'none';
+
+      if (query.length < 2) {
+        results.style.display = 'none';
+        return;
+      }
+
+      results.innerHTML = '<div class="no-results">Searching...</div>';
+      results.style.display = 'block';
+
+      if (controller) controller.abort();
+      controller = new AbortController();
+
+      try {
+        const res = await fetch(`/search/suggest.json?q=${query}&resources[type]=product&resources[limit]=6`);
+        const data = await res.json();
+        const products = data.resources.results.products;
+
+        saveRecent(query);
+
+        if (!products.length) {
+          results.innerHTML = `<div class="no-results">No results found for "${query}"</div>`;
+          return;
+        }
+
+        results.innerHTML = products.map(p => `
+          <a href="${p.url}" class="search-item">
+            <img src="${p.featured_image.url}" alt="${p.title}">
+            <div>
+              <div class="search-title">${highlight(p.title, query)}</div>
+              <div class="search-price">₹${(p.price / 100).toFixed(2)}</div>
+            </div>
+          </a>
+        `).join('') + `<a class="view-all" href="/search?q=${query}&type=product">View all results →</a>`;
+      } catch (error) {
+        console.error('Search error:', error);
+      }
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.header__search')) {
+        results.style.display = 'none';
+        if (recentBox) recentBox.style.display = 'none';
+      }
+    });
+  }
+});
+</script>
+
+{% schema %}
+{
+  "name": "Header",
+  "tag": "section",
+  "class": "section-header",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "logo_position",
+      "label": "Logo position",
+      "options": [
+        {
+          "value": "top-left",
+          "label": "Top left"
+        },
+        {
+          "value": "top-center",
+          "label": "Top center"
+        },
+        {
+          "value": "top-right",
+          "label": "Top right"
+        },
+        {
+          "value": "middle-left",
+          "label": "Middle left"
+        },
+        {
+          "value": "middle-center",
+          "label": "Middle center (logo centered, menu on sides)"
+        },
+        {
+          "value": "middle-right",
+          "label": "Middle right"
+        }
+      ],
+      "default": "middle-left",
+      "info": "Choose how your logo is positioned in the header"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 80,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "label": "Logo width",
+      "default": 150
+    },
+    {
+      "type": "header",
+      "content": "Desktop Navigation"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu",
+      "info": "Select which menu to display in the header"
+    },
+    {
+      "type": "select",
+      "id": "menu_type_desktop",
+      "label": "Desktop menu type",
+      "options": [
+        {
+          "value": "standard",
+          "label": "Standard dropdown"
+        },
+        {
+          "value": "mega",
+          "label": "Mega menu"
+        },
+        {
+          "value": "drawer",
+          "label": "Drawer (opens from side)"
+        }
+      ],
+      "default": "standard",
+      "info": "Choose how your desktop menu displays"
+    },
+    {
+      "type": "header",
+      "content": "Mobile Navigation"
+    },
+    {
+      "type": "link_list",
+      "id": "mobile_menu",
+      "label": "Mobile menu",
+      "default": "main-menu",
+      "info": "Select menu for mobile devices (can be different from desktop)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search_mobile",
+      "label": "Show search in mobile menu",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Header Features"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_header",
+      "label": "Enable sticky header",
+      "default": true,
+      "info": "Header stays at top when scrolling"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show search",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_theme_toggle",
+      "label": "Show theme toggle (light/dark mode)",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Color Scheme"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Margin top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Margin bottom",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 0
+    }
+  ]
+}
+{% endschema %}

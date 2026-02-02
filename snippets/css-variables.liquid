@@ -11,8 +11,47 @@
     --font-primary--weight: {{ settings.type_primary_font.weight }};
     --page-width: {{ settings.max_page_width }};
     --page-margin: {{ settings.min_page_margin }}px;
-    --color-background: {{ settings.background_color }};
-    --color-foreground: {{ settings.foreground_color }};
     --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
+  }
+
+  {% # Color scheme CSS variables %}
+  {% for scheme in settings.color_schemes %}
+    .color-{{ scheme.id }},
+    body.color-{{ scheme.id }} {
+      --color-background: {{ scheme.settings.background }};
+      --color-background-gradient: {{ scheme.settings.background_gradient }};
+      --color-foreground: {{ scheme.settings.text }};
+      --color-primary: {{ scheme.settings.primary }};
+      --color-secondary: {{ scheme.settings.secondary }};
+      --color-accent: {{ scheme.settings.accent }};
+      background-color: var(--color-background);
+      color: var(--color-foreground);
+    }
+  {% endfor %}
+
+  {% # Default to first scheme (light) %}
+  {% assign light_scheme = settings.color_schemes | first %}
+  :root, body.color-scheme-1 {
+    --color-background: {{ light_scheme.settings.background }};
+    --color-foreground: {{ light_scheme.settings.text }};
+    --color-primary: {{ light_scheme.settings.primary }};
+    --color-secondary: {{ light_scheme.settings.secondary }};
+    --color-accent: {{ light_scheme.settings.accent }};
+  }
+
+  {% # Dark scheme %}
+  {% assign dark_scheme = settings.color_schemes['scheme-2'] %}
+  body.color-scheme-2 {
+    --color-background: {{ dark_scheme.settings.background }};
+    --color-foreground: {{ dark_scheme.settings.text }};
+    --color-primary: {{ dark_scheme.settings.primary }};
+    --color-secondary: {{ dark_scheme.settings.secondary }};
+    --color-accent: {{ dark_scheme.settings.accent }};
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 {% endstyle %}

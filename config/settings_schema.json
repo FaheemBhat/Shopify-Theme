@@ -57,16 +57,60 @@
     "name": "t:general.colors",
     "settings": [
       {
-        "type": "color",
-        "id": "background_color",
-        "default": "#FFFFFF",
-        "label": "t:labels.background"
-      },
-      {
-        "type": "color",
-        "id": "foreground_color",
-        "default": "#333333",
-        "label": "t:labels.foreground"
+        "type": "color_scheme_group",
+        "id": "color_schemes",
+        "definition": [
+          {
+            "type": "color",
+            "id": "background",
+            "label": "Background",
+            "default": "#FFFFFF"
+          },
+          {
+            "type": "color_background",
+            "id": "background_gradient",
+            "label": "Background gradient"
+          },
+          {
+            "type": "color",
+            "id": "text",
+            "label": "Text",
+            "default": "#333333"
+          },
+          {
+            "type": "color",
+            "id": "primary",
+            "label": "Primary",
+            "default": "#4A90D9"
+          },
+          {
+            "type": "color",
+            "id": "secondary",
+            "label": "Secondary",
+            "default": "#6C757D"
+          },
+          {
+            "type": "color",
+            "id": "accent",
+            "label": "Accent",
+            "default": "#E85A4F"
+          }
+        ],
+        "role": {
+          "text": "text",
+          "background": {
+            "solid": "background",
+            "gradient": "background_gradient"
+          },
+          "links": "primary",
+          "icons": "text",
+          "primary_button": "primary",
+          "on_primary_button": "background",
+          "primary_button_border": "primary",
+          "secondary_button": "background",
+          "on_secondary_button": "secondary",
+          "secondary_button_border": "secondary"
+        }
       },
       {
         "type": "range",
@@ -77,6 +121,46 @@
         "unit": "px",
         "label": "t:labels.input_corner_radius",
         "default": 4
+      }
+    ]
+  },
+  {
+    "name": "Header",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Logo"
+      },
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo image",
+        "info": "Upload your store logo. Recommended size: 300x100px"
+      },
+      {
+        "type": "header",
+        "content": "Cart"
+      },
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Cart type",
+        "options": [
+          {
+            "value": "page",
+            "label": "Page"
+          },
+          {
+            "value": "drawer",
+            "label": "Drawer"
+          },
+          {
+            "value": "popup",
+            "label": "Popup/Modal"
+          }
+        ],
+        "default": "drawer",
+        "info": "Choose how the cart opens when clicking the cart icon"
       }
     ]
   }
