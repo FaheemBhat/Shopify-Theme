@@ -21,9 +21,12 @@
       --color-background: {{ scheme.settings.background }};
       --color-background-gradient: {{ scheme.settings.background_gradient }};
       --color-foreground: {{ scheme.settings.text }};
-      --color-primary: {{ scheme.settings.primary }};
-      --color-secondary: {{ scheme.settings.secondary }};
-      --color-accent: {{ scheme.settings.accent }};
+      --color-button: {{ scheme.settings.button }};
+      --color-button-label: {{ scheme.settings.button_label }};
+      --color-outline-button: {{ scheme.settings.outline_button }};
+      --color-shadow: {{ scheme.settings.shadow }};
+      --color-primary: {{ scheme.settings.button }};
+      --color-secondary: rgba({{ scheme.settings.text | color_to_rgb | remove: 'rgb(' | remove: ')' }}, 0.1);
       background-color: var(--color-background);
       color: var(--color-foreground);
     }
@@ -34,9 +37,12 @@
   :root, body.color-scheme-1 {
     --color-background: {{ light_scheme.settings.background }};
     --color-foreground: {{ light_scheme.settings.text }};
-    --color-primary: {{ light_scheme.settings.primary }};
-    --color-secondary: {{ light_scheme.settings.secondary }};
-    --color-accent: {{ light_scheme.settings.accent }};
+    --color-button: {{ light_scheme.settings.button }};
+    --color-button-label: {{ light_scheme.settings.button_label }};
+    --color-outline-button: {{ light_scheme.settings.outline_button }};
+    --color-shadow: {{ light_scheme.settings.shadow }};
+    --color-primary: {{ light_scheme.settings.button }};
+    --color-secondary: rgba({{ light_scheme.settings.text | color_to_rgb | remove: 'rgb(' | remove: ')' }}, 0.1);
   }
 
   {% # Dark scheme %}
@@ -44,9 +50,12 @@
   body.color-scheme-2 {
     --color-background: {{ dark_scheme.settings.background }};
     --color-foreground: {{ dark_scheme.settings.text }};
-    --color-primary: {{ dark_scheme.settings.primary }};
-    --color-secondary: {{ dark_scheme.settings.secondary }};
-    --color-accent: {{ dark_scheme.settings.accent }};
+    --color-button: {{ dark_scheme.settings.button }};
+    --color-button-label: {{ dark_scheme.settings.button_label }};
+    --color-outline-button: {{ dark_scheme.settings.outline_button }};
+    --color-shadow: {{ dark_scheme.settings.shadow }};
+    --color-primary: {{ dark_scheme.settings.button }};
+    --color-secondary: rgba({{ dark_scheme.settings.text | color_to_rgb | remove: 'rgb(' | remove: ')' }}, 0.1);
   }
 
   body {

@@ -78,6 +78,47 @@ body {
   color: var(--color-foreground);
 }
 
+/** Button styles */
+button,
+input[type="submit"],
+input[type="button"] {
+  background-color: var(--color-button);
+  color: var(--color-button-label);
+  border: 2px solid var(--color-button);
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover {
+  opacity: 0.9;
+}
+
+button:active,
+input[type="submit"]:active,
+input[type="button"]:active {
+  transform: scale(0.98);
+}
+
+/** Outline button variant */
+.button--outline {
+  background-color: transparent;
+  color: var(--color-outline-button);
+  border: 2px solid var(--color-outline-button);
+}
+
+.button--outline:hover {
+  background-color: var(--color-outline-button);
+  color: var(--color-button-label);
+  opacity: 1;
+}
+
 /** Section layout utilities */
 
 /**

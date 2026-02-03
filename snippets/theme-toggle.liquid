@@ -43,18 +43,24 @@
   border: none;
   border-radius: 50%;
   background: transparent;
+  color: var(--color-foreground);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: color 0.3s ease, background-color 0.2s ease;
 }
 
 .theme-toggle:hover {
-  background: rgba(0, 0, 0, 0.1);
+  color: var(--color-button);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .theme-toggle__icon {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.theme-toggle__icon svg {
+  color: inherit;
 }
 
 .theme-toggle__icon--dark {
