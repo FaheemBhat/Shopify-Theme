@@ -209,11 +209,13 @@
 
   {% if section.settings.show_search_mobile %}
     <div class="mobile-menu-search">
-      <form action="{{ routes.search_url }}" method="get" role="search">
+      <form action="{{ routes.search_url }}" method="get" role="search" class="mobile-search-form">
         <input type="hidden" name="type" value="product">
-        <input type="search" name="q" placeholder="Search..." class="mobile-search-input">
+        <input type="search" id="MobileSearchInput" name="q" placeholder="Search..." class="mobile-search-input" autocomplete="off">
         <button type="submit" class="mobile-search-btn">Search</button>
       </form>
+      <div id="MobilePredictiveResults" class="mobile-predictive-search"></div>
+      <div id="MobileRecentSearches" class="mobile-recent-searches"></div>
     </div>
   {% endif %}
 </div>
@@ -886,6 +888,79 @@ body.has-sticky-header {
   opacity: 0.9;
 }
 
+/* Mobile Predictive Search */
+.mobile-menu-search {
+  position: relative;
+}
+
+.mobile-predictive-search,
+.mobile-recent-searches {
+  background: var(--color-background);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: none;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.mobile-predictive-search a,
+.mobile-recent-searches div {
+  display: block;
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--color-secondary);
+  font-size: 14px;
+  color: var(--color-foreground);
+  text-decoration: none;
+}
+
+.mobile-predictive-search a:last-child,
+.mobile-recent-searches div:last-child {
+  border-bottom: none;
+}
+
+.mobile-predictive-search a:hover,
+.mobile-recent-searches div:hover {
+  background: var(--color-secondary);
+}
+
+.mobile-predictive-search .search-item {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-predictive-search .search-item img {
+  width: 45px;
+  height: 45px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.mobile-predictive-search .search-title {
+  font-weight: 500;
+}
+
+.mobile-predictive-search .search-price {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.mobile-predictive-search .no-results {
+  padding: 16px;
+  text-align: center;
+  color: var(--color-foreground);
+  opacity: 0.7;
+}
+
+.mobile-predictive-search .view-all {
+  font-weight: 600;
+  text-align: center;
+  background: var(--color-secondary);
+}
+
 .mobile-menu-overlay {
   position: fixed;
   top: 0;
@@ -1168,6 +1243,95 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!e.target.closest('.header__search')) {
         results.style.display = 'none';
         if (recentBox) recentBox.style.display = 'none';
+      }
+    });
+  }
+
+  // Mobile Predictive Search
+  const mobileInput = document.getElementById('MobileSearchInput');
+  const mobileResults = document.getElementById('MobilePredictiveResults');
+  const mobileRecentBox = document.getElementById('MobileRecentSearches');
+
+  if (mobileInput && mobileResults) {
+    let mobileController;
+
+    function highlight(text, query) {
+      const reg = new RegExp(`(${query})`, 'gi');
+      return text.replace(reg, '<span class="highlight">$1</span>');
+    }
+
+    function saveRecent(query) {
+      let searches = JSON.parse(localStorage.getItem('recent_searches') || '[]');
+      searches = searches.filter(s => s !== query);
+      searches.unshift(query);
+      localStorage.setItem('recent_searches', JSON.stringify(searches.slice(0, 5)));
+    }
+
+    function showMobileRecent() {
+      const searches = JSON.parse(localStorage.getItem('recent_searches') || '[]');
+      if (!searches.length) return;
+
+      mobileRecentBox.innerHTML = searches.map(s => `<div>${s}</div>`).join('');
+      mobileRecentBox.style.display = 'block';
+    }
+
+    mobileInput.addEventListener('focus', showMobileRecent);
+
+    if (mobileRecentBox) {
+      mobileRecentBox.addEventListener('click', e => {
+        if (e.target.tagName === 'DIV') {
+          mobileInput.value = e.target.innerText;
+          mobileInput.dispatchEvent(new Event('input'));
+          mobileRecentBox.style.display = 'none';
+        }
+      });
+    }
+
+    mobileInput.addEventListener('input', async () => {
+      const query = mobileInput.value.trim();
+      if (mobileRecentBox) mobileRecentBox.style.display = 'none';
+
+      if (query.length < 2) {
+        mobileResults.style.display = 'none';
+        return;
+      }
+
+      mobileResults.innerHTML = '<div class="no-results">Searching...</div>';
+      mobileResults.style.display = 'block';
+
+      if (mobileController) mobileController.abort();
+      mobileController = new AbortController();
+
+      try {
+        const res = await fetch(`/search/suggest.json?q=${query}&resources[type]=product&resources[limit]=6`);
+        const data = await res.json();
+        const products = data.resources.results.products;
+
+        saveRecent(query);
+
+        if (!products.length) {
+          mobileResults.innerHTML = `<div class="no-results">No results found for "${query}"</div>`;
+          return;
+        }
+
+        mobileResults.innerHTML = products.map(p => `
+          <a href="${p.url}" class="search-item">
+            <img src="${p.featured_image.url}" alt="${p.title}">
+            <div>
+              <div class="search-title">${highlight(p.title, query)}</div>
+              <div class="search-price">₹${(p.price / 100).toFixed(2)}</div>
+            </div>
+          </a>
+        `).join('') + `<a class="view-all" href="/search?q=${query}&type=product">View all results →</a>`;
+      } catch (error) {
+        console.error('Mobile search error:', error);
+      }
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.mobile-menu-search')) {
+        mobileResults.style.display = 'none';
+        if (mobileRecentBox) mobileRecentBox.style.display = 'none';
       }
     });
   }

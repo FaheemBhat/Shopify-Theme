@@ -15,9 +15,11 @@
               alt="{{ block.settings.title | escape }}"
               loading="lazy"
               class="collection-image"
-              width="800"
-              height="600">
+              width="1400"
+              height="1400">
           {% endif %}
+
+          <span class="collection-overlay" style="background-color: {{ section.settings.overlay_color }}; opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"></span>
 
           <div class="collection-content">
             {% if block.settings.subtitle != blank %}
@@ -80,12 +82,26 @@
 }
 
 .collection-image {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-  transition: transform .5s ease;
+  transition: transform .5s ease, opacity .3s ease;
   display: block;
+}
+
+.collection-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  transition: opacity .3s ease;
 }
 
 .collection-link:hover .collection-image {
@@ -97,6 +113,7 @@
   left: 40px;
   color: var(--color-foreground);
   max-width: 80%;
+  z-index: 2;
   transition: all 0.3s ease;
 }
 
@@ -307,6 +324,26 @@
         }
       ],
       "default": "bottom"
+    },
+    {
+      "type": "header",
+      "content": "Image Overlay"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 0
     },
     {
       "type": "header",
