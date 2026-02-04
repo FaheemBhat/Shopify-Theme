@@ -1,0 +1,551 @@
+{% liquid
+  assign layout = section.settings.layout
+  assign columns = section.settings.columns
+  assign badge_style = section.settings.badge_style
+  assign icon_size = section.settings.icon_size
+  assign show_dividers = section.settings.show_dividers
+  assign text_alignment = section.settings.text_alignment
+  assign heading = section.settings.heading
+%}
+
+<div class="trust-badges-section color-{{ section.settings.color_scheme }}"
+     style="padding-top: {{ section.settings.padding_top }}px; padding-bottom: {{ section.settings.padding_bottom }}px;">
+
+  <div class="trust-badges-container {% if layout == 'full-width' %}full-width{% else %}contained{% endif %}">
+
+    {% if heading != blank %}
+      <p class="trust-badges-heading">{{ heading }}</p>
+    {% endif %}
+
+    <div class="trust-badges-grid badges-{{ badge_style }} text-{{ text_alignment }} {% if show_dividers %}has-dividers{% endif %}"
+         style="--badge-columns: {{ columns }}; --icon-size: {{ icon_size }}px;">
+
+      {% for block in section.blocks %}
+        <div class="trust-badge" {{ block.shopify_attributes }}>
+
+          {% if show_dividers and forloop.index > 1 %}
+            <span class="badge-divider" aria-hidden="true"></span>
+          {% endif %}
+
+          <div class="badge-inner">
+            <div class="badge-icon-wrap">
+              {% if block.settings.image %}
+                {% assign icon_width_2x = icon_size | times: 2 %}
+                <img
+                  src="{{ block.settings.image | image_url: width: icon_width_2x }}"
+                  alt="{{ block.settings.image.alt | default: block.settings.title | escape }}"
+                  width="{{ icon_size }}"
+                  height="{{ icon_size }}"
+                  loading="lazy"
+                  class="badge-icon">
+              {% else %}
+                <div class="badge-icon-placeholder">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    {% case forloop.index %}
+                      {% when 1 %}
+                        <!-- Shield check -->
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="M9 12l2 2 4-4"/>
+                      {% when 2 %}
+                        <!-- Truck -->
+                        <path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                      {% when 3 %}
+                        <!-- Refresh/return -->
+                        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                      {% when 4 %}
+                        <!-- Headphones/support -->
+                        <path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/>
+                      {% else %}
+                        <!-- Star -->
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    {% endcase %}
+                  </svg>
+                </div>
+              {% endif %}
+            </div>
+
+            {% if block.settings.title != blank %}
+              <h3 class="badge-title">{{ block.settings.title }}</h3>
+            {% endif %}
+
+            {% if block.settings.subtitle != blank %}
+              <p class="badge-subtitle">{{ block.settings.subtitle }}</p>
+            {% endif %}
+          </div>
+
+        </div>
+      {% endfor %}
+
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ========================================
+     TRUST BADGES SECTION
+     ======================================== */
+
+  .trust-badges-section {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .trust-badges-container {
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .trust-badges-container.contained {
+    max-width: 1400px;
+  }
+
+  .trust-badges-container.full-width {
+    max-width: 100%;
+  }
+
+  /* ---- Section Heading ---- */
+  .trust-badges-heading {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-align: center;
+    opacity: 0.4;
+    margin: 0 0 40px;
+    font-weight: 500;
+  }
+
+  /* ---- Grid ---- */
+  .trust-badges-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--badge-columns), 1fr);
+    gap: 0;
+  }
+
+  /* ---- Text Alignment ---- */
+  .text-center .badge-inner { text-align: center; align-items: center; }
+  .text-left .badge-inner { text-align: left; align-items: flex-start; }
+
+  /* ---- Individual Badge ---- */
+  .trust-badge {
+    position: relative;
+    padding: 0 32px;
+  }
+
+  .badge-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 20px 0;
+  }
+
+  /* ---- Dividers ---- */
+  .has-dividers .trust-badge {
+    position: relative;
+  }
+
+  .badge-divider {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 48px;
+    background: color-mix(in srgb, var(--color-foreground) 12%, transparent);
+  }
+
+  /* ---- Icon ---- */
+  .badge-icon-wrap {
+    margin-bottom: 20px;
+    line-height: 0;
+  }
+
+  .badge-icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    object-fit: contain;
+    display: block;
+  }
+
+  .text-center .badge-icon {
+    margin: 0 auto;
+  }
+
+  .badge-icon-placeholder {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-foreground) 5%, transparent);
+    color: var(--color-foreground);
+    opacity: 0.5;
+  }
+
+  .text-center .badge-icon-placeholder {
+    margin: 0 auto;
+  }
+
+  .badge-icon-placeholder svg {
+    width: 50%;
+    height: 50%;
+  }
+
+  /* ---- Typography ---- */
+  .badge-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 6px;
+    color: var(--color-foreground);
+    line-height: 1.3;
+  }
+
+  .badge-subtitle {
+    font-size: 13px;
+    margin: 0;
+    opacity: 0.5;
+    line-height: 1.5;
+    color: var(--color-foreground);
+  }
+
+  /* ========================================
+     BADGE STYLES
+     ======================================== */
+
+  /* -- Style: Clean (default) -- */
+  .badges-clean .badge-inner {
+    padding: 20px 0;
+  }
+
+  /* -- Style: Bordered -- */
+  .badges-bordered .trust-badge {
+    padding: 0;
+  }
+
+  .badges-bordered .badge-inner {
+    border: 1px solid color-mix(in srgb, var(--color-foreground) 10%, transparent);
+    border-radius: 16px;
+    padding: 32px 24px;
+    margin: 0 10px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .badges-bordered .badge-inner:hover {
+    border-color: color-mix(in srgb, var(--color-foreground) 20%, transparent);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--color-foreground) 4%, transparent);
+  }
+
+  .badges-bordered .badge-divider {
+    display: none;
+  }
+
+  /* -- Style: Filled -- */
+  .badges-filled .trust-badge {
+    padding: 0;
+  }
+
+  .badges-filled .badge-inner {
+    background: color-mix(in srgb, var(--color-foreground) 4%, transparent);
+    border-radius: 16px;
+    padding: 32px 24px;
+    margin: 0 10px;
+    transition: background 0.3s ease;
+  }
+
+  .badges-filled .badge-inner:hover {
+    background: color-mix(in srgb, var(--color-foreground) 7%, transparent);
+  }
+
+  .badges-filled .badge-divider {
+    display: none;
+  }
+
+  /* -- Style: Minimal -- */
+  .badges-minimal .badge-inner {
+    padding: 20px 0;
+  }
+
+  .badges-minimal .badge-title {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+
+  .badges-minimal .badge-subtitle {
+    font-size: 12px;
+  }
+
+  /* ========================================
+     RESPONSIVE
+     ======================================== */
+
+  @media screen and (max-width: 990px) {
+    .trust-badges-grid {
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 8px;
+    }
+
+    .trust-badge {
+      padding: 0 20px;
+    }
+
+    /* Hide dividers that don't make sense in 2-col */
+    .has-dividers .trust-badge:nth-child(odd) .badge-divider {
+      display: none;
+    }
+
+    .badges-bordered .badge-inner,
+    .badges-filled .badge-inner {
+      margin: 0 6px;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .trust-badges-grid {
+      grid-template-columns: 1fr 1fr;
+      row-gap: 4px;
+    }
+
+    .trust-badges-heading {
+      font-size: 11px;
+      letter-spacing: 2px;
+      margin-bottom: 28px;
+    }
+
+    .trust-badge {
+      padding: 0 12px;
+    }
+
+    .badge-icon-wrap {
+      margin-bottom: 14px;
+    }
+
+    .badge-title {
+      font-size: 12px;
+    }
+
+    .badge-subtitle {
+      font-size: 11px;
+    }
+
+    .badge-divider {
+      height: 32px;
+    }
+
+    .badges-bordered .badge-inner,
+    .badges-filled .badge-inner {
+      padding: 24px 16px;
+      margin: 0 4px;
+      border-radius: 12px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Trust Badges",
+  "tag": "section",
+  "class": "section-trust-badges",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "contained",
+          "label": "Container (1400px max)"
+        }
+      ],
+      "default": "contained"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns (desktop)",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4,
+      "info": "Automatically adjusts to 2 columns on mobile"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "select",
+      "id": "badge_style",
+      "label": "Badge style",
+      "options": [
+        {
+          "value": "clean",
+          "label": "Clean"
+        },
+        {
+          "value": "bordered",
+          "label": "Bordered cards"
+        },
+        {
+          "value": "filled",
+          "label": "Filled cards"
+        },
+        {
+          "value": "minimal",
+          "label": "Minimal"
+        }
+      ],
+      "default": "clean"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dividers",
+      "label": "Show dividers between badges",
+      "default": true,
+      "info": "Only visible in Clean and Minimal styles"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon size",
+      "min": 28,
+      "max": 72,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section label",
+      "info": "Optional small label above the badges"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 120,
+      "step": 10,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 120,
+      "step": 10,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "badge",
+      "name": "Badge",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Icon image",
+          "info": "Recommended: square PNG or SVG, 88x88px or larger"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Heading",
+          "default": "Trust Badge"
+        },
+        {
+          "type": "text",
+          "id": "subtitle",
+          "label": "Subtitle",
+          "default": "Short description here"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Trust Badges",
+      "blocks": [
+        {
+          "type": "badge",
+          "settings": {
+            "title": "Secure Checkout",
+            "subtitle": "SSL encrypted payments"
+          }
+        },
+        {
+          "type": "badge",
+          "settings": {
+            "title": "Free Shipping",
+            "subtitle": "On orders over $50"
+          }
+        },
+        {
+          "type": "badge",
+          "settings": {
+            "title": "Easy Returns",
+            "subtitle": "30-day return policy"
+          }
+        },
+        {
+          "type": "badge",
+          "settings": {
+            "title": "24/7 Support",
+            "subtitle": "We're here to help"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

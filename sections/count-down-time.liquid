@@ -1,0 +1,867 @@
+{% liquid
+  assign layout = section.settings.layout
+  assign image_position = section.settings.image_position
+  assign end_date = section.settings.end_date
+  assign end_time = section.settings.end_time
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign button_text = section.settings.button_text
+  assign button_link = section.settings.button_link
+  assign badge_text = section.settings.badge_text
+  assign expired_message = section.settings.expired_message
+  assign hide_when_expired = section.settings.hide_when_expired
+  assign show_separator = section.settings.show_separator
+  assign timer_style = section.settings.timer_style
+  assign section_height = section.settings.section_height
+  assign overlay_opacity = section.settings.overlay_opacity
+  assign accent_color = section.settings.accent_color
+  assign image = section.settings.image
+  assign mobile_image = section.settings.mobile_image
+%}
+
+<div class="countdown-section {% if layout == 'full-width' %}full-width{% else %}container{% endif %} color-{{ section.settings.color_scheme }}"
+     data-section-id="{{ section.id }}"
+     data-end-date="{{ end_date }}"
+     data-end-time="{{ end_time }}"
+     data-hide-expired="{{ hide_when_expired }}"
+     style="--countdown-accent: {{ accent_color }}; --countdown-height: {{ section_height }}px;">
+
+  <div class="countdown-grid {% if image_position == 'right' %}image-right{% endif %}">
+
+    <!-- Image Column -->
+    <div class="countdown-image-col">
+      <div class="countdown-image-wrapper">
+        {% if image %}
+          <picture>
+            {% if mobile_image %}
+              <source media="(max-width: 768px)" srcset="{{ mobile_image | image_url: width: 800 }}">
+            {% endif %}
+            <img
+              src="{{ image | image_url: width: 1200 }}"
+              alt="{{ image.alt | default: heading | escape }}"
+              width="{{ image.width }}"
+              height="{{ image.height }}"
+              loading="lazy"
+              class="countdown-image">
+          </picture>
+        {% else %}
+          <div class="countdown-placeholder">
+            {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder-svg' }}
+          </div>
+        {% endif %}
+        <div class="countdown-image-overlay" style="opacity: {{ overlay_opacity | divided_by: 100.0 }};"></div>
+      </div>
+    </div>
+
+    <!-- Timer Column -->
+    <div class="countdown-timer-col">
+      <div class="countdown-content">
+
+        {% if badge_text != blank %}
+          <div class="countdown-badge">
+            <span class="badge-dot"></span>
+            {{ badge_text }}
+          </div>
+        {% endif %}
+
+        {% if heading != blank %}
+          <h2 class="countdown-heading">{{ heading }}</h2>
+        {% endif %}
+
+        {% if subheading != blank %}
+          <p class="countdown-subheading">{{ subheading }}</p>
+        {% endif %}
+
+        <!-- Timer Display -->
+        <div class="countdown-timer timer-{{ timer_style }}" data-timer-id="{{ section.id }}">
+          <div class="timer-unit">
+            <div class="timer-value-wrap">
+              <span class="timer-value" data-days>00</span>
+            </div>
+            <span class="timer-label">Days</span>
+          </div>
+
+          {% if show_separator %}
+            <div class="timer-separator">:</div>
+          {% endif %}
+
+          <div class="timer-unit">
+            <div class="timer-value-wrap">
+              <span class="timer-value" data-hours>00</span>
+            </div>
+            <span class="timer-label">Hours</span>
+          </div>
+
+          {% if show_separator %}
+            <div class="timer-separator">:</div>
+          {% endif %}
+
+          <div class="timer-unit">
+            <div class="timer-value-wrap">
+              <span class="timer-value" data-minutes>00</span>
+            </div>
+            <span class="timer-label">Minutes</span>
+          </div>
+
+          {% if show_separator %}
+            <div class="timer-separator">:</div>
+          {% endif %}
+
+          <div class="timer-unit">
+            <div class="timer-value-wrap">
+              <span class="timer-value" data-seconds>00</span>
+            </div>
+            <span class="timer-label">Seconds</span>
+          </div>
+        </div>
+
+        <!-- Expired Message (hidden by default) -->
+        <div class="countdown-expired" style="display: none;">
+          <p class="expired-text">{{ expired_message }}</p>
+        </div>
+
+        {% if button_text != blank %}
+          <a href="{{ button_link }}" class="countdown-cta">
+            <span class="countdown-button">{{ button_text }}</span>
+          </a>
+        {% endif %}
+
+        <!-- Progress bar -->
+        {% if section.settings.show_progress %}
+          <div class="countdown-progress">
+            <div class="progress-track">
+              <div class="progress-fill" data-progress></div>
+            </div>
+            <span class="progress-label">Time remaining</span>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  /* ========================================
+     COUNTDOWN TIMER SECTION
+     ======================================== */
+
+  .countdown-section {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  .countdown-section.full-width {
+    max-width: 100%;
+  }
+
+  .countdown-section.container {
+    max-width: 1400px;
+  }
+
+  /* ---- Grid Layout ---- */
+  .countdown-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: var(--countdown-height);
+  }
+
+  .countdown-grid.image-right {
+    direction: rtl;
+  }
+
+  .countdown-grid.image-right > * {
+    direction: ltr;
+  }
+
+  /* ---- Image Column ---- */
+  .countdown-image-col {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .countdown-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .countdown-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .countdown-section:hover .countdown-image {
+    transform: scale(1.03);
+  }
+
+  .countdown-image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1));
+    pointer-events: none;
+  }
+
+  .countdown-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: var(--countdown-height);
+    background: linear-gradient(135deg, var(--countdown-accent), color-mix(in srgb, var(--countdown-accent) 60%, #000));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .countdown-placeholder .placeholder-svg {
+    width: 60%;
+    opacity: 0.3;
+  }
+
+  /* ---- Timer Column ---- */
+  .countdown-timer-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 48px;
+    position: relative;
+    background-color: var(--color-background);
+  }
+
+  .countdown-timer-col::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--countdown-accent) 8%, transparent) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .countdown-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  /* ---- Badge ---- */
+  .countdown-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    background: color-mix(in srgb, var(--countdown-accent) 12%, transparent);
+    color: var(--countdown-accent);
+    border: 1px solid color-mix(in srgb, var(--countdown-accent) 25%, transparent);
+  }
+
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--countdown-accent);
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* ---- Typography ---- */
+  .countdown-heading {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 16px;
+    color: var(--color-foreground);
+    letter-spacing: -0.02em;
+  }
+
+  .countdown-subheading {
+    font-size: clamp(15px, 1.5vw, 18px);
+    line-height: 1.6;
+    margin: 0 0 40px;
+    opacity: 0.7;
+    color: var(--color-foreground);
+  }
+
+  /* ========================================
+     TIMER STYLES
+     ======================================== */
+
+  .countdown-timer {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+
+  .timer-unit {
+    text-align: center;
+    flex: 1;
+    max-width: 100px;
+  }
+
+  .timer-value-wrap {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .timer-value {
+    display: block;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity 0.3s ease;
+  }
+
+  .timer-value.flip {
+    animation: digit-flip 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  @keyframes digit-flip {
+    0% { transform: translateY(0); opacity: 1; }
+    40% { transform: translateY(-30%); opacity: 0; }
+    60% { transform: translateY(30%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .timer-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.5;
+    margin-top: 10px;
+  }
+
+  .timer-separator {
+    font-size: 32px;
+    font-weight: 300;
+    opacity: 0.3;
+    padding-top: 12px;
+    line-height: 1;
+    user-select: none;
+  }
+
+  /* -- Style: Modern (default) -- */
+  .timer-modern .timer-value-wrap {
+    background: color-mix(in srgb, var(--color-foreground) 5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-foreground) 10%, transparent);
+    border-radius: 16px;
+    padding: 20px 12px;
+  }
+
+  .timer-modern .timer-value {
+    font-size: clamp(32px, 4vw, 48px);
+    color: var(--color-foreground);
+  }
+
+  /* -- Style: Bold -- */
+  .timer-bold .timer-value-wrap {
+    background: var(--countdown-accent);
+    border-radius: 16px;
+    padding: 22px 14px;
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--countdown-accent) 30%, transparent);
+  }
+
+  .timer-bold .timer-value {
+    font-size: clamp(32px, 4vw, 48px);
+    color: #fff;
+  }
+
+  .timer-bold .timer-label {
+    opacity: 0.7;
+  }
+
+  .timer-bold .timer-separator {
+    color: var(--countdown-accent);
+    opacity: 0.6;
+  }
+
+  /* -- Style: Minimal -- */
+  .timer-minimal .timer-value-wrap {
+    padding: 0;
+  }
+
+  .timer-minimal .timer-value {
+    font-size: clamp(40px, 5vw, 64px);
+    color: var(--color-foreground);
+  }
+
+  .timer-minimal .timer-label {
+    margin-top: 6px;
+  }
+
+  .timer-minimal .timer-separator {
+    font-size: 40px;
+    opacity: 0.15;
+    padding-top: 0;
+  }
+
+  /* -- Style: Glass -- */
+  .timer-glass .timer-value-wrap {
+    background: color-mix(in srgb, var(--color-foreground) 5%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid color-mix(in srgb, var(--color-foreground) 8%, transparent);
+    border-radius: 20px;
+    padding: 22px 14px;
+    box-shadow: 0 4px 24px color-mix(in srgb, var(--color-foreground) 4%, transparent);
+  }
+
+  .timer-glass .timer-value {
+    font-size: clamp(32px, 4vw, 48px);
+    color: var(--color-foreground);
+  }
+
+  /* ---- CTA Button (matches collection-grid style) ---- */
+  .countdown-cta {
+    display: inline-block;
+    text-decoration: none;
+    margin-bottom: 32px;
+  }
+
+  .countdown-button {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-bottom: 2px solid var(--color-button);
+    padding-bottom: 6px;
+    color: var(--color-button);
+    transition: color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .countdown-button:hover {
+    opacity: 0.8;
+  }
+
+  /* ---- Progress Bar ---- */
+  .countdown-progress {
+    margin-top: 8px;
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 4px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--color-foreground) 10%, transparent);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--countdown-accent), color-mix(in srgb, var(--countdown-accent) 70%, #fff));
+    transition: width 1s linear;
+    width: 100%;
+  }
+
+  .progress-label {
+    display: block;
+    font-size: 12px;
+    opacity: 0.4;
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ---- Expired State ---- */
+  .countdown-expired {
+    padding: 24px 0;
+  }
+
+  .expired-text {
+    font-size: 20px;
+    font-weight: 600;
+    opacity: 0.7;
+    margin: 0;
+  }
+
+  /* ========================================
+     RESPONSIVE
+     ======================================== */
+
+  @media screen and (max-width: 990px) {
+    .countdown-grid {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+
+    .countdown-grid.image-right {
+      direction: ltr;
+    }
+
+    .countdown-image-col {
+      height: 360px;
+    }
+
+    .countdown-timer-col {
+      padding: 48px 32px;
+    }
+
+    .countdown-content {
+      max-width: 100%;
+    }
+
+    .timer-separator {
+      font-size: 24px;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .countdown-image-col {
+      height: 280px;
+    }
+
+    .countdown-timer-col {
+      padding: 36px 20px;
+    }
+
+    .countdown-heading {
+      font-size: 24px;
+    }
+
+    .countdown-subheading {
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    .countdown-timer {
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .timer-modern .timer-value-wrap,
+    .timer-bold .timer-value-wrap,
+    .timer-glass .timer-value-wrap {
+      padding: 14px 8px;
+      border-radius: 12px;
+    }
+
+    .timer-value {
+      font-size: 28px !important;
+    }
+
+    .timer-separator {
+      font-size: 20px;
+      padding-top: 8px;
+    }
+
+    .timer-label {
+      font-size: 10px;
+    }
+
+    .countdown-button {
+      font-size: 11px;
+    }
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const section = document.querySelector('[data-section-id="{{ section.id }}"]');
+  if (!section) return;
+
+  const endDate = section.getAttribute('data-end-date');
+  const endTime = section.getAttribute('data-end-time') || '00:00';
+  const hideExpired = section.getAttribute('data-hide-expired') === 'true';
+
+  const timer = section.querySelector('[data-timer-id="{{ section.id }}"]');
+  const daysEl = timer.querySelector('[data-days]');
+  const hoursEl = timer.querySelector('[data-hours]');
+  const minutesEl = timer.querySelector('[data-minutes]');
+  const secondsEl = timer.querySelector('[data-seconds]');
+  const expiredEl = section.querySelector('.countdown-expired');
+  const progressEl = section.querySelector('[data-progress]');
+
+  if (!endDate) return;
+
+  const endDateTime = new Date(endDate + 'T' + endTime + ':00').getTime();
+  const startTime = Date.now();
+  const totalDuration = endDateTime - startTime;
+
+  function padZero(num) {
+    return num < 10 ? '0' + num : num.toString();
+  }
+
+  function animateValue(el, newVal) {
+    var padded = padZero(newVal);
+    if (el.textContent !== padded) {
+      el.classList.add('flip');
+      setTimeout(function() {
+        el.textContent = padded;
+        el.classList.remove('flip');
+      }, 200);
+    }
+  }
+
+  function updateCountdown() {
+    var now = Date.now();
+    var distance = endDateTime - now;
+
+    if (distance <= 0) {
+      clearInterval(interval);
+      timer.style.display = 'none';
+      if (expiredEl) expiredEl.style.display = 'block';
+      if (hideExpired) section.style.display = 'none';
+      if (progressEl) progressEl.style.width = '0%';
+      return;
+    }
+
+    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    animateValue(daysEl, days);
+    animateValue(hoursEl, hours);
+    animateValue(minutesEl, minutes);
+    animateValue(secondsEl, seconds);
+
+    if (progressEl && totalDuration > 0) {
+      var remaining = (distance / totalDuration) * 100;
+      progressEl.style.width = Math.max(0, Math.min(100, remaining)) + '%';
+    }
+  }
+
+  updateCountdown();
+  var interval = setInterval(updateCountdown, 1000);
+});
+</script>
+
+{% schema %}
+{
+  "name": "Countdown Timer",
+  "tag": "section",
+  "class": "section-countdown",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "container",
+          "label": "Container (1400px max)"
+        }
+      ],
+      "default": "full-width"
+    },
+    {
+      "type": "range",
+      "id": "section_height",
+      "label": "Section height (desktop)",
+      "min": 400,
+      "max": 800,
+      "step": 50,
+      "unit": "px",
+      "default": 600
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Desktop image",
+      "info": "Recommended: 1200x800px"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile image (optional)",
+      "info": "Recommended: 800x500px"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Image overlay opacity",
+      "min": 0,
+      "max": 80,
+      "step": 10,
+      "unit": "%",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "Countdown"
+    },
+    {
+      "type": "text",
+      "id": "end_date",
+      "label": "End date",
+      "info": "Format: YYYY-MM-DD (e.g. 2026-12-31)",
+      "default": "2026-12-31"
+    },
+    {
+      "type": "select",
+      "id": "end_time",
+      "label": "End time",
+      "options": [
+        { "value": "00:00", "label": "12:00 AM (midnight)" },
+        { "value": "06:00", "label": "6:00 AM" },
+        { "value": "09:00", "label": "9:00 AM" },
+        { "value": "12:00", "label": "12:00 PM (noon)" },
+        { "value": "15:00", "label": "3:00 PM" },
+        { "value": "18:00", "label": "6:00 PM" },
+        { "value": "21:00", "label": "9:00 PM" },
+        { "value": "23:59", "label": "11:59 PM" }
+      ],
+      "default": "23:59"
+    },
+    {
+      "type": "select",
+      "id": "timer_style",
+      "label": "Timer style",
+      "options": [
+        {
+          "value": "modern",
+          "label": "Modern"
+        },
+        {
+          "value": "bold",
+          "label": "Bold"
+        },
+        {
+          "value": "minimal",
+          "label": "Minimal"
+        },
+        {
+          "value": "glass",
+          "label": "Glass"
+        }
+      ],
+      "default": "modern"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_separator",
+      "label": "Show colon separators",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_progress",
+      "label": "Show progress bar",
+      "default": true,
+      "info": "Displays a visual bar that depletes as time passes"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Badge text",
+      "default": "Limited Offer",
+      "info": "Small label shown above the heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The Big Sale Is Coming"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Don't miss out on our biggest sale of the year. Incredible deals on all your favorites."
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Expiration"
+    },
+    {
+      "type": "text",
+      "id": "expired_message",
+      "label": "Expired message",
+      "default": "This offer has ended."
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_when_expired",
+      "label": "Hide section when expired",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#e55039",
+      "info": "Used for badge, button, and bold timer style"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Countdown Timer"
+    }
+  ]
+}
+{% endschema %}
