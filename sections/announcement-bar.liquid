@@ -31,20 +31,18 @@
   font-weight: {% if section.settings.font_bold %}700{% else %}400{% endif %};
   font-style: {% if section.settings.font_italic %}italic{% else %}normal{% endif %};
   text-align: center;
-  position: relative;
-  overflow: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  z-index: 1001;
-}
-
-/* Make announcement bar sticky when header is sticky */
-body.has-sticky-header .announcement-bar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   width: 100%;
-  z-index: 1001;
+  overflow: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+  z-index: 1002;
+}
+
+.announcement-bar.scrolled {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .announcement-slider {
@@ -92,7 +90,27 @@ document.addEventListener("DOMContentLoaded", function () {
   const slides = bar.querySelectorAll(".announcement-slide");
   const slider = bar.querySelector(".announcement-slider");
   const interval = parseInt(bar.dataset.interval);
+  const header = document.querySelector(".header-sticky");
   let index = 0;
+
+  // Set announcement bar height as CSS variable for header positioning
+  function updateAnnouncementHeight() {
+    const barHeight = bar.offsetHeight;
+    document.documentElement.style.setProperty('--announcement-bar-height', barHeight + 'px');
+  }
+  updateAnnouncementHeight();
+  window.addEventListener('resize', updateAnnouncementHeight);
+
+  // Add scrolled class for shadow effect
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      bar.classList.add('scrolled');
+      if (header) header.classList.add('scrolled');
+    } else {
+      bar.classList.remove('scrolled');
+      if (header) header.classList.remove('scrolled');
+    }
+  });
 
   function showSlide(i) {
     slider.style.transform = `translateX(-${i * 100}%)`;

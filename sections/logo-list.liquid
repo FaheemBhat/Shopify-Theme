@@ -1,0 +1,515 @@
+{% comment %}
+  Logo List Slider Section
+  Displays an infinite auto-scrolling marquee of brand/partner logos
+{% endcomment %}
+
+<section class="logo-list-section" data-section-id="{{ section.id }}">
+  <div class="logo-list-container">
+    
+    {%- comment -%} Section Header {%- endcomment -%}
+    {% if section.settings.heading != blank or section.settings.subtitle != blank %}
+      <div class="logo-list-header">
+        {% if section.settings.heading != blank %}
+          <h2 class="logo-list-heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+        {% if section.settings.subtitle != blank %}
+          <p class="logo-list-subtitle">{{ section.settings.subtitle }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {%- comment -%} Logo Marquee {%- endcomment -%}
+    {% if section.blocks.size > 0 %}
+      <div class="logo-marquee" data-speed="{{ section.settings.scroll_speed }}" data-direction="{{ section.settings.scroll_direction }}" data-pause-hover="{{ section.settings.pause_on_hover }}">
+        <div class="logo-marquee-track">
+          {%- comment -%} Original logos {%- endcomment -%}
+          {% for block in section.blocks %}
+            <div class="logo-slide" {{ block.shopify_attributes }}>
+              {% if block.settings.link != blank %}
+                <a href="{{ block.settings.link }}" class="logo-link" {% if block.settings.open_new_tab %}target="_blank" rel="noopener"{% endif %}>
+              {% endif %}
+              
+              {% if block.settings.logo != blank %}
+                <img
+                  src="{{ block.settings.logo | image_url: width: 300 }}"
+                  alt="{{ block.settings.logo.alt | default: block.settings.logo_name | escape }}"
+                  class="logo-image"
+                  loading="lazy"
+                  width="150"
+                  height="80"
+                >
+              {% else %}
+                <div class="logo-placeholder">
+                  <span>{{ block.settings.logo_name | default: 'Logo' }}</span>
+                </div>
+              {% endif %}
+
+              {% if block.settings.link != blank %}
+                </a>
+              {% endif %}
+            </div>
+          {% endfor %}
+
+          {%- comment -%} Duplicate logos for seamless loop {%- endcomment -%}
+          {% for block in section.blocks %}
+            <div class="logo-slide" aria-hidden="true">
+              {% if block.settings.link != blank %}
+                <a href="{{ block.settings.link }}" class="logo-link" tabindex="-1" {% if block.settings.open_new_tab %}target="_blank" rel="noopener"{% endif %}>
+              {% endif %}
+              
+              {% if block.settings.logo != blank %}
+                <img
+                  src="{{ block.settings.logo | image_url: width: 300 }}"
+                  alt=""
+                  class="logo-image"
+                  loading="lazy"
+                  width="150"
+                  height="80"
+                >
+              {% else %}
+                <div class="logo-placeholder">
+                  <span>{{ block.settings.logo_name | default: 'Logo' }}</span>
+                </div>
+              {% endif %}
+
+              {% if block.settings.link != blank %}
+                </a>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <div class="no-logos-message">
+        <p>Add logo blocks in the theme editor.</p>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<style>
+  .logo-list-section {
+    --section-bg: {{ section.settings.background_color }};
+    --heading-color: {{ section.settings.heading_color }};
+    --subtitle-color: {{ section.settings.subtitle_color }};
+    --logo-bg: {{ section.settings.logo_background }};
+    --scroll-speed: {{ section.settings.scroll_speed }}s;
+    
+    background-color: var(--section-bg);
+    padding: {{ section.settings.padding_top }}px 0 {{ section.settings.padding_bottom }}px;
+    overflow: hidden;
+  }
+
+  .logo-list-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* Header */
+  .logo-list-header {
+    text-align: {{ section.settings.header_alignment }};
+    margin-bottom: 40px;
+  }
+
+  .logo-list-heading {
+    font-size: {{ section.settings.heading_size }}px;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin: 0 0 12px;
+    line-height: 1.2;
+  }
+
+  .logo-list-subtitle {
+    font-size: {{ section.settings.subtitle_size }}px;
+    color: var(--subtitle-color);
+    margin: 0;
+    line-height: 1.5;
+    max-width: 600px;
+    {% if section.settings.header_alignment == 'center' %}
+      margin-left: auto;
+      margin-right: auto;
+    {% elsif section.settings.header_alignment == 'right' %}
+      margin-left: auto;
+    {% endif %}
+  }
+
+  /* Marquee */
+  .logo-marquee {
+    overflow: hidden;
+    width: 100%;
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  }
+
+  .logo-marquee-track {
+    display: flex;
+    gap: {{ section.settings.logo_gap }}px;
+    width: max-content;
+    animation: marquee-scroll var(--scroll-speed) linear infinite;
+  }
+
+  .logo-marquee[data-direction="right"] .logo-marquee-track {
+    animation-name: marquee-scroll-reverse;
+  }
+
+  .logo-marquee[data-pause-hover="true"]:hover .logo-marquee-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee-scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes marquee-scroll-reverse {
+    0% {
+      transform: translateX(-50%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  /* Logo Slide */
+  .logo-slide {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: {{ section.settings.logo_padding }}px;
+    background: var(--logo-bg);
+    border-radius: 12px;
+    min-width: {{ section.settings.logo_width }}px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .logo-slide:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  .logo-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .logo-image {
+    max-width: 100%;
+    max-height: {{ section.settings.logo_height }}px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: {% if section.settings.grayscale_logos %}grayscale(100%){% else %}none{% endif %};
+    opacity: {% if section.settings.grayscale_logos %}0.7{% else %}1{% endif %};
+    transition: filter 0.3s ease, opacity 0.3s ease;
+  }
+
+  .logo-slide:hover .logo-image {
+    filter: grayscale(0%);
+    opacity: 1;
+  }
+
+  .logo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--subtitle-color);
+  }
+
+  .no-logos-message {
+    text-align: center;
+    padding: 40px;
+    color: var(--subtitle-color);
+    font-size: 14px;
+  }
+
+  /* Responsive */
+  @media screen and (max-width: 768px) {
+    .logo-list-container {
+      padding: 0 20px;
+    }
+
+    .logo-list-header {
+      margin-bottom: 30px;
+    }
+
+    .logo-list-heading {
+      font-size: calc({{ section.settings.heading_size }}px * 0.75);
+    }
+
+    .logo-slide {
+      min-width: calc({{ section.settings.logo_width }}px * 0.8);
+      padding: calc({{ section.settings.logo_padding }}px * 0.8);
+    }
+
+    .logo-image {
+      max-height: calc({{ section.settings.logo_height }}px * 0.8);
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .logo-list-container {
+      padding: 0 16px;
+    }
+
+    .logo-slide {
+      min-width: calc({{ section.settings.logo_width }}px * 0.6);
+      padding: calc({{ section.settings.logo_padding }}px * 0.6);
+    }
+
+    .logo-image {
+      max-height: calc({{ section.settings.logo_height }}px * 0.6);
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Logo List Slider",
+  "tag": "section",
+  "class": "logo-list-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Trusted by leading brands"
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "We're proud to partner with these amazing companies"
+    },
+    {
+      "type": "select",
+      "id": "header_alignment",
+      "label": "Header alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Autoplay"
+    },
+    {
+      "type": "range",
+      "id": "scroll_speed",
+      "label": "Scroll speed",
+      "info": "Lower = faster",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "s",
+      "default": 30
+    },
+    {
+      "type": "select",
+      "id": "scroll_direction",
+      "label": "Scroll direction",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "Pause on hover",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Logo Settings"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "label": "Logo card width",
+      "min": 100,
+      "max": 250,
+      "step": 10,
+      "unit": "px",
+      "default": 160
+    },
+    {
+      "type": "range",
+      "id": "logo_height",
+      "label": "Logo max height",
+      "min": 40,
+      "max": 120,
+      "step": 5,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "logo_padding",
+      "label": "Logo card padding",
+      "min": 10,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "logo_gap",
+      "label": "Gap between logos",
+      "min": 12,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "checkbox",
+      "id": "grayscale_logos",
+      "label": "Grayscale logos (color on hover)",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size",
+      "min": 20,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "subtitle_size",
+      "label": "Subtitle size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "subtitle_color",
+      "label": "Subtitle color",
+      "default": "#666666"
+    },
+    {
+      "type": "color",
+      "id": "logo_background",
+      "label": "Logo card background",
+      "default": "#f8f8f8"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "Logo image"
+        },
+        {
+          "type": "text",
+          "id": "logo_name",
+          "label": "Logo name (alt text)",
+          "default": "Brand name"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (optional)"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_new_tab",
+          "label": "Open link in new tab",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Logo List Slider",
+      "blocks": [
+        { "type": "logo", "settings": { "logo_name": "Brand 1" } },
+        { "type": "logo", "settings": { "logo_name": "Brand 2" } },
+        { "type": "logo", "settings": { "logo_name": "Brand 3" } },
+        { "type": "logo", "settings": { "logo_name": "Brand 4" } },
+        { "type": "logo", "settings": { "logo_name": "Brand 5" } },
+        { "type": "logo", "settings": { "logo_name": "Brand 6" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

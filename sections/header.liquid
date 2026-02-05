@@ -25,8 +25,8 @@
       </svg>
     </button>
 
-    <!-- Logo Section -->
-    <div class="header__logo">
+    <!-- Logo Section (Desktop only) -->
+    <div class="header__logo desktop-only">
       <a href="{{ routes.root_url }}" class="header__logo-link">
         {% if settings.logo != blank %}
           <img
@@ -41,6 +41,26 @@
           <h1 class="header__title">{{ shop.name }}</h1>
         {% endif %}
       </a>
+    </div>
+
+    <!-- Mobile Search Bar (replaces logo on mobile) -->
+    <div class="header__mobile-search mobile-only">
+      <form action="{{ routes.search_url }}" method="get" role="search" class="mobile-header-search-form">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" class="mobile-header-search-icon">
+          <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+          <path d="M12.5 12.5L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="hidden" name="type" value="product">
+        <input
+          type="search"
+          id="MobileHeaderSearchInput"
+          name="q"
+          placeholder="Search products..."
+          autocomplete="off"
+          class="mobile-header-search-input"
+        />
+      </form>
+      <div id="MobileHeaderPredictiveResults" class="mobile-header-predictive-search"></div>
     </div>
 
     <!-- Desktop Menu -->
@@ -172,8 +192,20 @@
 </header>
 
 <!-- Mobile Menu Drawer - Outside header for proper z-index stacking -->
-<div class="mobile-menu-drawer mobile-only">
+{% assign mobile_logo_pos = section.settings.mobile_menu_logo_position | default: 'top-left' %}
+<div class="mobile-menu-drawer mobile-only mobile-logo-{{ mobile_logo_pos }}">
   <div class="mobile-menu-header">
+    {% if mobile_logo_pos == 'top-left' or mobile_logo_pos == 'top-center' or mobile_logo_pos == 'top-right' %}
+      <div class="mobile-menu-logo">
+        <a href="{{ routes.root_url }}">
+          {% if settings.logo != blank %}
+            <img src="{{ settings.logo | image_url: width: section.settings.mobile_menu_logo_width }}" alt="{{ shop.name }}" class="mobile-menu-logo-img" width="{{ section.settings.mobile_menu_logo_width }}" height="auto" loading="lazy">
+          {% else %}
+            <span class="mobile-menu-logo-text">{{ shop.name }}</span>
+          {% endif %}
+        </a>
+      </div>
+    {% endif %}
     <button class="mobile-menu-close" aria-label="Close menu">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -207,15 +239,16 @@
     </ul>
   </nav>
 
-  {% if section.settings.show_search_mobile %}
-    <div class="mobile-menu-search">
-      <form action="{{ routes.search_url }}" method="get" role="search" class="mobile-search-form">
-        <input type="hidden" name="type" value="product">
-        <input type="search" id="MobileSearchInput" name="q" placeholder="Search..." class="mobile-search-input" autocomplete="off">
-        <button type="submit" class="mobile-search-btn">Search</button>
-      </form>
-      <div id="MobilePredictiveResults" class="mobile-predictive-search"></div>
-      <div id="MobileRecentSearches" class="mobile-recent-searches"></div>
+
+  {% if mobile_logo_pos == 'bottom-left' or mobile_logo_pos == 'bottom-center' or mobile_logo_pos == 'bottom-right' %}
+    <div class="mobile-menu-logo mobile-menu-logo--bottom">
+      <a href="{{ routes.root_url }}">
+        {% if settings.logo != blank %}
+          <img src="{{ settings.logo | image_url: width: section.settings.mobile_menu_logo_width }}" alt="{{ shop.name }}" class="mobile-menu-logo-img" width="{{ section.settings.mobile_menu_logo_width }}" height="auto" loading="lazy">
+        {% else %}
+          <span class="mobile-menu-logo-text">{{ shop.name }}</span>
+        {% endif %}
+      </a>
     </div>
   {% endif %}
 </div>
@@ -225,36 +258,64 @@
 {% stylesheet %}
 /* Header Base Styles */
 .site-header {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  transition: all 0.3s ease;
   width: 100%;
   position: relative;
   z-index: 100;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  transition: background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
 }
 
 .header-sticky {
   position: fixed;
-  top: 0;
+  top: var(--announcement-bar-height, 0px);
   left: 0;
   right: 0;
   z-index: 1000;
   will-change: transform;
   transform: translateY(0);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, top 0.3s ease, background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
 }
 
+.header-sticky.announcement-hidden {
+  top: 0;
+}
+
+/* Scrolled: always white background with dark text */
 .header-sticky.scrolled {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  background: #fff !important;
+  color: #222 !important;
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.08);
+}
+
+.header-sticky.scrolled .header__menu-link,
+.header-sticky.scrolled .header__icon,
+.header-sticky.scrolled .header__title,
+.header-sticky.scrolled .header__logo-link,
+.header-sticky.scrolled .header__mobile-menu-btn,
+.header-sticky.scrolled .search-btn,
+.header-sticky.scrolled .search-input,
+.header-sticky.scrolled .dropdown-icon {
+  color: #222;
+}
+
+.header-sticky.scrolled .header__search-form {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.header-sticky.scrolled .search-input::placeholder {
+  color: #222;
+  opacity: 0.5;
+}
+
+/* Remove logo invert on scrolled */
+.header-sticky.scrolled .header__logo-image {
+  filter: none;
 }
 
 .header-sticky.hidden {
   transform: translateY(-100%);
-}
-
-/* Add spacer when header is fixed to prevent content jump */
-body.has-sticky-header {
-  padding-top: var(--header-height, 70px);
 }
 
 .header-wrapper {
@@ -263,8 +324,7 @@ body.has-sticky-header {
   justify-content: space-between;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
-  min-height: 70px;
+  padding: 10px 20px;
 }
 
 /* Logo Positioning Layouts */
@@ -351,20 +411,24 @@ body.has-sticky-header {
 .header__logo-link {
   display: block;
   text-decoration: none;
-  color: var(--color-foreground);
+  color: inherit;
+  transition: color 0.4s ease;
 }
 
 .header__logo-image {
   display: block;
   max-width: 100%;
   height: auto;
+  transition: filter 0.4s ease;
 }
+
 
 .header__title {
   font-size: 24px;
   font-weight: 700;
   margin: 0;
-  color: var(--color-foreground);
+  color: inherit;
+  transition: color 0.4s ease;
 }
 
 /* Desktop Menu Styles */
@@ -386,15 +450,15 @@ body.has-sticky-header {
   align-items: center;
   gap: 5px;
   text-decoration: none;
-  color: var(--color-foreground);
+  color: inherit;
   font-size: 15px;
   font-weight: 500;
   padding: 10px 0;
-  transition: color 0.2s;
+  transition: color 0.4s ease;
 }
 
 .header__menu-link:hover {
-  color: var(--color-primary);
+  opacity: 0.7;
 }
 
 .dropdown-icon {
@@ -521,12 +585,12 @@ body.has-sticky-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 20px;
   padding: 8px 16px;
   min-width: 200px;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
 }
 
 .header__search-form:focus-within {
@@ -541,31 +605,33 @@ body.has-sticky-header {
   border: none;
   background: transparent;
   outline: none;
-  color: var(--color-foreground);
+  color: inherit;
   font-size: 14px;
   width: 100%;
+  transition: color 0.4s ease;
 }
 
 .search-input::placeholder {
-  color: var(--color-foreground);
+  color: inherit;
   opacity: 0.5;
+  transition: color 0.4s ease;
 }
 
 .search-btn {
   background: none;
   border: none;
-  color: var(--color-foreground);
+  color: inherit;
   cursor: pointer;
   padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
+  transition: color 0.4s ease;
   flex-shrink: 0;
 }
 
 .search-btn:hover {
-  color: var(--color-primary);
+  opacity: 0.7;
 }
 
 /* Predictive Search */
@@ -645,17 +711,17 @@ body.has-sticky-header {
 }
 
 .header__icon {
-  color: var(--color-foreground);
+  color: inherit;
   text-decoration: none;
   position: relative;
   display: flex;
   align-items: center;
   padding: 8px;
-  transition: color 0.2s;
+  transition: color 0.4s ease;
 }
 
 .header__icon:hover {
-  color: var(--color-primary);
+  opacity: 0.7;
 }
 
 .cart-count {
@@ -681,15 +747,132 @@ body.has-sticky-header {
   display: flex;
 }
 
+/* Mobile Header Search Bar */
+.header__mobile-search {
+  flex: 1;
+  margin: 0 12px;
+  position: relative;
+  display: none;
+}
+
+.mobile-header-search-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  padding: 8px 14px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.mobile-header-search-form:focus-within {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.mobile-header-search-icon {
+  flex-shrink: 0;
+  opacity: 0.4;
+}
+
+.mobile-header-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: inherit;
+  font-size: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.mobile-header-search-input::placeholder {
+  color: inherit;
+  opacity: 0.45;
+}
+
+.mobile-header-predictive-search {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: none;
+  z-index: 1001;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.mobile-header-predictive-search a {
+  display: block;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  color: #222;
+  text-decoration: none;
+}
+
+.mobile-header-predictive-search a:last-child {
+  border-bottom: none;
+}
+
+.mobile-header-predictive-search a:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.mobile-header-predictive-search .search-item {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-header-predictive-search .search-item img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.mobile-header-predictive-search .search-title {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.mobile-header-predictive-search .search-price {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.mobile-header-predictive-search .no-results {
+  padding: 16px;
+  text-align: center;
+  color: #222;
+  opacity: 0.6;
+  font-size: 13px;
+}
+
+.mobile-header-predictive-search .view-all {
+  font-weight: 600;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.03);
+  font-size: 13px;
+}
+
 /* Mobile Menu Button */
 .header__mobile-menu-btn {
   background: none;
   border: none;
-  color: var(--color-foreground);
+  color: inherit;
   cursor: pointer;
   padding: 8px;
   align-items: center;
-  transition: transform 0.2s ease;
+  transition: color 0.4s ease, transform 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -702,18 +885,21 @@ body.has-sticky-header {
   position: fixed;
   top: 0;
   left: -100%;
-  width: 280px;
-  max-width: 85%;
+  width: 100%;
+  max-width: 100%;
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile */
-  background: var(--color-background);
-  box-shadow: 4px 0 20px rgba(0,0,0,0.2);
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100dvh;
+  background: #fff;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10000 !important;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   will-change: left;
+  color: #222;
+  display: flex;
+  flex-direction: column;
 }
 
 .mobile-menu-drawer.active {
@@ -724,32 +910,101 @@ body.has-sticky-header {
 
 .mobile-menu-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 2px solid var(--color-secondary);
-  background: var(--color-background);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fff;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .mobile-menu-header::before {
-  content: "Menu";
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-foreground);
+  display: none;
+}
+
+/* Mobile Menu Logo */
+.mobile-menu-logo {
+  flex: 1;
+}
+
+.mobile-menu-logo a {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.mobile-menu-logo-img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.mobile-menu-logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #222;
+}
+
+.mobile-menu-logo--bottom {
+  padding: 20px 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: auto;
+}
+
+/* Logo positions - Top */
+.mobile-logo-top-left .mobile-menu-header {
+  justify-content: space-between;
+}
+.mobile-logo-top-left .mobile-menu-logo {
+  text-align: left;
+}
+
+.mobile-logo-top-center .mobile-menu-header {
+  justify-content: space-between;
+}
+.mobile-logo-top-center .mobile-menu-logo {
+  text-align: center;
+}
+
+.mobile-logo-top-right .mobile-menu-header {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+.mobile-logo-top-right .mobile-menu-logo {
+  text-align: right;
+}
+
+/* Logo positions - Bottom */
+.mobile-logo-bottom-left .mobile-menu-header {
+  justify-content: flex-end;
+}
+.mobile-logo-bottom-left .mobile-menu-logo--bottom {
+  text-align: left;
+}
+
+.mobile-logo-bottom-center .mobile-menu-header {
+  justify-content: flex-end;
+}
+.mobile-logo-bottom-center .mobile-menu-logo--bottom {
+  text-align: center;
+}
+
+.mobile-logo-bottom-right .mobile-menu-header {
+  justify-content: flex-end;
+}
+.mobile-logo-bottom-right .mobile-menu-logo--bottom {
+  text-align: right;
 }
 
 .mobile-menu-close {
-  background: var(--color-secondary);
+  background: rgba(0, 0, 0, 0.06);
   border: none;
-  color: var(--color-foreground);
+  color: #222;
   cursor: pointer;
   padding: 8px;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -757,8 +1012,8 @@ body.has-sticky-header {
 }
 
 .mobile-menu-close:hover {
-  background: var(--color-button);
-  color: var(--color-button-label);
+  background: rgba(0, 0, 0, 0.12);
+  color: #222;
 }
 
 .mobile-menu-list {
@@ -768,7 +1023,7 @@ body.has-sticky-header {
 }
 
 .mobile-menu-item {
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   position: relative;
 }
 
@@ -778,18 +1033,18 @@ body.has-sticky-header {
 
 .mobile-menu-link {
   display: block;
-  padding: 16px 20px;
-  color: var(--color-foreground);
+  padding: 18px 24px;
+  color: #222;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   transition: background 0.2s ease, padding-left 0.2s ease;
 }
 
 .mobile-menu-link:hover,
 .mobile-menu-link:active {
-  background: var(--color-secondary);
-  padding-left: 28px;
+  background: rgba(0, 0, 0, 0.04);
+  padding-left: 32px;
 }
 
 .mobile-submenu {
@@ -797,7 +1052,7 @@ body.has-sticky-header {
   padding: 0;
   margin: 0;
   display: none;
-  background: rgba(0,0,0,0.02);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .mobile-submenu.active {
@@ -806,25 +1061,24 @@ body.has-sticky-header {
 
 .mobile-submenu a {
   display: block;
-  padding: 12px 20px 12px 40px;
-  color: var(--color-foreground);
+  padding: 14px 24px 14px 44px;
+  color: #555;
   text-decoration: none;
-  font-size: 14px;
-  transition: background 0.2s ease, padding-left 0.2s ease;
-  opacity: 0.85;
+  font-size: 15px;
+  transition: background 0.2s ease, padding-left 0.2s ease, color 0.2s ease;
 }
 
 .mobile-submenu a:hover,
 .mobile-submenu a:active {
-  background: var(--color-secondary);
-  padding-left: 48px;
-  opacity: 1;
+  background: rgba(0, 0, 0, 0.04);
+  padding-left: 52px;
+  color: #222;
 }
 
 .mobile-submenu-toggle {
   background: none;
   border: none;
-  color: var(--color-foreground);
+  color: rgba(0, 0, 0, 0.4);
   cursor: pointer;
   position: absolute;
   right: 20px;
@@ -843,123 +1097,6 @@ body.has-sticky-header {
   transform: translateY(-50%) rotate(180deg);
 }
 
-.mobile-menu-search {
-  padding: 20px;
-  border-top: 2px solid var(--color-secondary);
-  margin-top: auto;
-  background: rgba(0,0,0,0.02);
-}
-
-.mobile-search-input {
-  width: 100%;
-  padding: 14px 16px;
-  border: 2px solid var(--color-secondary);
-  border-radius: 8px;
-  background: var(--color-background);
-  color: var(--color-foreground);
-  font-size: 15px;
-  margin-bottom: 12px;
-  transition: border-color 0.2s ease;
-}
-
-.mobile-search-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.mobile-search-btn {
-  width: 100%;
-  padding: 14px;
-  background: var(--color-button);
-  color: var(--color-button-label);
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.1s ease;
-}
-
-.mobile-search-btn:active {
-  transform: scale(0.98);
-}
-
-.mobile-search-btn:hover {
-  opacity: 0.9;
-}
-
-/* Mobile Predictive Search */
-.mobile-menu-search {
-  position: relative;
-}
-
-.mobile-predictive-search,
-.mobile-recent-searches {
-  background: var(--color-background);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  display: none;
-  max-height: 300px;
-  overflow-y: auto;
-  margin-top: 8px;
-}
-
-.mobile-predictive-search a,
-.mobile-recent-searches div {
-  display: block;
-  padding: 12px 15px;
-  border-bottom: 1px solid var(--color-secondary);
-  font-size: 14px;
-  color: var(--color-foreground);
-  text-decoration: none;
-}
-
-.mobile-predictive-search a:last-child,
-.mobile-recent-searches div:last-child {
-  border-bottom: none;
-}
-
-.mobile-predictive-search a:hover,
-.mobile-recent-searches div:hover {
-  background: var(--color-secondary);
-}
-
-.mobile-predictive-search .search-item {
-  display: flex !important;
-  align-items: center;
-  gap: 12px;
-}
-
-.mobile-predictive-search .search-item img {
-  width: 45px;
-  height: 45px;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-.mobile-predictive-search .search-title {
-  font-weight: 500;
-}
-
-.mobile-predictive-search .search-price {
-  font-size: 13px;
-  opacity: 0.7;
-}
-
-.mobile-predictive-search .no-results {
-  padding: 16px;
-  text-align: center;
-  color: var(--color-foreground);
-  opacity: 0.7;
-}
-
-.mobile-predictive-search .view-all {
-  font-weight: 600;
-  text-align: center;
-  background: var(--color-secondary);
-}
 
 .mobile-menu-overlay {
   position: fixed;
@@ -999,13 +1136,14 @@ body.has-sticky-header {
     display: flex;
   }
 
+  /* Mobile header inherits color scheme, scrolled always white */
+
   .header-wrapper {
-    padding: 0 15px;
-    min-height: 60px;
+    padding: 8px 15px;
   }
 
-  .header__logo-image {
-    max-height: 40px;
+  .header__mobile-search {
+    display: block;
   }
 
   .header__title {
@@ -1016,7 +1154,6 @@ body.has-sticky-header {
   .header-layout-top-center .header-wrapper,
   .header-layout-middle-center .header-wrapper {
     flex-direction: row;
-    min-height: 60px;
   }
 
   .header-layout-top-center .header__logo,
@@ -1029,6 +1166,29 @@ body.has-sticky-header {
   .header-layout-top-center .header__right,
   .header-layout-middle-center .header__right {
     position: static;
+  }
+
+  /* Bigger icons on mobile */
+  .header__icons {
+    gap: 12px;
+  }
+
+  .header__icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header__icon {
+    padding: 6px;
+  }
+
+  /* Fix cart count badge - smaller than icon */
+  .cart-count {
+    font-size: 9px;
+    padding: 1px 4px;
+    min-width: 16px;
+    top: 0;
+    right: -2px;
   }
 }
 
@@ -1046,30 +1206,21 @@ document.addEventListener('DOMContentLoaded', function() {
   const announcementBar = document.querySelector('.announcement-bar');
 
   if (header && header.classList.contains('header-sticky')) {
-    // Set header height and position accounting for announcement bar
     const setHeaderHeight = () => {
       const announcementBarHeight = announcementBar ? announcementBar.offsetHeight : 0;
       const headerHeight = header.offsetHeight;
-      const totalHeight = announcementBarHeight + headerHeight;
 
-      // Set CSS variables
       document.documentElement.style.setProperty('--header-height', headerHeight + 'px');
       document.documentElement.style.setProperty('--announcement-bar-height', announcementBarHeight + 'px');
-      document.documentElement.style.setProperty('--total-header-height', totalHeight + 'px');
 
-      // Position header below announcement bar when sticky
       if (announcementBar) {
         header.style.top = announcementBarHeight + 'px';
       }
 
-      // Add padding to body for total height
-      document.body.classList.add('has-sticky-header');
-      document.body.style.paddingTop = totalHeight + 'px';
+      /* No body padding — header overlays content (transparent) */
     };
 
     setHeaderHeight();
-
-    // Update on resize
     window.addEventListener('resize', setHeaderHeight, { passive: true });
 
     let lastScrollTop = 0;
@@ -1080,24 +1231,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (!ticking) {
         window.requestAnimationFrame(function() {
-          // Add scrolled class when scrolled down
           if (scrollTop > 50) {
             header.classList.add('scrolled');
           } else {
             header.classList.remove('scrolled');
           }
-
-          // Optional: Hide header when scrolling down, show when scrolling up
-          // Uncomment the following if you want this behavior
-          /*
-          if (scrollTop > lastScrollTop && scrollTop > 200) {
-            // Scrolling down
-            header.classList.add('hidden');
-          } else {
-            // Scrolling up
-            header.classList.remove('hidden');
-          }
-          */
 
           lastScrollTop = scrollTop;
           ticking = false;
@@ -1240,91 +1378,59 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Mobile Predictive Search
-  const mobileInput = document.getElementById('MobileSearchInput');
-  const mobileResults = document.getElementById('MobilePredictiveResults');
-  const mobileRecentBox = document.getElementById('MobileRecentSearches');
+  // Mobile Header Search (predictive)
+  const mobileHeaderInput = document.getElementById('MobileHeaderSearchInput');
+  const mobileHeaderResults = document.getElementById('MobileHeaderPredictiveResults');
 
-  if (mobileInput && mobileResults) {
-    let mobileController;
+  if (mobileHeaderInput && mobileHeaderResults) {
+    let mobileHeaderController;
 
-    function highlight(text, query) {
+    function mobileHighlight(text, query) {
       const reg = new RegExp(`(${query})`, 'gi');
       return text.replace(reg, '<span class="highlight">$1</span>');
     }
 
-    function saveRecent(query) {
-      let searches = JSON.parse(localStorage.getItem('recent_searches') || '[]');
-      searches = searches.filter(s => s !== query);
-      searches.unshift(query);
-      localStorage.setItem('recent_searches', JSON.stringify(searches.slice(0, 5)));
-    }
-
-    function showMobileRecent() {
-      const searches = JSON.parse(localStorage.getItem('recent_searches') || '[]');
-      if (!searches.length) return;
-
-      mobileRecentBox.innerHTML = searches.map(s => `<div>${s}</div>`).join('');
-      mobileRecentBox.style.display = 'block';
-    }
-
-    mobileInput.addEventListener('focus', showMobileRecent);
-
-    if (mobileRecentBox) {
-      mobileRecentBox.addEventListener('click', e => {
-        if (e.target.tagName === 'DIV') {
-          mobileInput.value = e.target.innerText;
-          mobileInput.dispatchEvent(new Event('input'));
-          mobileRecentBox.style.display = 'none';
-        }
-      });
-    }
-
-    mobileInput.addEventListener('input', async () => {
-      const query = mobileInput.value.trim();
-      if (mobileRecentBox) mobileRecentBox.style.display = 'none';
+    mobileHeaderInput.addEventListener('input', async () => {
+      const query = mobileHeaderInput.value.trim();
 
       if (query.length < 2) {
-        mobileResults.style.display = 'none';
+        mobileHeaderResults.style.display = 'none';
         return;
       }
 
-      mobileResults.innerHTML = '<div class="no-results">Searching...</div>';
-      mobileResults.style.display = 'block';
+      mobileHeaderResults.innerHTML = '<div class="no-results">Searching...</div>';
+      mobileHeaderResults.style.display = 'block';
 
-      if (mobileController) mobileController.abort();
-      mobileController = new AbortController();
+      if (mobileHeaderController) mobileHeaderController.abort();
+      mobileHeaderController = new AbortController();
 
       try {
-        const res = await fetch(`/search/suggest.json?q=${query}&resources[type]=product&resources[limit]=6`);
+        const res = await fetch(`/search/suggest.json?q=${query}&resources[type]=product&resources[limit]=5`);
         const data = await res.json();
         const products = data.resources.results.products;
 
-        saveRecent(query);
-
         if (!products.length) {
-          mobileResults.innerHTML = `<div class="no-results">No results found for "${query}"</div>`;
+          mobileHeaderResults.innerHTML = `<div class="no-results">No results for "${query}"</div>`;
           return;
         }
 
-        mobileResults.innerHTML = products.map(p => `
+        mobileHeaderResults.innerHTML = products.map(p => `
           <a href="${p.url}" class="search-item">
             <img src="${p.featured_image.url}" alt="${p.title}">
             <div>
-              <div class="search-title">${highlight(p.title, query)}</div>
+              <div class="search-title">${mobileHighlight(p.title, query)}</div>
               <div class="search-price">₹${(p.price / 100).toFixed(2)}</div>
             </div>
           </a>
-        `).join('') + `<a class="view-all" href="/search?q=${query}&type=product">View all results →</a>`;
+        `).join('') + `<a class="view-all" href="/search?q=${query}&type=product">View all →</a>`;
       } catch (error) {
-        console.error('Mobile search error:', error);
+        console.error('Mobile header search error:', error);
       }
     });
 
     document.addEventListener('click', e => {
-      if (!e.target.closest('.mobile-menu-search')) {
-        mobileResults.style.display = 'none';
-        if (mobileRecentBox) mobileRecentBox.style.display = 'none';
+      if (!e.target.closest('.header__mobile-search')) {
+        mobileHeaderResults.style.display = 'none';
       }
     });
   }
@@ -1381,8 +1487,9 @@ document.addEventListener('DOMContentLoaded', function() {
       "max": 300,
       "step": 10,
       "unit": "px",
-      "label": "Logo width",
-      "default": 150
+      "label": "Desktop logo width",
+      "default": 150,
+      "info": "Best logo: PNG or SVG, 300x90px at 2x (600x180px), transparent background"
     },
     {
       "type": "header",
@@ -1428,10 +1535,30 @@ document.addEventListener('DOMContentLoaded', function() {
       "info": "Select menu for mobile devices (can be different from desktop)"
     },
     {
-      "type": "checkbox",
-      "id": "show_search_mobile",
-      "label": "Show search in mobile menu",
-      "default": true
+      "type": "select",
+      "id": "mobile_menu_logo_position",
+      "label": "Mobile menu logo position",
+      "options": [
+        { "value": "top-left", "label": "Top left" },
+        { "value": "top-center", "label": "Top center" },
+        { "value": "top-right", "label": "Top right" },
+        { "value": "bottom-left", "label": "Bottom left" },
+        { "value": "bottom-center", "label": "Bottom center" },
+        { "value": "bottom-right", "label": "Bottom right" }
+      ],
+      "default": "top-left",
+      "info": "Position of the logo inside the mobile navigation drawer"
+    },
+    {
+      "type": "range",
+      "id": "mobile_menu_logo_width",
+      "min": 60,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "Mobile logo width",
+      "default": 120,
+      "info": "Best logo: PNG or SVG, 240x70px at 2x (480x140px), transparent background"
     },
     {
       "type": "header",
