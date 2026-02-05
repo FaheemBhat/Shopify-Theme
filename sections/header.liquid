@@ -1114,23 +1114,16 @@ document.addEventListener('DOMContentLoaded', function() {
   const menuClose = document.querySelector('.mobile-menu-close');
   const menuOverlay = document.querySelector('.mobile-menu-overlay');
 
-  console.log('Mobile Menu Elements:', { menuBtn, menuDrawer, menuClose, menuOverlay });
-
   if (menuBtn && menuDrawer && menuOverlay) {
     menuBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      console.log('Hamburger clicked!');
       menuDrawer.classList.add('active');
       menuOverlay.classList.add('active');
       document.body.style.overflow = 'hidden';
-      console.log('Menu should be visible now');
     });
-  } else {
-    console.error('Mobile menu elements not found!');
   }
 
   function closeMobileMenu() {
-    console.log('Closing mobile menu');
     if (menuDrawer) menuDrawer.classList.remove('active');
     if (menuOverlay) menuOverlay.classList.remove('active');
     document.body.style.overflow = '';

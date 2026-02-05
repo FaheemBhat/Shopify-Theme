@@ -7,101 +7,6 @@
   assign mobile_layout = section.settings.mobile_layout
 %}
 
-<div class="banner-slideshow {% if layout == 'full-width' %}full-width{% else %}container{% endif %} color-{{ section.settings.color_scheme }}"
-     data-auto-rotate="{{ auto_rotate }}"
-     data-slide-duration="{{ slide_duration }}"
-     data-section-id="{{ section.id }}">
-  <div class="slideshow-container" style="height: {{ slide_height }}px;">
-    {% for block in section.blocks %}
-      <div class="slide fade slide-{{ block.id }}" {{ block.shopify_attributes }}>
-        <a href="{{ block.settings.link }}" class="slide-link">
-          <!-- Image with Overlay -->
-          <div class="slide-image-wrapper">
-            {% if block.settings.image or block.settings.mobile_image %}
-              <!-- Desktop Image -->
-              {% if block.settings.image %}
-                <picture>
-                  <!-- Mobile image if exists -->
-                  {% if block.settings.mobile_image %}
-                    <source
-                      media="(max-width: 768px)"
-                      srcset="{{ block.settings.mobile_image | image_url: width: 768 }}">
-                  {% endif %}
-
-                  <!-- Desktop image (default) -->
-                  <img
-                    src="{{ block.settings.image | image_url: width: 1920 }}"
-                    alt="{{ block.settings.image.alt | default: 'Banner slide' | escape }}"
-                    width="{{ block.settings.image.width }}"
-                    height="{{ block.settings.image.height }}"
-                    loading="lazy"
-                    class="slide-image">
-                </picture>
-              {% elsif block.settings.mobile_image %}
-                <!-- Only mobile image exists -->
-                <img
-                  src="{{ block.settings.mobile_image | image_url: width: 768 }}"
-                  alt="{{ block.settings.mobile_image.alt | default: 'Banner slide' | escape }}"
-                  width="{{ block.settings.mobile_image.width }}"
-                  height="{{ block.settings.mobile_image.height }}"
-                  loading="lazy"
-                  class="slide-image">
-              {% endif %}
-
-              <!-- Overlay -->
-              <div class="slide-overlay" style="opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};"></div>
-            {% else %}
-              <div class="placeholder-image">
-                {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
-              </div>
-            {% endif %}
-          </div>
-
-          <!-- Content -->
-          {% if block.settings.heading != blank or block.settings.subheading != blank or block.settings.button_text != blank %}
-            <div class="slide-content
-                        content-position-{{ block.settings.content_position }}
-                        mobile-content-{{ block.settings.mobile_content_alignment }}
-                        {% if mobile_layout == 'below' %}mobile-below{% endif %}
-                        color-{{ block.settings.color_scheme }}">
-              <div class="slide-content-inner">
-                {% if block.settings.heading != blank %}
-                  <h2 class="slide-heading heading-size-{{ block.settings.heading_size }}">
-                    {{ block.settings.heading }}
-                  </h2>
-                {% endif %}
-
-                {% if block.settings.subheading != blank %}
-                  <p class="slide-subheading">{{ block.settings.subheading }}</p>
-                {% endif %}
-
-                {% if block.settings.button_text != blank %}
-                  <span class="slide-button">{{ block.settings.button_text }}</span>
-                {% endif %}
-              </div>
-            </div>
-          {% endif %}
-        </a>
-      </div>
-    {% endfor %}
-
-    <!-- Navigation arrows -->
-    {% if section.settings.show_arrows %}
-      <a class="prev" onclick="plusSlides(-1)">❮</a>
-      <a class="next" onclick="plusSlides(1)">❯</a>
-    {% endif %}
-  </div>
-
-  <!-- Pagination Dots -->
-  {% if section.settings.show_pagination %}
-    <div class="dot-container pagination-{{ pagination_style }}">
-      {% for block in section.blocks %}
-        <span class="dot" onclick="currentSlide({{ forloop.index }})"></span>
-      {% endfor %}
-    </div>
-  {% endif %}
-</div>
-
 <style>
   .banner-slideshow {
     position: relative;
@@ -124,6 +29,7 @@
     width: 100%;
     overflow: hidden;
     cursor: grab;
+    background-color: var(--color-background);
   }
 
   .slideshow-container.dragging {
@@ -145,6 +51,10 @@
     text-decoration: none;
   }
 
+  .slide-link.drag-block {
+    pointer-events: none;
+  }
+
   .slide-image-wrapper {
     position: relative;
     width: 100%;
@@ -160,6 +70,9 @@
   .slide-image {
     object-fit: cover;
     display: block;
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: none;
   }
 
   .slide-overlay {
@@ -428,14 +341,13 @@
     transform: scale(1.5);
   }
 
-  /* Fade animation */
-  .fade {
-    animation-name: fade;
-    animation-duration: 1s;
+  /* Fade animation (applied via JS only on auto-rotate) */
+  .slide.fade-in {
+    animation: slideFadeIn 0.5s ease forwards;
   }
 
-  @keyframes fade {
-    from { opacity: 0.4; }
+  @keyframes slideFadeIn {
+    from { opacity: 0; }
     to { opacity: 1; }
   }
 
@@ -524,6 +436,103 @@
   }
 </style>
 
+<div class="banner-slideshow {% if layout == 'full-width' %}full-width{% else %}container{% endif %} color-{{ section.settings.color_scheme }}"
+     data-auto-rotate="{{ auto_rotate }}"
+     data-slide-duration="{{ slide_duration }}"
+     data-section-id="{{ section.id }}">
+  <div class="slideshow-container" style="height: {{ slide_height }}px;">
+    {% for block in section.blocks %}
+      <div class="slide slide-{{ block.id }}" {{ block.shopify_attributes }}>
+        <a href="{{ block.settings.link }}" class="slide-link" draggable="false">
+          <!-- Image with Overlay -->
+          <div class="slide-image-wrapper">
+            {% if block.settings.image or block.settings.mobile_image %}
+              <!-- Desktop Image -->
+              {% if block.settings.image %}
+                <picture>
+                  <!-- Mobile image if exists -->
+                  {% if block.settings.mobile_image %}
+                    <source
+                      media="(max-width: 768px)"
+                      srcset="{{ block.settings.mobile_image | image_url: width: 768 }}">
+                  {% endif %}
+
+                  <!-- Desktop image (default) -->
+                  <img
+                    src="{{ block.settings.image | image_url: width: 1920 }}"
+                    alt="{{ block.settings.image.alt | default: 'Banner slide' | escape }}"
+                    width="{{ block.settings.image.width }}"
+                    height="{{ block.settings.image.height }}"
+                    loading="lazy"
+                    draggable="false"
+                    class="slide-image">
+                </picture>
+              {% elsif block.settings.mobile_image %}
+                <!-- Only mobile image exists -->
+                <img
+                  src="{{ block.settings.mobile_image | image_url: width: 768 }}"
+                  alt="{{ block.settings.mobile_image.alt | default: 'Banner slide' | escape }}"
+                  width="{{ block.settings.mobile_image.width }}"
+                  height="{{ block.settings.mobile_image.height }}"
+                  loading="lazy"
+                  draggable="false"
+                  class="slide-image">
+              {% endif %}
+
+              <!-- Overlay -->
+              <div class="slide-overlay" style="opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};"></div>
+            {% else %}
+              <div class="placeholder-image">
+                {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Content -->
+          {% if block.settings.heading != blank or block.settings.subheading != blank or block.settings.button_text != blank %}
+            <div class="slide-content
+                        content-position-{{ block.settings.content_position }}
+                        mobile-content-{{ block.settings.mobile_content_alignment }}
+                        {% if mobile_layout == 'below' %}mobile-below{% endif %}
+                        color-{{ block.settings.color_scheme }}">
+              <div class="slide-content-inner">
+                {% if block.settings.heading != blank %}
+                  <h2 class="slide-heading heading-size-{{ block.settings.heading_size }}">
+                    {{ block.settings.heading }}
+                  </h2>
+                {% endif %}
+
+                {% if block.settings.subheading != blank %}
+                  <p class="slide-subheading">{{ block.settings.subheading }}</p>
+                {% endif %}
+
+                {% if block.settings.button_text != blank %}
+                  <span class="slide-button">{{ block.settings.button_text }}</span>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        </a>
+      </div>
+    {% endfor %}
+
+    <!-- Navigation arrows -->
+    {% if section.settings.show_arrows %}
+      <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+      <a class="next" onclick="plusSlides(1)">&#10095;</a>
+    {% endif %}
+  </div>
+
+  <!-- Pagination Dots -->
+  {% if section.settings.show_pagination %}
+    <div class="dot-container pagination-{{ pagination_style }}">
+      {% for block in section.blocks %}
+        <span class="dot" onclick="currentSlide({{ forloop.index }})"></span>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var container = document.querySelector('[data-section-id="{{ section.id }}"]');
@@ -534,6 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var slideDuration = parseInt(container.getAttribute('data-slide-duration')) * 1000;
   var slideIndex = 1;
   var slideTimer;
+  var hasDragged = false;
 
   showSlides(slideIndex);
 
@@ -543,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function startAutoRotate() {
     slideTimer = setInterval(function() {
-      changeSlide(1);
+      changeSlide(1, true);
     }, slideDuration);
   }
 
@@ -554,17 +564,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  function changeSlide(n) {
-    showSlides(slideIndex += n);
+  function changeSlide(n, animate) {
+    showSlides(slideIndex += n, animate);
     resetTimer();
   }
 
   function goToSlide(n) {
-    showSlides(slideIndex = n);
+    showSlides(slideIndex = n, false);
     resetTimer();
   }
 
-  function showSlides(n) {
+  function showSlides(n, animate) {
     var slides = container.querySelectorAll('.slide');
     var dots = container.querySelectorAll('.dot');
 
@@ -573,6 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     for (var i = 0; i < slides.length; i++) {
       slides[i].style.display = 'none';
+      slides[i].classList.remove('fade-in');
     }
     for (var j = 0; j < dots.length; j++) {
       dots[j].className = dots[j].className.replace(' active', '');
@@ -580,6 +591,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (slides[slideIndex - 1]) {
       slides[slideIndex - 1].style.display = 'block';
+      if (animate) {
+        slides[slideIndex - 1].classList.add('fade-in');
+      }
     }
     if (dots[slideIndex - 1]) {
       dots[slideIndex - 1].className += ' active';
@@ -587,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   /* Arrow and dot click handlers */
-  window.plusSlides = function(n) { changeSlide(n); };
+  window.plusSlides = function(n) { changeSlide(n, false); };
   window.currentSlide = function(n) { goToSlide(n); };
 
   /* ---- Drag / Swipe Support ---- */
@@ -598,6 +612,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function onDragStart(x) {
     isDragging = true;
+    hasDragged = false;
     dragStartX = x;
     dragDelta = 0;
     slideshowEl.classList.add('dragging');
@@ -607,6 +622,9 @@ document.addEventListener('DOMContentLoaded', function() {
   function onDragMove(x) {
     if (!isDragging) return;
     dragDelta = x - dragStartX;
+    if (Math.abs(dragDelta) > 5) {
+      hasDragged = true;
+    }
   }
 
   function onDragEnd() {
@@ -615,11 +633,24 @@ document.addEventListener('DOMContentLoaded', function() {
     slideshowEl.classList.remove('dragging');
 
     if (dragDelta < -threshold) {
-      changeSlide(1);
+      changeSlide(1, false);
     } else if (dragDelta > threshold) {
-      changeSlide(-1);
+      changeSlide(-1, false);
     } else {
       resetTimer();
+    }
+
+    /* Block link click if user dragged */
+    if (hasDragged) {
+      var links = slideshowEl.querySelectorAll('.slide-link');
+      for (var i = 0; i < links.length; i++) {
+        links[i].classList.add('drag-block');
+      }
+      setTimeout(function() {
+        for (var i = 0; i < links.length; i++) {
+          links[i].classList.remove('drag-block');
+        }
+      }, 50);
     }
 
     dragDelta = 0;
@@ -655,6 +686,15 @@ document.addEventListener('DOMContentLoaded', function() {
   slideshowEl.addEventListener('mouseleave', function() {
     if (isDragging) onDragEnd();
   });
+
+  /* Block link clicks during drag */
+  slideshowEl.addEventListener('click', function(e) {
+    if (hasDragged) {
+      e.preventDefault();
+      e.stopPropagation();
+      hasDragged = false;
+    }
+  }, true);
 });
 </script>
 
