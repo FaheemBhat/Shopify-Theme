@@ -123,6 +123,12 @@
     position: relative;
     width: 100%;
     overflow: hidden;
+    cursor: grab;
+  }
+
+  .slideshow-container.dragging {
+    cursor: grabbing;
+    user-select: none;
   }
 
   .slide {
@@ -519,13 +525,15 @@
 </style>
 
 <script>
-let slideIndex = 1;
-let slideTimer;
-
 document.addEventListener('DOMContentLoaded', function() {
-  const container = document.querySelector('[data-section-id="{{ section.id }}"]');
-  const autoRotate = container.getAttribute('data-auto-rotate') === 'true';
-  const slideDuration = parseInt(container.getAttribute('data-slide-duration')) * 1000;
+  var container = document.querySelector('[data-section-id="{{ section.id }}"]');
+  if (!container) return;
+
+  var slideshowEl = container.querySelector('.slideshow-container');
+  var autoRotate = container.getAttribute('data-auto-rotate') === 'true';
+  var slideDuration = parseInt(container.getAttribute('data-slide-duration')) * 1000;
+  var slideIndex = 1;
+  var slideTimer;
 
   showSlides(slideIndex);
 
@@ -535,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function startAutoRotate() {
     slideTimer = setInterval(function() {
-      plusSlides(1);
+      changeSlide(1);
     }, slideDuration);
   }
 
@@ -546,40 +554,107 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  window.plusSlides = function(n) {
+  function changeSlide(n) {
     showSlides(slideIndex += n);
     resetTimer();
   }
 
-  window.currentSlide = function(n) {
+  function goToSlide(n) {
     showSlides(slideIndex = n);
     resetTimer();
   }
 
   function showSlides(n) {
-    let i;
-    let slides = container.querySelectorAll(".slide");
-    let dots = container.querySelectorAll(".dot");
+    var slides = container.querySelectorAll('.slide');
+    var dots = container.querySelectorAll('.dot');
 
     if (n > slides.length) { slideIndex = 1; }
     if (n < 1) { slideIndex = slides.length; }
 
-    for (i = 0; i < slides.length; i++) {
-      slides[i].style.display = "none";
+    for (var i = 0; i < slides.length; i++) {
+      slides[i].style.display = 'none';
     }
-
-    for (i = 0; i < dots.length; i++) {
-      dots[i].className = dots[i].className.replace(" active", "");
+    for (var j = 0; j < dots.length; j++) {
+      dots[j].className = dots[j].className.replace(' active', '');
     }
 
     if (slides[slideIndex - 1]) {
-      slides[slideIndex - 1].style.display = "block";
+      slides[slideIndex - 1].style.display = 'block';
     }
-
     if (dots[slideIndex - 1]) {
-      dots[slideIndex - 1].className += " active";
+      dots[slideIndex - 1].className += ' active';
     }
   }
+
+  /* Arrow and dot click handlers */
+  window.plusSlides = function(n) { changeSlide(n); };
+  window.currentSlide = function(n) { goToSlide(n); };
+
+  /* ---- Drag / Swipe Support ---- */
+  var dragStartX = 0;
+  var dragDelta = 0;
+  var isDragging = false;
+  var threshold = 50;
+
+  function onDragStart(x) {
+    isDragging = true;
+    dragStartX = x;
+    dragDelta = 0;
+    slideshowEl.classList.add('dragging');
+    if (autoRotate) clearInterval(slideTimer);
+  }
+
+  function onDragMove(x) {
+    if (!isDragging) return;
+    dragDelta = x - dragStartX;
+  }
+
+  function onDragEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    slideshowEl.classList.remove('dragging');
+
+    if (dragDelta < -threshold) {
+      changeSlide(1);
+    } else if (dragDelta > threshold) {
+      changeSlide(-1);
+    } else {
+      resetTimer();
+    }
+
+    dragDelta = 0;
+  }
+
+  /* Touch events */
+  slideshowEl.addEventListener('touchstart', function(e) {
+    onDragStart(e.touches[0].clientX);
+  }, { passive: true });
+
+  slideshowEl.addEventListener('touchmove', function(e) {
+    onDragMove(e.touches[0].clientX);
+  }, { passive: true });
+
+  slideshowEl.addEventListener('touchend', function() {
+    onDragEnd();
+  });
+
+  /* Mouse events */
+  slideshowEl.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    onDragStart(e.clientX);
+  });
+
+  slideshowEl.addEventListener('mousemove', function(e) {
+    onDragMove(e.clientX);
+  });
+
+  slideshowEl.addEventListener('mouseup', function() {
+    onDragEnd();
+  });
+
+  slideshowEl.addEventListener('mouseleave', function() {
+    if (isDragging) onDragEnd();
+  });
 });
 </script>
 
