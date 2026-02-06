@@ -1,0 +1,550 @@
+{% comment %} {{ 'ugc-testimonial.css' | asset_url | stylesheet_tag }} {% endcomment %}
+
+<!-- FontAwesome for speaker icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<section class="ugc-testimonial-section" style="background: {{ section.settings.background_color }}; padding: {{ section.settings.padding_top }}px 0 {{ section.settings.padding_bottom }}px;">
+  <div class="ugc-container">
+    {% if section.settings.heading != blank %}
+      <h2 class="ugc-heading" style="color: {{ section.settings.heading_color }};">
+        {{ section.settings.heading }}
+      </h2>
+    {% endif %}
+
+    <div class="ugc-testimonial-wrapper">
+      <div class="ugc-testimonial-slider" id="ugc-slider">
+        {% for block in section.blocks %}
+          <div class="ugc-testimonial-card" {{ block.shopify_attributes }} data-index="{{ forloop.index0 }}">
+            <div class="ugc-video-wrapper">
+              {% if block.settings.video_source == 'upload' and block.settings.video != blank %}
+                {% assign video = block.settings.video %}
+                <video
+                  class="ugc-video"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  preload="auto"
+                  {% if block.settings.video_poster != blank %}
+                    poster="{{ block.settings.video_poster | image_url: width: 400 }}"
+                  {% elsif video.preview_image %}
+                    poster="{{ video.preview_image | image_url: width: 400 }}"
+                  {% endif %}
+                  data-video-id="{{ forloop.index0 }}"
+                >
+                  {% for source in video.sources %}
+                    <source src="{{ source.url }}" type="{{ source.mime_type }}">
+                  {% endfor %}
+                </video>
+              {% elsif block.settings.video_source == 'url' and block.settings.video_url != blank %}
+                <video
+                  class="ugc-video"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  preload="auto"
+                  {% if block.settings.video_poster != blank %}
+                    poster="{{ block.settings.video_poster | image_url: width: 400 }}"
+                  {% endif %}
+                  data-video-id="{{ forloop.index0 }}"
+                >
+                  <source src="{{ block.settings.video_url }}" type="video/mp4">
+                </video>
+              {% elsif block.settings.video_source == 'instagram' and block.settings.instagram_video_url != blank %}
+                <!-- Instagram Embed using oEmbed -->
+                <div class="ugc-instagram-embed" data-instagram-url="{{ block.settings.instagram_video_url }}">
+                  {% if block.settings.video_poster != blank %}
+                    <img
+                      src="{{ block.settings.video_poster | image_url: width: 400 }}"
+                      alt="Instagram video thumbnail"
+                      class="ugc-instagram-poster"
+                      width="400"
+                      height="711"
+                      loading="lazy"
+                    >
+                  {% endif %}
+                  <div class="ugc-instagram-overlay">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white">
+                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="none" stroke="white" stroke-width="2"></rect>
+                      <circle cx="12" cy="12" r="4" fill="none" stroke="white" stroke-width="2"></circle>
+                      <circle cx="17.5" cy="6.5" r="1.5" fill="white"></circle>
+                    </svg>
+                    <span>View on Instagram</span>
+                  </div>
+                </div>
+              {% else %}
+                <div class="ugc-placeholder">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  <p>Add a video</p>
+                </div>
+              {% endif %}
+
+              <!-- Speaker/Mute Button -->
+              <button class="ugc-mute-btn" aria-label="Toggle sound">
+                <i class="fa-solid fa-volume-xmark muted-icon"></i>
+                <i class="fa-solid fa-volume-high unmuted-icon" style="display: none;"></i>
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const slider = document.getElementById('ugc-slider');
+    if (!slider) return;
+
+    const cards = slider.querySelectorAll('.ugc-testimonial-card');
+    let isMuted = {};
+
+    // Initialize all videos as muted and try to autoplay
+    cards.forEach((card, index) => {
+      isMuted[index] = true;
+      const video = card.querySelector('.ugc-video');
+      if (video) {
+        video.muted = true;
+        video.play().catch(() => {});
+      }
+    });
+
+    // Click on card to play/pause video
+    cards.forEach((card, index) => {
+      const video = card.querySelector('.ugc-video');
+      const instagramEmbed = card.querySelector('.ugc-instagram-embed');
+
+      // Handle Instagram embed click - open in new tab
+      if (instagramEmbed) {
+        const instagramUrl = instagramEmbed.dataset.instagramUrl;
+        card.addEventListener('click', function(e) {
+          if (e.target.closest('.ugc-mute-btn')) return;
+          if (instagramUrl) {
+            window.open(instagramUrl, '_blank');
+          }
+        });
+        return;
+      }
+
+      if (video) {
+        card.addEventListener('click', function(e) {
+          if (e.target.closest('.ugc-mute-btn')) return;
+          if (video.paused) {
+            video.play();
+          } else {
+            video.pause();
+          }
+        });
+      }
+
+      // Mute/Unmute button
+      const muteBtn = card.querySelector('.ugc-mute-btn');
+      const mutedIcon = card.querySelector('.muted-icon');
+      const unmutedIcon = card.querySelector('.unmuted-icon');
+
+      if (muteBtn && video) {
+        muteBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+
+          if (isMuted[index]) {
+            video.muted = false;
+            if (mutedIcon) mutedIcon.style.display = 'none';
+            if (unmutedIcon) unmutedIcon.style.display = 'block';
+            isMuted[index] = false;
+          } else {
+            video.muted = true;
+            if (mutedIcon) mutedIcon.style.display = 'block';
+            if (unmutedIcon) unmutedIcon.style.display = 'none';
+            isMuted[index] = true;
+          }
+        });
+      }
+    });
+
+    // Pause/play video based on visibility
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target.querySelector('.ugc-video');
+        if (video) {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        }
+      });
+    }, { threshold: 0.5 });
+
+    cards.forEach(card => observer.observe(card));
+  });
+</script>
+<style>
+.ugc-testimonial-section {
+  width: 100%;
+  overflow: hidden;
+}
+
+.ugc-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.ugc-heading {
+  text-align: center;
+  font-size: clamp(24px, 4vw, 42px);
+  font-weight: 400;
+  margin-bottom: 40px;
+  line-height: 1.3;
+}
+
+.ugc-testimonial-wrapper {
+  position: relative;
+}
+
+.ugc-testimonial-slider {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.ugc-testimonial-card {
+  flex: 0 0 calc(20% - 13px);
+  min-width: 220px;
+  max-width: 280px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.ugc-testimonial-card:hover {
+  transform: translateY(-5px);
+}
+
+.ugc-video-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9/16;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f0f0f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.ugc-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ugc-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  gap: 10px;
+}
+
+.ugc-placeholder p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* Instagram Embed Styles */
+.ugc-instagram-embed {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ugc-instagram-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.ugc-instagram-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ugc-instagram-embed:hover .ugc-instagram-overlay {
+  opacity: 1;
+}
+
+.ugc-instagram-overlay span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Mute Button */
+.ugc-mute-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  z-index: 10;
+  transition: transform 0.2s ease;
+}
+
+.ugc-mute-btn i {
+  font-size: 22px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.ugc-mute-btn:hover {
+  transform: scale(1.15);
+}
+
+/* Responsive Styles */
+@media (max-width: 1200px) {
+  .ugc-testimonial-card {
+    flex: 0 0 calc(25% - 12px);
+  }
+}
+
+@media (max-width: 992px) {
+  .ugc-testimonial-card {
+    flex: 0 0 calc(33.333% - 11px);
+  }
+}
+
+@media (max-width: 768px) {
+  .ugc-heading {
+    margin-bottom: 24px;
+  }
+
+  .ugc-testimonial-slider {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    gap: 12px;
+    padding: 10px 5px;
+  }
+
+  .ugc-testimonial-slider::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ugc-testimonial-card {
+    flex: 0 0 calc(85% - 6px);
+    min-width: 260px;
+    max-width: 300px;
+    scroll-snap-align: start;
+  }
+
+  .ugc-testimonial-card:hover {
+    transform: none;
+  }
+
+  .ugc-mute-btn {
+    width: 36px;
+    height: 36px;
+    bottom: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ugc-container {
+    padding: 0 15px;
+  }
+
+  .ugc-testimonial-card {
+    flex: 0 0 calc(90% - 6px);
+    min-width: 240px;
+  }
+
+  .ugc-video-wrapper {
+    border-radius: 12px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .ugc-testimonial-card,
+  .ugc-mute-btn {
+    transition: none;
+  }
+
+  .ugc-testimonial-slider {
+    scroll-behavior: auto;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "UGC Video Testimonials",
+  "tag": "section",
+  "class": "ugc-testimonial-section-wrapper",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Trusted by experts and all kinds of sleepers."
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading Color",
+      "default": "#1a1a2e"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding Top",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 50,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 50,
+      "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Instagram Integration"
+    },
+    {
+      "type": "paragraph",
+      "content": "For Instagram videos: Option 1 - Use 'Upload Video' and download videos from Instagram first. Option 2 - Use 'Instagram Video' to link to the post (opens in new tab when clicked)."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "video_card",
+      "name": "Video Card",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Video Source"
+        },
+        {
+          "type": "select",
+          "id": "video_source",
+          "label": "Video Source",
+          "options": [
+            {
+              "value": "upload",
+              "label": "Upload Video"
+            },
+            {
+              "value": "url",
+              "label": "Video URL"
+            },
+            {
+              "value": "instagram",
+              "label": "Instagram Video"
+            }
+          ],
+          "default": "upload"
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "Upload Video",
+          "info": "Upload a video file (MP4 recommended)"
+        },
+        {
+          "type": "url",
+          "id": "video_url",
+          "label": "Video URL",
+          "info": "Direct link to video file (MP4)"
+        },
+        {
+          "type": "url",
+          "id": "instagram_video_url",
+          "label": "Instagram Video URL",
+          "info": "Paste the Instagram post/reel URL. Clicking the card will open Instagram. For inline playback, download and upload the video instead."
+        },
+        {
+          "type": "image_picker",
+          "id": "video_poster",
+          "label": "Video Poster/Thumbnail",
+          "info": "Image shown before video plays"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "UGC Video Testimonials",
+      "blocks": [
+        {
+          "type": "video_card"
+        },
+        {
+          "type": "video_card"
+        },
+        {
+          "type": "video_card"
+        },
+        {
+          "type": "video_card"
+        },
+        {
+          "type": "video_card"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

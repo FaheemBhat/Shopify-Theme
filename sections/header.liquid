@@ -1434,6 +1434,33 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // Cart Count Update - Listen for cart:updated event
+  function updateCartCount() {
+    fetch('/cart.js')
+      .then(response => response.json())
+      .then(cart => {
+        const cartIcons = document.querySelectorAll('.header__cart-icon');
+        cartIcons.forEach(icon => {
+          let countBadge = icon.querySelector('.cart-count');
+
+          if (cart.item_count > 0) {
+            if (!countBadge) {
+              countBadge = document.createElement('span');
+              countBadge.className = 'cart-count';
+              icon.appendChild(countBadge);
+            }
+            countBadge.textContent = cart.item_count;
+          } else if (countBadge) {
+            countBadge.remove();
+          }
+        });
+      })
+      .catch(error => console.error('Error updating cart count:', error));
+  }
+
+  // Listen for cart:updated event from product pages
+  document.addEventListener('cart:updated', updateCartCount);
 });
 </script>
 

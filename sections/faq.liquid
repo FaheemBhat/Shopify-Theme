@@ -1,0 +1,337 @@
+<div
+  class="faq-section"
+  style="
+    --faq-padding-top: {{ section.settings.padding_top }}px;
+    --faq-padding-bottom: {{ section.settings.padding_bottom }}px;
+    --faq-bg: {{ section.settings.background_color }};
+    --faq-text: {{ section.settings.text_color }};
+    --faq-accent: {{ section.settings.accent_color }};
+  "
+>
+  <div class="faq-section__container">
+    {% if section.settings.heading != blank %}
+      <div class="faq-section__header">
+        {% if section.settings.subheading != blank %}
+          <span class="faq-section__subheading">{{ section.settings.subheading }}</span>
+        {% endif %}
+        <h2 class="faq-section__heading">{{ section.settings.heading }}</h2>
+        {% if section.settings.description != blank %}
+          <p class="faq-section__description">{{ section.settings.description }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="faq-section__list" role="list">
+      {% for block in section.blocks %}
+        <details
+          class="faq-item"
+          {{ block.shopify_attributes }}
+          {% if block.settings.open_by_default %}open{% endif %}
+        >
+          <summary class="faq-item__question">
+            <span class="faq-item__question-text">{{ block.settings.question }}</span>
+            <span class="faq-item__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path class="faq-item__icon-line faq-item__icon-line--horizontal" d="M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path class="faq-item__icon-line faq-item__icon-line--vertical" d="M10 4V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </summary>
+          <div class="faq-item__answer">
+            <div class="faq-item__answer-content">
+              {{ block.settings.answer }}
+            </div>
+          </div>
+        </details>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .faq-section {
+    padding-top: var(--faq-padding-top);
+    padding-bottom: var(--faq-padding-bottom);
+    background-color: var(--faq-bg);
+    color: var(--faq-text);
+  }
+
+  .faq-section__container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .faq-section__header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .faq-section__subheading {
+    display: inline-block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--faq-accent);
+    margin-bottom: 12px;
+  }
+
+  .faq-section__heading {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0 0 16px;
+  }
+
+  .faq-section__description {
+    font-size: 1.125rem;
+    opacity: 0.8;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .faq-section__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .faq-item {
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .faq-item:hover {
+    border-color: var(--faq-accent);
+  }
+
+  .faq-item[open] {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .faq-item__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+    font-size: 1.0625rem;
+    line-height: 1.4;
+    transition: background-color 0.2s ease;
+  }
+
+  .faq-item__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item__question:hover {
+    background-color: rgba(128, 128, 128, 0.05);
+  }
+
+  .faq-item__question-text {
+    flex: 1;
+  }
+
+  .faq-item__icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--faq-accent);
+  }
+
+  .faq-item__icon-line {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: center;
+  }
+
+  .faq-item[open] .faq-item__icon-line--vertical {
+    transform: rotate(90deg);
+    opacity: 0;
+  }
+
+  .faq-item__answer {
+    overflow: hidden;
+  }
+
+  .faq-item__answer-content {
+    padding: 0 24px 20px;
+    font-size: 1rem;
+    line-height: 1.7;
+    opacity: 0.85;
+  }
+
+  @media (max-width: 768px) {
+    .faq-section__header {
+      margin-bottom: 32px;
+    }
+
+    .faq-item__question {
+      padding: 16px 20px;
+      font-size: 1rem;
+    }
+
+    .faq-item__answer-content {
+      padding: 0 20px 16px;
+      font-size: 0.9375rem;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.addEventListener('toggle', function() {
+      if (this.open) {
+        document.querySelectorAll('.faq-item').forEach(other => {
+          if (other !== this && other.open) {
+            other.open = false;
+          }
+        });
+      }
+    });
+  });
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "FAQ",
+  "tag": "section",
+  "class": "faq-section-wrapper",
+  "settings": [
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Support"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Frequently asked questions"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Find answers to common questions about our products and services."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#6366f1"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq_item",
+      "name": "FAQ item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "default": "What is your return policy?"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>We offer a 30-day return policy for all unused items in their original packaging. Simply contact our support team to initiate a return.</p>"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_by_default",
+          "label": "Open by default",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "What is your return policy?",
+            "answer": "<p>We offer a 30-day return policy for all unused items in their original packaging. Simply contact our support team to initiate a return.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "How long does shipping take?",
+            "answer": "<p>Standard shipping typically takes 3-5 business days. Express shipping options are available at checkout for faster delivery.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Do you offer international shipping?",
+            "answer": "<p>Yes, we ship to over 50 countries worldwide. Shipping rates and delivery times vary by location.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "How can I track my order?",
+            "answer": "<p>Once your order ships, you'll receive an email with a tracking number. You can also track your order in your account dashboard.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
