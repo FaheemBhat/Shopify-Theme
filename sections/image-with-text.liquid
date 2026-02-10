@@ -1,0 +1,437 @@
+{% liquid
+  assign layout = section.settings.layout
+  assign image_position = section.settings.image_position
+  assign vertical_align = section.settings.vertical_alignment
+  assign image_ratio = section.settings.image_ratio
+%}
+
+<section
+  class="iwt-section iwt-section--{{ layout }}"
+  style="
+    --iwt-pt: {{ section.settings.padding_top }}px;
+    --iwt-pb: {{ section.settings.padding_bottom }}px;
+    --iwt-bg: {{ section.settings.background_color }};
+    --iwt-text: {{ section.settings.text_color }};
+    --iwt-heading-color: {{ section.settings.heading_color }};
+    --iwt-subheading-color: {{ section.settings.subheading_color }};
+    --iwt-gap: {{ section.settings.column_gap }}px;
+    --iwt-radius: {{ section.settings.image_radius }}px;
+    --iwt-img-ratio: {{ image_ratio }};
+    --iwt-content-padding: {{ section.settings.content_padding }}px;
+  "
+>
+  <div class="iwt-container">
+    <div class="iwt-grid iwt-grid--image-{{ image_position }} iwt-grid--align-{{ vertical_align }}">
+
+      <!-- Image Column -->
+      <div class="iwt-image">
+        {% if section.settings.image != blank %}
+          {{ section.settings.image | image_url: width: 1200 | image_tag:
+            class: 'iwt-image__img',
+            loading: 'lazy',
+            widths: '375, 550, 750, 1100'
+          }}
+        {% else %}
+          <div class="iwt-image__placeholder">
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'iwt-placeholder-svg' }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Content Column -->
+      <div class="iwt-content">
+        {% if section.settings.subheading != blank %}
+          <span class="iwt-content__subheading">{{ section.settings.subheading }}</span>
+        {% endif %}
+
+        {% if section.settings.heading != blank %}
+          <h2 class="iwt-content__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+
+        {% if section.settings.text != blank %}
+          <div class="iwt-content__text">{{ section.settings.text }}</div>
+        {% endif %}
+
+        {% if section.settings.button_label != blank %}
+          <a
+            href="{{ section.settings.button_link }}"
+            class="iwt-content__button"
+            style="
+              --btn-bg: {{ section.settings.button_color }};
+              --btn-text: {{ section.settings.button_text_color }};
+              --btn-radius: {{ section.settings.button_radius }}px;
+            "
+          >
+            {{ section.settings.button_label }}
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  .iwt-section {
+    padding-top: var(--iwt-pt);
+    padding-bottom: var(--iwt-pb);
+    background-color: var(--iwt-bg);
+    color: var(--iwt-text);
+  }
+
+  .iwt-section--container .iwt-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .iwt-section--full-width .iwt-container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .iwt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--iwt-gap);
+  }
+
+  .iwt-grid--align-top { align-items: start; }
+  .iwt-grid--align-center { align-items: center; }
+  .iwt-grid--align-bottom { align-items: end; }
+
+  /* Image Position */
+  .iwt-grid--image-left .iwt-image { order: 1; }
+  .iwt-grid--image-left .iwt-content { order: 2; }
+  .iwt-grid--image-right .iwt-image { order: 2; }
+  .iwt-grid--image-right .iwt-content { order: 1; }
+
+  /* Image */
+  .iwt-image {
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--iwt-radius);
+  }
+
+  .iwt-image__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    aspect-ratio: var(--iwt-img-ratio);
+  }
+
+  .iwt-image__placeholder {
+    width: 100%;
+    aspect-ratio: var(--iwt-img-ratio);
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .iwt-placeholder-svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Content */
+  .iwt-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--iwt-content-padding);
+  }
+
+  .iwt-content__subheading {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--iwt-subheading-color);
+    margin-bottom: 12px;
+  }
+
+  .iwt-content__heading {
+    font-size: clamp(24px, 4vw, 40px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--iwt-heading-color);
+    margin: 0 0 16px;
+  }
+
+  .iwt-content__text {
+    font-size: 16px;
+    line-height: 1.7;
+    opacity: 0.85;
+    margin-bottom: 24px;
+  }
+
+  .iwt-content__text p {
+    margin: 0 0 12px;
+  }
+
+  .iwt-content__text p:last-child {
+    margin-bottom: 0;
+  }
+
+  .iwt-content__button {
+    display: inline-block;
+    padding: 14px 32px;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border-radius: var(--btn-radius);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    align-self: flex-start;
+    margin-top: 8px;
+  }
+
+  .iwt-content__button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .iwt-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .iwt-grid--image-left .iwt-image,
+    .iwt-grid--image-right .iwt-image {
+      order: 1;
+    }
+
+    .iwt-grid--image-left .iwt-content,
+    .iwt-grid--image-right .iwt-content {
+      order: 2;
+    }
+
+    .iwt-content {
+      padding: 24px 20px;
+    }
+
+    .iwt-section--full-width .iwt-container {
+      padding: 0 20px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Image with text",
+  "tag": "section",
+  "class": "iwt-section-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Section width",
+      "options": [
+        { "value": "container", "label": "Container" },
+        { "value": "full-width", "label": "Full width" }
+      ],
+      "default": "container"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        { "value": "left", "label": "Image left" },
+        { "value": "right", "label": "Image right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "vertical_alignment",
+      "label": "Vertical alignment",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "options": [
+        { "value": "auto", "label": "Auto" },
+        { "value": "1/1", "label": "Square (1:1)" },
+        { "value": "4/3", "label": "Landscape (4:3)" },
+        { "value": "3/4", "label": "Portrait (3:4)" },
+        { "value": "16/9", "label": "Widescreen (16:9)" }
+      ],
+      "default": "auto"
+    },
+    {
+      "type": "range",
+      "id": "image_radius",
+      "label": "Image border radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Our story"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Crafted with care"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Share your brand story with customers. Describe a product, announce promotions, or welcome visitors to your store.</p>"
+    },
+    {
+      "type": "range",
+      "id": "content_padding",
+      "label": "Content padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Learn more"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button color",
+      "default": "#1a1a2e"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "button_radius",
+      "label": "Button border radius",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#444444"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#1a1a2e"
+    },
+    {
+      "type": "color",
+      "id": "subheading_color",
+      "label": "Subheading color",
+      "default": "#4A90D9"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image with text"
+    }
+  ]
+}
+{% endschema %}

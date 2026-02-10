@@ -1,7 +1,7 @@
 <!-- FontAwesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-<section class="product-section">
+<section class="product-section" style="--thumb-active: {{ section.settings.thumbnail_active_color }}">
   <div class="product-container">
     <!-- Left Column - Product Images -->
     <div class="product-gallery">
@@ -200,6 +200,82 @@
               </div>
             </div>
 
+          {% when 'product_accordion' %}
+            <div class="product-accordion" {{ block.shopify_attributes }}>
+              {% if block.settings.show_description %}
+                <details class="product-accordion__item">
+                  <summary class="product-accordion__trigger">
+                    <span class="product-accordion__title">{{ block.settings.description_label }}</span>
+                    <span class="product-accordion__icon" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path class="product-accordion__icon-h" d="M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path class="product-accordion__icon-v" d="M8 3V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                  </summary>
+                  <div class="product-accordion__content">
+                    <div class="product-accordion__body">{{ product.description }}</div>
+                  </div>
+                </details>
+              {% endif %}
+
+              {% if block.settings.show_specifications %}
+                <details class="product-accordion__item">
+                  <summary class="product-accordion__trigger">
+                    <span class="product-accordion__title">{{ block.settings.specifications_label }}</span>
+                    <span class="product-accordion__icon" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path class="product-accordion__icon-h" d="M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path class="product-accordion__icon-v" d="M8 3V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                  </summary>
+                  <div class="product-accordion__content">
+                    <div class="product-accordion__body">
+                      {% if block.settings.specifications_content != blank %}
+                        {{ block.settings.specifications_content }}
+                      {% else %}
+                        {% assign spec_meta = product.metafields.custom.specifications.value | default: product.metafields.custom.specifications %}
+                        {% if spec_meta != blank %}
+                          {{ spec_meta }}
+                        {% else %}
+                          <p>No specifications available.</p>
+                        {% endif %}
+                      {% endif %}
+                    </div>
+                  </div>
+                </details>
+              {% endif %}
+
+              {% if block.settings.show_how_to_use %}
+                <details class="product-accordion__item">
+                  <summary class="product-accordion__trigger">
+                    <span class="product-accordion__title">{{ block.settings.how_to_use_label }}</span>
+                    <span class="product-accordion__icon" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path class="product-accordion__icon-h" d="M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path class="product-accordion__icon-v" d="M8 3V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                  </summary>
+                  <div class="product-accordion__content">
+                    <div class="product-accordion__body">
+                      {% if block.settings.how_to_use_content != blank %}
+                        {{ block.settings.how_to_use_content }}
+                      {% else %}
+                        {% assign how_to_meta = product.metafields.custom.how_to_use.value | default: product.metafields.custom.how_to_use %}
+                        {% if how_to_meta != blank %}
+                          {{ how_to_meta }}
+                        {% else %}
+                          <p>No usage instructions available.</p>
+                        {% endif %}
+                      {% endif %}
+                    </div>
+                  </div>
+                </details>
+              {% endif %}
+            </div>
+
           {% when 'add_to_cart' %}
             <form method="post" action="{{ routes.cart_add_url }}" class="product-form" id="product-form" {{ block.shopify_attributes }}>
               <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
@@ -319,6 +395,20 @@ document.addEventListener('DOMContentLoaded', function() {
     updateButtonState();
   }
 
+  // Product Accordion - close siblings on open
+  document.querySelectorAll('.product-accordion__item').forEach(item => {
+    item.addEventListener('toggle', function() {
+      if (this.open) {
+        const parent = this.closest('.product-accordion');
+        parent.querySelectorAll('.product-accordion__item').forEach(sibling => {
+          if (sibling !== this && sibling.open) {
+            sibling.open = false;
+          }
+        });
+      }
+    });
+  });
+
   // Add to Cart with AJAX
   const productForm = document.getElementById('product-form');
   const addToCartBtn = document.querySelector('.add-to-cart-btn');
@@ -358,8 +448,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
 .product-section {
   padding: 40px 20px;
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: 1440px;
+  margin: 50px auto;
+  overflow-x: hidden;
 }
 
 .product-container {
@@ -367,12 +458,19 @@ document.addEventListener('DOMContentLoaded', function() {
   grid-template-columns: 1fr 1fr;
   gap: 60px;
   align-items: start;
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
 /* Gallery */
 .product-gallery {
   position: sticky;
   top: 20px;
+  max-width: 400px;
+  width: 100%;
+  align-self: start;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
 }
 
 .product-main-image {
@@ -402,14 +500,19 @@ document.addEventListener('DOMContentLoaded', function() {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .product-thumbnails {
   display: flex;
   gap: 10px;
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
   flex: 1;
+  min-width: 0;
   padding: 5px;
 }
 
@@ -430,11 +533,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .product-thumbnail:hover,
 .product-thumbnail.active {
-  border-color: #e91e63;
-}
-
-.product-thumbnail.active {
-  box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+  border-color: var(--thumb-active, #4A90D9);
 }
 
 .product-thumbnail img {
@@ -444,8 +543,10 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .thumb-nav {
-  width: 36px;
-  height: 36px;
+  width: 20px;
+  height: 20px;
+  padding: 12px;
+  box-sizing: content-box;
   border-radius: 50%;
   border: 1px solid #eee;
   background: white;
@@ -453,13 +554,14 @@ document.addEventListener('DOMContentLoaded', function() {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   transition: all 0.3s ease;
   color: #666;
 }
 
 .thumb-nav:hover {
-  border-color: #e91e63;
-  color: #e91e63;
+  border-color: #4A90D9;
+  color: #4A90D9;
 }
 
 /* Product Info */
@@ -468,8 +570,8 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .product-title {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 500;
   color: #1a1a2e;
   margin: 0 0 20px 0;
   line-height: 1.3;
@@ -508,8 +610,8 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .product-price {
-  font-size: 36px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 600;
   color: #1a1a2e;
 }
 
@@ -521,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .product-sale-badge {
   padding: 6px 14px;
-  background: linear-gradient(135deg, #e91e63, #ff6b9d);
+  background: linear-gradient(135deg, #4A90D9, #ff6b9d);
   color: white;
   font-size: 14px;
   font-weight: 600;
@@ -558,13 +660,13 @@ document.addEventListener('DOMContentLoaded', function() {
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--tab-active, #e91e63);
+  background: var(--tab-active, #4A90D9);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
 
 .tab-btn:hover,
-.tab-btn.active { color: var(--tab-active, #e91e63); }
+.tab-btn.active { color: var(--tab-active, #4A90D9); }
 .tab-btn.active::after { transform: scaleX(1); }
 
 .product-tabs-content {
@@ -611,7 +713,7 @@ document.addEventListener('DOMContentLoaded', function() {
   top: 8px;
   width: 8px;
   height: 8px;
-  background: linear-gradient(135deg, #e91e63, #ff6b9d);
+  background: linear-gradient(135deg, #4A90D9, #ff6b9d);
   border-radius: 50%;
 }
 
@@ -634,12 +736,12 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .quantity-selector {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   background: #f8f8f8;
   border-radius: 50px;
   padding: 4px;
-  width: var(--qty-width, auto);
+  width: var(--qty-width, 40%);
   justify-content: space-between;
 }
 
@@ -663,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .quantity-btn:hover:not(:disabled) {
-  background: var(--qty-btn-hover, #e91e63);
+  background: var(--qty-btn-hover, #4A90D9);
 }
 
 .quantity-btn:hover:not(:disabled) i {
@@ -698,8 +800,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .add-to-cart-btn {
   width: var(--btn-width, 100%);
-  padding: var(--btn-padding, 16px) 24px;
-  background: var(--btn-bg, linear-gradient(135deg, #e91e63, #ff6b9d));
+  padding: var(--btn-padding, 8px) 16px;
+  background: var(--btn-bg, linear-gradient(135deg, #4A90D9, #ff6b9d));
   border: none;
   border-radius: var(--btn-radius, 50px);
   color: var(--btn-text, white);
@@ -741,7 +843,11 @@ document.addEventListener('DOMContentLoaded', function() {
     grid-template-columns: 1fr;
     gap: 30px;
   }
-  .product-gallery { position: static; }
+  .product-gallery {
+    position: static;
+    align-self: auto;
+    max-height: none;
+  }
   .product-title { font-size: 24px; }
   .product-price { font-size: 28px; }
   .feature-item { padding: 8px 14px; font-size: 13px; }
@@ -793,10 +899,91 @@ document.addEventListener('DOMContentLoaded', function() {
   .quantity-input { flex: 1; }
 
   .add-to-cart-btn {
-    width: var(--btn-width-mobile, 100%);
+    width: var(--btn-width-mobile, 50%);
     padding: var(--btn-padding-mobile, 12px) 16px;
     font-size: var(--btn-font-size-mobile, 14px);
   }
+}
+
+/* Product Accordion */
+.product-accordion {
+  margin: 24px 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.product-accordion__item {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.product-accordion__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 20px 0;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.product-accordion__trigger::-webkit-details-marker {
+  display: none;
+}
+
+.product-accordion__title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1a1a2e;
+}
+
+.product-accordion__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a2e;
+  transition: transform 0.3s ease;
+}
+
+.product-accordion__icon-v {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  transform-origin: center;
+}
+
+.product-accordion__item[open] .product-accordion__icon-v {
+  opacity: 0;
+  transform: rotate(90deg);
+}
+
+.product-accordion__content {
+  overflow: hidden;
+}
+
+.product-accordion__body {
+  padding: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #555;
+}
+
+.product-accordion__body p {
+  margin: 0 0 12px;
+}
+
+.product-accordion__body p:last-child {
+  margin-bottom: 0;
+}
+
+.product-accordion__body ul,
+.product-accordion__body ol {
+  padding-left: 20px;
+  margin: 0 0 12px;
+}
+
+.product-accordion__body li {
+  margin-bottom: 6px;
 }
 </style>
 
@@ -805,7 +992,14 @@ document.addEventListener('DOMContentLoaded', function() {
   "name": "Product Page",
   "tag": "section",
   "class": "product-page-section",
-  "settings": [],
+  "settings": [
+    {
+      "type": "color",
+      "id": "thumbnail_active_color",
+      "label": "Thumbnail active border color",
+      "default": "#4A90D9"
+    }
+  ],
   "blocks": [
     {
       "type": "feature_icon",
@@ -890,7 +1084,7 @@ document.addEventListener('DOMContentLoaded', function() {
           "type": "color",
           "id": "tab_active_color",
           "label": "Active Tab Color",
-          "default": "#e91e63"
+          "default": "#4A90D9"
         },
         {
           "type": "color",
@@ -903,6 +1097,71 @@ document.addEventListener('DOMContentLoaded', function() {
           "id": "content_text_color",
           "label": "Content Text Color",
           "default": "#444444"
+        }
+      ]
+    },
+    {
+      "type": "product_accordion",
+      "name": "Product Accordion",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "header",
+          "content": "Description"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_description",
+          "label": "Show description",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "description_label",
+          "label": "Label",
+          "default": "Details"
+        },
+        {
+          "type": "header",
+          "content": "Specifications"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_specifications",
+          "label": "Show specifications",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "specifications_label",
+          "label": "Label",
+          "default": "Specifications"
+        },
+        {
+          "type": "richtext",
+          "id": "specifications_content",
+          "label": "Content (or uses metafield custom.specifications)"
+        },
+        {
+          "type": "header",
+          "content": "How to use"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_how_to_use",
+          "label": "Show how to use",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "how_to_use_label",
+          "label": "Label",
+          "default": "How to use"
+        },
+        {
+          "type": "richtext",
+          "id": "how_to_use_content",
+          "label": "Content (or uses metafield custom.how_to_use)"
         }
       ]
     },
@@ -937,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', function() {
           "type": "color",
           "id": "button_hover_color",
           "label": "Button Hover Color",
-          "default": "#e91e63"
+          "default": "#4A90D9"
         },
         {
           "type": "color",
@@ -956,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', function() {
           "min": 20,
           "max": 100,
           "step": 5,
-          "default": 30,
+          "default": 40,
           "unit": "%"
         },
         {
@@ -1006,7 +1265,7 @@ document.addEventListener('DOMContentLoaded', function() {
           "type": "color",
           "id": "button_color",
           "label": "Button Color",
-          "default": "#e91e63"
+          "default": "#4A90D9"
         },
         {
           "type": "color",
@@ -1021,7 +1280,7 @@ document.addEventListener('DOMContentLoaded', function() {
           "min": 8,
           "max": 30,
           "step": 2,
-          "default": 16,
+          "default": 14,
           "unit": "px"
         },
         {
@@ -1031,7 +1290,7 @@ document.addEventListener('DOMContentLoaded', function() {
           "min": 12,
           "max": 24,
           "step": 1,
-          "default": 16,
+          "default": 14,
           "unit": "px"
         },
         {
@@ -1049,9 +1308,9 @@ document.addEventListener('DOMContentLoaded', function() {
           "id": "button_width_desktop",
           "label": "Button Width (Desktop)",
           "min": 30,
-          "max": 100,
+          "max": 50,
           "step": 5,
-          "default": 40,
+          "default": 35,
           "unit": "%"
         },
         {
@@ -1083,9 +1342,9 @@ document.addEventListener('DOMContentLoaded', function() {
           "id": "button_width_mobile",
           "label": "Button Width (Mobile)",
           "min": 50,
-          "max": 100,
+          "max": 50,
           "step": 5,
-          "default": 100,
+          "default": 50,
           "unit": "%"
         }
       ]

@@ -1,0 +1,1807 @@
+{% comment %}
+  Collection Page Section
+  Architecture:
+    1. Collection Header (collection name)
+    2. Collection Circle Navigation (all collections)
+    3. Breadcrumbs
+    4. Collection Description
+    5. Trust Badges (via blocks)
+    6. Product Grid with Sidebar Filters, Sort, View Toggle
+{% endcomment %}
+
+{%- assign current_col = collection -%}
+{%- assign products_per_page = section.settings.products_per_page -%}
+
+{%- comment -%} Calculate price range from collection products {%- endcomment -%}
+{%- assign price_max = 0 -%}
+{%- assign price_min = 999999999 -%}
+{%- for product in current_col.products -%}
+  {%- if product.price > price_max -%}
+    {%- assign price_max = product.price -%}
+  {%- endif -%}
+  {%- if product.price < price_min -%}
+    {%- assign price_min = product.price -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- if price_min == 999999999 -%}{%- assign price_min = 0 -%}{%- endif -%}
+{%- assign price_max_money = price_max | money_without_trailing_zeros -%}
+
+{%- comment -%} Count availability {%- endcomment -%}
+{%- assign in_stock_count = 0 -%}
+{%- assign out_stock_count = 0 -%}
+{%- for product in current_col.products -%}
+  {%- if product.available -%}
+    {%- assign in_stock_count = in_stock_count | plus: 1 -%}
+  {%- else -%}
+    {%- assign out_stock_count = out_stock_count | plus: 1 -%}
+  {%- endif -%}
+{%- endfor -%}
+
+<section class="coll-page" data-section-id="{{ section.id }}">
+
+  {%- comment -%} ========== 1. COLLECTION HEADER ========== {%- endcomment -%}
+  <div class="coll-hero">
+    <div class="coll-hero__inner">
+      <h1 class="coll-hero__title">{{ current_col.title }}</h1>
+    </div>
+  </div>
+
+  {%- comment -%} ========== 2. BREADCRUMBS (block) ========== {%- endcomment -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'breadcrumbs' -%}
+      <nav class="coll-breadcrumbs" aria-label="Breadcrumb" {{ block.shopify_attributes }}>
+        <div class="coll-breadcrumbs__inner">
+          <ol class="coll-breadcrumbs__list">
+            <li class="coll-breadcrumbs__item">
+              <a href="/" class="coll-breadcrumbs__link">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Home
+              </a>
+            </li>
+            <li class="coll-breadcrumbs__sep" aria-hidden="true">
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+            </li>
+            <li class="coll-breadcrumbs__item">
+              <a href="{{ routes.collections_url }}" class="coll-breadcrumbs__link">Collections</a>
+            </li>
+            <li class="coll-breadcrumbs__sep" aria-hidden="true">
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+            </li>
+            <li class="coll-breadcrumbs__item coll-breadcrumbs__item--current" aria-current="page">
+              {{ current_col.title }}
+            </li>
+          </ol>
+        </div>
+      </nav>
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- comment -%} ========== 3. COLLECTION DESCRIPTION (block) ========== {%- endcomment -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'collection_description' -%}
+      {% if current_col.description != blank %}
+        <div class="coll-description" {{ block.shopify_attributes }}>
+          <div class="coll-description__inner">
+            <div class="coll-description__content rte">
+              {{ current_col.description }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- comment -%} ========== 4. TRUST BADGES (single block) ========== {%- endcomment -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'trust_badges' -%}
+      <div class="coll-trust-badges" {{ block.shopify_attributes }}>
+        <div class="coll-trust-badges__inner">
+          <div class="coll-trust-badges__grid" style="--coll-badge-cols: {{ block.settings.columns }};">
+            {%- for i in (1..6) -%}
+              {%- assign title_key = 'badge_title_' | append: i -%}
+              {%- assign sub_key = 'badge_subtitle_' | append: i -%}
+              {%- assign img_key = 'badge_image_' | append: i -%}
+              {%- assign b_title = block.settings[title_key] -%}
+              {%- assign b_sub = block.settings[sub_key] -%}
+              {%- assign b_img = block.settings[img_key] -%}
+              {%- if b_title != blank -%}
+                <div class="coll-trust-badge">
+                  {% if i > 1 %}
+                    <span class="coll-badge-divider" aria-hidden="true"></span>
+                  {% endif %}
+                  <div class="coll-badge-inner">
+                    <div class="coll-badge-icon">
+                      {% if b_img %}
+                        <img
+                          src="{{ b_img | image_url: width: 96 }}"
+                          alt="{{ b_img.alt | default: b_title | escape }}"
+                          width="48"
+                          height="48"
+                          loading="lazy"
+                        >
+                      {% else %}
+                        <div class="coll-badge-icon-ph">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            {% case i %}
+                              {% when 1 %}
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>
+                              {% when 2 %}
+                                <path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                              {% when 3 %}
+                                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                              {% when 4 %}
+                                <path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/>
+                              {% else %}
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            {% endcase %}
+                          </svg>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <h3 class="coll-badge-title">{{ b_title }}</h3>
+                    {% if b_sub != blank %}
+                      <p class="coll-badge-subtitle">{{ b_sub }}</p>
+                    {% endif %}
+                  </div>
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- comment -%} ========== 5. COLLECTION CIRCLES (single block) ========== {%- endcomment -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'collection_circles' -%}
+      <div class="coll-circles-wrap" {{ block.shopify_attributes }}>
+        <div class="coll-circles">
+          <div class="coll-circles__track">
+            {%- for i in (1..10) -%}
+              {%- assign col_key = 'collection_' | append: i -%}
+              {%- assign col = block.settings[col_key] -%}
+              {%- if col != blank -%}
+                <a href="{{ col.url }}" class="coll-circle {% if col.handle == current_col.handle %}coll-circle--active{% endif %}">
+                  <div class="coll-circle__img-wrap">
+                    {% if col.featured_image %}
+                      <img
+                        src="{{ col.featured_image | image_url: width: 300 }}"
+                        alt="{{ col.title | escape }}"
+                        loading="lazy"
+                        width="150"
+                        height="150"
+                      >
+                    {% else %}
+                      {{ 'collection-1' | placeholder_svg_tag: 'coll-circle__placeholder' }}
+                    {% endif %}
+                  </div>
+                  <span class="coll-circle__name">{{ col.title }}</span>
+                </a>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- comment -%} ========== 6. PRODUCTS SECTION ========== {%- endcomment -%}
+  {% paginate current_col.products by products_per_page %}
+    <div class="coll-products-section">
+      <div class="coll-products-inner">
+
+        {%- comment -%} --- Toolbar --- {%- endcomment -%}
+        <div class="coll-toolbar">
+          <div class="coll-toolbar__left">
+            <button class="coll-filter-toggle" id="collFilterToggle" aria-expanded="false" aria-controls="collFilterSidebar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Filter
+            </button>
+            <span class="coll-product-count">
+              <span id="collVisibleCount">{{ current_col.products_count }}</span> products
+            </span>
+          </div>
+          <div class="coll-toolbar__right">
+            <div class="coll-sort">
+              <label for="collSortSelect" class="coll-sort__label">Sort by:</label>
+              <select id="collSortSelect" class="coll-sort__select">
+                <option value="manual">Featured</option>
+                <option value="best-selling">Best selling</option>
+                <option value="title-ascending">Alphabetically, A-Z</option>
+                <option value="title-descending">Alphabetically, Z-A</option>
+                <option value="price-ascending">Price, low to high</option>
+                <option value="price-descending">Price, high to low</option>
+                <option value="created-ascending">Date, old to new</option>
+                <option value="created-descending">Date, new to old</option>
+              </select>
+            </div>
+            <div class="coll-view-toggle">
+              <button class="coll-view-btn coll-view-btn--grid active" data-view="grid" aria-label="Grid view">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+              </button>
+              <button class="coll-view-btn coll-view-btn--list" data-view="list" aria-label="List view">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="coll-main-layout">
+
+          {%- comment -%} --- Sidebar Filters --- {%- endcomment -%}
+          <aside class="coll-sidebar" id="collFilterSidebar">
+            <div class="coll-sidebar__header-mobile">
+              <span class="coll-sidebar__title-mobile">Filters</span>
+              <button class="coll-sidebar__close" id="collFilterClose" aria-label="Close filters">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            {%- comment -%} Availability Filter {%- endcomment -%}
+            <div class="coll-filter-group">
+              <button class="coll-filter-group__toggle" aria-expanded="true" data-collapse="availability">
+                <span>Availability</span>
+                <svg class="coll-filter-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="coll-filter-group__body" id="filter-availability">
+                <label class="coll-filter-check">
+                  <input type="checkbox" value="true" name="availability" checked>
+                  <span class="coll-filter-check__box"></span>
+                  <span class="coll-filter-check__label">In stock</span>
+                  <span class="coll-filter-check__count">{{ in_stock_count }}</span>
+                </label>
+                <label class="coll-filter-check">
+                  <input type="checkbox" value="false" name="availability" checked>
+                  <span class="coll-filter-check__box"></span>
+                  <span class="coll-filter-check__label">Out of stock</span>
+                  <span class="coll-filter-check__count">{{ out_stock_count }}</span>
+                </label>
+              </div>
+            </div>
+
+            {%- comment -%} Price Filter {%- endcomment -%}
+            <div class="coll-filter-group">
+              <button class="coll-filter-group__toggle" aria-expanded="true" data-collapse="price">
+                <span>Price</span>
+                <svg class="coll-filter-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="coll-filter-group__body" id="filter-price">
+                <p class="coll-price-hint">The highest price is {{ price_max_money }}</p>
+                <div class="coll-price-slider" data-min="{{ price_min }}" data-max="{{ price_max }}">
+                  <div class="coll-price-slider__track">
+                    <div class="coll-price-slider__range" id="priceRange"></div>
+                  </div>
+                  <input type="range" class="coll-price-slider__input coll-price-slider__input--min" id="priceMin" min="{{ price_min }}" max="{{ price_max }}" value="{{ price_min }}" step="1">
+                  <input type="range" class="coll-price-slider__input coll-price-slider__input--max" id="priceMax" min="{{ price_min }}" max="{{ price_max }}" value="{{ price_max }}" step="1">
+                </div>
+                <div class="coll-price-inputs">
+                  <div class="coll-price-input-wrap">
+                    <span class="coll-price-currency">{{ cart.currency.symbol }}</span>
+                    <input type="number" id="priceInputMin" class="coll-price-input" value="{{ price_min | money_without_currency | strip }}" min="0" aria-label="Minimum price">
+                  </div>
+                  <span class="coll-price-dash">&ndash;</span>
+                  <div class="coll-price-input-wrap">
+                    <span class="coll-price-currency">{{ cart.currency.symbol }}</span>
+                    <input type="number" id="priceInputMax" class="coll-price-input" value="{{ price_max | money_without_currency | strip }}" min="0" aria-label="Maximum price">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </aside>
+
+          {%- comment -%} --- Product Grid --- {%- endcomment -%}
+          <div class="coll-product-grid-wrap">
+            <div class="coll-product-grid" id="collProductGrid">
+              {% for product in current_col.products %}
+                <div class="coll-prod-card"
+                     data-product-id="{{ product.id }}"
+                     data-available="{{ product.available }}"
+                     data-price="{{ product.price }}"
+                     data-title="{{ product.title | escape }}"
+                     data-created="{{ product.created_at | date: '%Y%m%d%H%M%S' }}"
+                     data-position="{{ forloop.index }}">
+
+                  {%- comment -%} Image {%- endcomment -%}
+                  <div class="coll-prod-card__media">
+                    <a href="{{ product.url }}" class="coll-prod-card__img-link">
+                      {% if product.featured_image != blank %}
+                        <img
+                          src="{{ product.featured_image | image_url: width: 600 }}"
+                          alt="{{ product.featured_image.alt | escape }}"
+                          class="coll-prod-card__img main-image"
+                          loading="lazy"
+                          width="300"
+                          height="300"
+                        >
+                      {% else %}
+                        {{ 'product-1' | placeholder_svg_tag: 'coll-prod-card__img placeholder-svg' }}
+                      {% endif %}
+                    </a>
+
+                    {% if product.compare_at_price > product.price %}
+                      <span class="coll-prod-badge">Sale</span>
+                    {% endif %}
+                  </div>
+
+                  {%- comment -%} Thumbnails {%- endcomment -%}
+                  {% if product.variants.size > 1 %}
+                    <div class="coll-prod-thumbs" data-thumbnail-type="variants">
+                      {% for variant in product.variants %}
+                        <div class="coll-prod-thumb {% if forloop.first %}active{% endif %}"
+                             data-index="{{ forloop.index0 }}"
+                             data-variant-id="{{ variant.id }}"
+                             data-variant-price="{{ variant.price | money }}"
+                             data-variant-compare-price="{% if variant.compare_at_price > variant.price %}{{ variant.compare_at_price | money }}{% endif %}"
+                             data-variant-available="{{ variant.available }}"
+                             data-image-url="{% if variant.featured_image %}{{ variant.featured_image | image_url: width: 600 }}{% else %}{{ product.featured_image | image_url: width: 600 }}{% endif %}"
+                             data-image-alt="{{ variant.title | escape }}">
+                          {% if variant.featured_image %}
+                            <img src="{{ variant.featured_image | image_url: width: 100 }}" alt="{{ variant.title | escape }}" loading="lazy" width="50" height="50">
+                          {% else %}
+                            <span class="coll-prod-thumb__label">{{ variant.title | truncate: 10 }}</span>
+                          {% endif %}
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% elsif product.images.size > 1 %}
+                    <div class="coll-prod-thumbs" data-thumbnail-type="images">
+                      {% for image in product.images %}
+                        <div class="coll-prod-thumb {% if forloop.first %}active{% endif %}"
+                             data-index="{{ forloop.index0 }}"
+                             data-image-url="{{ image | image_url: width: 600 }}"
+                             data-image-alt="{{ image.alt | escape }}">
+                          <img src="{{ image | image_url: width: 100 }}" alt="{{ image.alt | escape }}" loading="lazy" width="50" height="50">
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                  {%- comment -%} Info {%- endcomment -%}
+                  <div class="coll-prod-card__info">
+                    <a href="{{ product.url }}" class="coll-prod-card__title">{{ product.title }}</a>
+                    <span class="coll-prod-card__type">{{ product.type | upcase }}</span>
+                    <div class="coll-prod-card__price">
+                      {% if product.compare_at_price > product.price %}
+                        <span class="coll-price--sale">{{ product.price | money }}</span>
+                        <span class="coll-price--compare">{{ product.compare_at_price | money }}</span>
+                      {% else %}
+                        <span class="coll-price--regular">{{ product.price | money }}</span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  {%- comment -%} Add to Cart {%- endcomment -%}
+                  <div class="coll-prod-card__actions">
+                    {% form 'product', product, class: 'coll-prod-form' %}
+                      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                      <input type="hidden" name="quantity" value="1">
+                      <button type="submit" name="add" class="coll-add-btn" {% unless product.available %}disabled{% endunless %}>
+                        <svg class="coll-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                        {% if product.available %}{{ section.settings.add_to_cart_text }}{% else %}SOLD OUT{% endif %}
+                      </button>
+                    {% endform %}
+                  </div>
+
+                  {%- comment -%} List-view description {%- endcomment -%}
+                  <div class="coll-prod-card__list-desc">
+                    <p>{{ product.description | strip_html | truncatewords: 25 }}</p>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            {%- comment -%} Empty state {%- endcomment -%}
+            <div class="coll-empty-state" id="collEmptyState" style="display:none;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <p>No products match your filters.</p>
+              <button class="coll-reset-filters" id="collResetFilters">Clear all filters</button>
+            </div>
+
+            {%- comment -%} Pagination {%- endcomment -%}
+            {% if paginate.pages > 1 %}
+              <nav class="coll-pagination" aria-label="Pagination">
+                {% if paginate.previous %}
+                  <a href="{{ paginate.previous.url }}" class="coll-pagination__btn coll-pagination__btn--prev" aria-label="Previous page">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                  </a>
+                {% endif %}
+
+                {% for part in paginate.parts %}
+                  {% if part.is_link %}
+                    <a href="{{ part.url }}" class="coll-pagination__num">{{ part.title }}</a>
+                  {% else %}
+                    {% if part.title == paginate.current_page %}
+                      <span class="coll-pagination__num coll-pagination__num--current" aria-current="page">{{ part.title }}</span>
+                    {% else %}
+                      <span class="coll-pagination__num coll-pagination__ellipsis">{{ part.title }}</span>
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+
+                {% if paginate.next %}
+                  <a href="{{ paginate.next.url }}" class="coll-pagination__btn coll-pagination__btn--next" aria-label="Next page">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </a>
+                {% endif %}
+              </nav>
+            {% endif %}
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  {% endpaginate %}
+
+  {%- comment -%} Mobile filter overlay backdrop {%- endcomment -%}
+  <div class="coll-sidebar-overlay" id="collSidebarOverlay"></div>
+
+</section>
+
+{%- comment -%} ============================================================
+     JAVASCRIPT
+     ============================================================ {%- endcomment -%}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var section = document.querySelector('.coll-page[data-section-id="{{ section.id }}"]');
+  if (!section) return;
+
+  /* --- Elements --- */
+  var grid           = section.querySelector('#collProductGrid');
+  var cards          = grid ? Array.from(grid.querySelectorAll('.coll-prod-card')) : [];
+  var sidebar        = section.querySelector('#collFilterSidebar');
+  var overlay        = section.querySelector('#collSidebarOverlay');
+  var filterToggle   = section.querySelector('#collFilterToggle');
+  var filterClose    = section.querySelector('#collFilterClose');
+  var sortSelect     = section.querySelector('#collSortSelect');
+  var visibleCount   = section.querySelector('#collVisibleCount');
+  var emptyState     = section.querySelector('#collEmptyState');
+  var resetBtn       = section.querySelector('#collResetFilters');
+  var viewBtns       = section.querySelectorAll('.coll-view-btn');
+  var priceMinSlider = section.querySelector('#priceMin');
+  var priceMaxSlider = section.querySelector('#priceMax');
+  var priceRange     = section.querySelector('#priceRange');
+  var priceInputMin  = section.querySelector('#priceInputMin');
+  var priceInputMax  = section.querySelector('#priceInputMax');
+  var availChecks    = section.querySelectorAll('input[name="availability"]');
+  var collapseToggles = section.querySelectorAll('.coll-filter-group__toggle');
+
+  /* --- Mobile filter toggle --- */
+  function openSidebar()  { sidebar.classList.add('open'); overlay.classList.add('visible'); document.body.style.overflow = 'hidden'; }
+  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('visible'); document.body.style.overflow = ''; }
+  if (filterToggle) filterToggle.addEventListener('click', openSidebar);
+  if (filterClose)  filterClose.addEventListener('click', closeSidebar);
+  if (overlay)      overlay.addEventListener('click', closeSidebar);
+
+  /* --- Collapse toggles --- */
+  collapseToggles.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', !expanded);
+      btn.nextElementSibling.style.display = expanded ? 'none' : '';
+    });
+  });
+
+  /* --- Price range slider --- */
+  function updatePriceSlider() {
+    if (!priceMinSlider || !priceMaxSlider || !priceRange) return;
+    var min = parseInt(priceMinSlider.min);
+    var max = parseInt(priceMinSlider.max);
+    var low = parseInt(priceMinSlider.value);
+    var high = parseInt(priceMaxSlider.value);
+    if (low > high) { var t = low; low = high; high = t; }
+    var range = max - min || 1;
+    var leftPct  = ((low - min) / range) * 100;
+    var rightPct = ((max - high) / range) * 100;
+    priceRange.style.left  = leftPct + '%';
+    priceRange.style.right = rightPct + '%';
+    if (priceInputMin) priceInputMin.value = Math.round(low / 100);
+    if (priceInputMax) priceInputMax.value = Math.round(high / 100);
+  }
+
+  if (priceMinSlider) {
+    priceMinSlider.addEventListener('input', function () { updatePriceSlider(); applyFilters(); });
+    priceMaxSlider.addEventListener('input', function () { updatePriceSlider(); applyFilters(); });
+  }
+
+  if (priceInputMin) {
+    priceInputMin.addEventListener('change', function () {
+      priceMinSlider.value = parseInt(this.value) * 100;
+      updatePriceSlider(); applyFilters();
+    });
+    priceInputMax.addEventListener('change', function () {
+      priceMaxSlider.value = parseInt(this.value) * 100;
+      updatePriceSlider(); applyFilters();
+    });
+  }
+  updatePriceSlider();
+
+  /* --- Availability filter --- */
+  availChecks.forEach(function (cb) {
+    cb.addEventListener('change', applyFilters);
+  });
+
+  /* --- Apply filters --- */
+  function applyFilters() {
+    var showInStock  = true;
+    var showOutStock = true;
+    availChecks.forEach(function (cb) {
+      if (cb.value === 'true')  showInStock  = cb.checked;
+      if (cb.value === 'false') showOutStock = cb.checked;
+    });
+
+    var pMin = parseInt(priceMinSlider ? priceMinSlider.value : 0);
+    var pMax = parseInt(priceMaxSlider ? priceMaxSlider.value : 999999999);
+    if (pMin > pMax) { var t = pMin; pMin = pMax; pMax = t; }
+
+    var count = 0;
+    cards.forEach(function (card) {
+      var available = card.dataset.available === 'true';
+      var price = parseInt(card.dataset.price);
+      var showAvail = (available && showInStock) || (!available && showOutStock);
+      var showPrice = price >= pMin && price <= pMax;
+      var visible = showAvail && showPrice;
+      card.style.display = visible ? '' : 'none';
+      if (visible) count++;
+    });
+
+    if (visibleCount) visibleCount.textContent = count;
+    if (emptyState) emptyState.style.display = count === 0 ? '' : 'none';
+    if (grid) grid.style.display = count === 0 ? 'none' : '';
+  }
+
+  /* --- Reset filters --- */
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function () {
+      availChecks.forEach(function (cb) { cb.checked = true; });
+      if (priceMinSlider) priceMinSlider.value = priceMinSlider.min;
+      if (priceMaxSlider) priceMaxSlider.value = priceMaxSlider.max;
+      updatePriceSlider();
+      applyFilters();
+    });
+  }
+
+  /* --- Sort --- */
+  if (sortSelect) {
+    sortSelect.addEventListener('change', function () {
+      var val = this.value;
+      cards.sort(function (a, b) {
+        switch (val) {
+          case 'title-ascending':    return a.dataset.title.localeCompare(b.dataset.title);
+          case 'title-descending':   return b.dataset.title.localeCompare(a.dataset.title);
+          case 'price-ascending':    return parseInt(a.dataset.price) - parseInt(b.dataset.price);
+          case 'price-descending':   return parseInt(b.dataset.price) - parseInt(a.dataset.price);
+          case 'created-ascending':  return a.dataset.created.localeCompare(b.dataset.created);
+          case 'created-descending': return b.dataset.created.localeCompare(a.dataset.created);
+          case 'best-selling':
+          case 'manual':
+          default: return parseInt(a.dataset.position) - parseInt(b.dataset.position);
+        }
+      });
+      cards.forEach(function (card) { grid.appendChild(card); });
+    });
+  }
+
+  /* --- View toggle --- */
+  viewBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      viewBtns.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var view = btn.dataset.view;
+      grid.classList.remove('coll-product-grid--list', 'coll-product-grid--grid');
+      grid.classList.add('coll-product-grid--' + view);
+    });
+  });
+
+  /* --- Product card thumbnail/variant cycling --- */
+  initCardCycling(section);
+
+  function initCardCycling(container) {
+    container.querySelectorAll('.coll-prod-card').forEach(function (card) {
+      var thumbs         = card.querySelectorAll('.coll-prod-thumb');
+      var thumbContainer = card.querySelector('.coll-prod-thumbs');
+      var mainImg        = card.querySelector('.main-image');
+      var imgLink        = card.querySelector('.coll-prod-card__img-link');
+      var priceWrap      = card.querySelector('.coll-prod-card__price');
+      var variantInput   = card.querySelector('input[name="id"]');
+      var addBtn         = card.querySelector('.coll-add-btn');
+      var isVariant      = thumbContainer && thumbContainer.dataset.thumbnailType === 'variants';
+      var idx = 0;
+      if (!thumbs.length) return;
+
+      var initialized = false;
+
+      function setThumb(i) {
+        if (i >= thumbs.length) idx = 0; else if (i < 0) idx = thumbs.length - 1; else idx = i;
+        var t = thumbs[idx];
+        thumbs.forEach(function (x) { x.classList.remove('active'); });
+        t.classList.add('active');
+        if (mainImg && t.dataset.imageUrl) { mainImg.src = t.dataset.imageUrl; mainImg.alt = t.dataset.imageAlt || ''; }
+        if (isVariant) {
+          var vp = t.dataset.variantPrice, vc = t.dataset.variantComparePrice, vi = t.dataset.variantId, va = t.dataset.variantAvailable === 'true';
+          if (priceWrap && vp) {
+            priceWrap.innerHTML = vc
+              ? '<span class="coll-price--sale">' + vp + '</span><span class="coll-price--compare">' + vc + '</span>'
+              : '<span class="coll-price--regular">' + vp + '</span>';
+          }
+          if (variantInput && vi) variantInput.value = vi;
+          if (addBtn) {
+            var svg = '<svg class="coll-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
+            addBtn.disabled = !va;
+            addBtn.innerHTML = svg + (va ? ' {{ section.settings.add_to_cart_text }}' : ' SOLD OUT');
+          }
+        }
+        if (initialized && thumbContainer) t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+
+      thumbs.forEach(function (th, i) { th.addEventListener('click', function (e) { e.stopPropagation(); setThumb(i); }); });
+      setThumb(0);
+      initialized = true;
+    });
+  }
+});
+</script>
+
+{%- comment -%} ============================================================
+     SCHEMA
+     ============================================================ {%- endcomment -%}
+{% schema %}
+{
+  "name": "Collection Page",
+  "tag": "section",
+  "class": "section-collection-page",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Collection Header"
+    },
+    {
+      "type": "color",
+      "id": "header_bg",
+      "label": "Header background",
+      "default": "#f9f6f1"
+    },
+    {
+      "type": "color",
+      "id": "header_text_color",
+      "label": "Header text color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "range",
+      "id": "header_font_size",
+      "label": "Header font size",
+      "min": 24,
+      "max": 64,
+      "step": 2,
+      "unit": "px",
+      "default": 42
+    },
+    {
+      "type": "header",
+      "content": "Products"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 4,
+      "max": 48,
+      "step": 4,
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "products_per_row",
+      "label": "Products per row (desktop)",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "text",
+      "id": "add_to_cart_text",
+      "label": "Add to cart text",
+      "default": "ADD TO CART"
+    },
+    {
+      "type": "range",
+      "id": "add_to_cart_font_size",
+      "label": "Button font size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#c47a40"
+    },
+    {
+      "type": "color",
+      "id": "card_bg",
+      "label": "Card background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "price_color",
+      "label": "Price color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "sale_price_color",
+      "label": "Sale price color",
+      "default": "#c47a40"
+    },
+    {
+      "type": "color",
+      "id": "compare_price_color",
+      "label": "Compare price color",
+      "default": "#999999"
+    },
+    {
+      "type": "color",
+      "id": "type_color",
+      "label": "Product type color",
+      "default": "#ff6b35"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg",
+      "label": "Button background",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "btn_text",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Section padding top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Section padding bottom",
+      "default": 60
+    }
+  ],
+  "blocks": [
+    {
+      "type": "breadcrumbs",
+      "name": "Breadcrumbs",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "collection_description",
+      "name": "Collection Description",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "trust_badges",
+      "name": "Trust Badges",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "range",
+          "id": "columns",
+          "label": "Columns",
+          "min": 2,
+          "max": 6,
+          "step": 1,
+          "default": 4
+        },
+        { "type": "header", "content": "Badge 1" },
+        { "type": "image_picker", "id": "badge_image_1", "label": "Icon" },
+        { "type": "text", "id": "badge_title_1", "label": "Title", "default": "Secure Checkout" },
+        { "type": "text", "id": "badge_subtitle_1", "label": "Subtitle", "default": "SSL encrypted payments" },
+        { "type": "header", "content": "Badge 2" },
+        { "type": "image_picker", "id": "badge_image_2", "label": "Icon" },
+        { "type": "text", "id": "badge_title_2", "label": "Title", "default": "Free Shipping" },
+        { "type": "text", "id": "badge_subtitle_2", "label": "Subtitle", "default": "On orders over $50" },
+        { "type": "header", "content": "Badge 3" },
+        { "type": "image_picker", "id": "badge_image_3", "label": "Icon" },
+        { "type": "text", "id": "badge_title_3", "label": "Title", "default": "Easy Returns" },
+        { "type": "text", "id": "badge_subtitle_3", "label": "Subtitle", "default": "30-day return policy" },
+        { "type": "header", "content": "Badge 4" },
+        { "type": "image_picker", "id": "badge_image_4", "label": "Icon" },
+        { "type": "text", "id": "badge_title_4", "label": "Title", "default": "24/7 Support" },
+        { "type": "text", "id": "badge_subtitle_4", "label": "Subtitle", "default": "We're here to help" },
+        { "type": "header", "content": "Badge 5 (optional)" },
+        { "type": "image_picker", "id": "badge_image_5", "label": "Icon" },
+        { "type": "text", "id": "badge_title_5", "label": "Title" },
+        { "type": "text", "id": "badge_subtitle_5", "label": "Subtitle" },
+        { "type": "header", "content": "Badge 6 (optional)" },
+        { "type": "image_picker", "id": "badge_image_6", "label": "Icon" },
+        { "type": "text", "id": "badge_title_6", "label": "Title" },
+        { "type": "text", "id": "badge_subtitle_6", "label": "Subtitle" }
+      ]
+    },
+    {
+      "type": "collection_circles",
+      "name": "Collection Circles",
+      "limit": 1,
+      "settings": [
+        { "type": "collection", "id": "collection_1", "label": "Collection 1" },
+        { "type": "collection", "id": "collection_2", "label": "Collection 2" },
+        { "type": "collection", "id": "collection_3", "label": "Collection 3" },
+        { "type": "collection", "id": "collection_4", "label": "Collection 4" },
+        { "type": "collection", "id": "collection_5", "label": "Collection 5" },
+        { "type": "collection", "id": "collection_6", "label": "Collection 6" },
+        { "type": "collection", "id": "collection_7", "label": "Collection 7" },
+        { "type": "collection", "id": "collection_8", "label": "Collection 8" },
+        { "type": "collection", "id": "collection_9", "label": "Collection 9" },
+        { "type": "collection", "id": "collection_10", "label": "Collection 10" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection Page",
+      "category": "Collection",
+      "blocks": [
+        { "type": "breadcrumbs" },
+        { "type": "collection_description" },
+        { "type": "trust_badges" },
+        { "type": "collection_circles" }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+{%- comment -%} ============================================================
+     STYLES
+     ============================================================ {%- endcomment -%}
+<style>
+  /* ===== CSS VARIABLES ===== */
+  .coll-page {
+    --cp-header-bg: {{ section.settings.header_bg }};
+    --cp-header-text: {{ section.settings.header_text_color }};
+    --cp-header-fs: {{ section.settings.header_font_size }}px;
+    --cp-accent: {{ section.settings.accent_color }};
+    --cp-card-bg: {{ section.settings.card_bg }};
+    --cp-price: {{ section.settings.price_color }};
+    --cp-sale: {{ section.settings.sale_price_color }};
+    --cp-compare: {{ section.settings.compare_price_color }};
+    --cp-type: {{ section.settings.type_color }};
+    --cp-btn-bg: {{ section.settings.btn_bg }};
+    --cp-btn-text: {{ section.settings.btn_text }};
+    --cp-cols: {{ section.settings.products_per_row }};
+
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+    font-family: inherit;
+  }
+
+  /* ========== 1. COLLECTION HERO ========== */
+  .coll-hero {
+    background: var(--cp-header-bg);
+    padding: 48px 20px;
+    margin-top: 40px;
+    text-align: center;
+  }
+  .coll-hero__inner {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .coll-hero__title {
+    font-size: var(--cp-header-fs);
+    font-weight: 700;
+    color: var(--cp-header-text);
+    margin: 0;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  /* ========== 2. COLLECTION CIRCLES ========== */
+  .coll-circles-wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px 0;
+  }
+  .coll-circles {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .coll-circles::-webkit-scrollbar { display: none; }
+  .coll-circles__track {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    padding: 8px 0;
+  }
+  .coll-circle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    flex-shrink: 0;
+    width: 100px;
+    transition: transform 0.3s ease;
+  }
+  .coll-circle:hover { transform: translateY(-4px); }
+  .coll-circle__img-wrap {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid transparent;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background: #f5f5f5;
+  }
+  .coll-circle:hover .coll-circle__img-wrap {
+    border-color: var(--cp-accent);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  .coll-circle--active .coll-circle__img-wrap {
+    border-color: var(--cp-accent);
+    box-shadow: 0 0 0 3px rgba(196,122,64,0.2);
+  }
+  .coll-circle__img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .coll-circle__img-wrap .coll-circle__placeholder {
+    width: 100%;
+    height: 100%;
+  }
+  .coll-circle__name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    text-align: center;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .coll-circle--active .coll-circle__name {
+    font-weight: 700;
+    color: var(--cp-accent);
+  }
+
+  /* ========== 3. BREADCRUMBS ========== */
+  .coll-breadcrumbs {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 20px 0;
+  }
+  .coll-breadcrumbs__list {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+  }
+  .coll-breadcrumbs__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #666;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .coll-breadcrumbs__link:hover { color: var(--cp-accent); }
+  .coll-breadcrumbs__link svg { opacity: 0.5; }
+  .coll-breadcrumbs__sep { display: flex; align-items: center; color: #ccc; }
+  .coll-breadcrumbs__item--current {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cp-header-text);
+  }
+
+  /* ========== 4. DESCRIPTION ========== */
+  .coll-description {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 20px 0;
+  }
+ 
+  .coll-description__content {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #444;
+  }
+  .coll-description__content p { margin: 0 0 12px; }
+  .coll-description__content strong { color: var(--cp-header-text); }
+
+  /* ========== 5. TRUST BADGES ========== */
+  .coll-trust-badges {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 36px 20px 0;
+  }
+  .coll-trust-badges__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--coll-badge-cols), 1fr);
+    gap: 0;
+  }
+  .coll-trust-badge {
+    position: relative;
+    padding: 0 28px;
+    text-align: center;
+  }
+  .coll-badge-divider {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 48px;
+    background: #e0e0e0;
+  }
+  .coll-badge-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 20px 0;
+  }
+  .coll-badge-icon { margin-bottom: 16px; line-height: 0; }
+  .coll-badge-icon img { width: 48px; height: 48px; object-fit: contain; }
+  .coll-badge-icon-ph {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f5f5f5;
+    color: #888;
+  }
+  .coll-badge-icon-ph svg { width: 24px; height: 24px; }
+  .coll-badge-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 4px;
+    color: #1a1a1a;
+  }
+  .coll-badge-subtitle {
+    font-size: 12px;
+    margin: 0;
+    color: #888;
+    line-height: 1.4;
+  }
+
+  /* ========== 6. PRODUCTS SECTION ========== */
+  .coll-products-section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px 0;
+  }
+
+  /* --- Toolbar --- */
+  .coll-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .coll-toolbar__left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .coll-toolbar__right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  /* Filter toggle */
+  .coll-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 1.5px solid #ddd;
+    border-radius: 40px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #333;
+  }
+  .coll-filter-toggle:hover { border-color: var(--cp-accent); color: var(--cp-accent); }
+
+  .coll-product-count {
+    font-size: 14px;
+    color: #666;
+  }
+
+  /* Sort */
+  .coll-sort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .coll-sort__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+  }
+  .coll-sort__select {
+    padding: 8px 32px 8px 12px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #fff url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    color: #333;
+    min-width: 180px;
+  }
+  .coll-sort__select:focus { outline: none; border-color: var(--cp-accent); }
+
+  /* View toggle */
+  .coll-view-toggle {
+    display: flex;
+    gap: 4px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .coll-view-btn {
+    padding: 8px 10px;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    color: #999;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+  }
+  .coll-view-btn.active {
+    background: var(--cp-btn-bg);
+    color: var(--cp-btn-text);
+  }
+  .coll-view-btn:hover:not(.active) { color: #333; }
+
+  /* --- Main layout (sidebar + grid) --- */
+  .coll-main-layout {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  /* --- Sidebar --- */
+  .coll-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 20px;
+  }
+  .coll-sidebar__header-mobile { display: none; }
+
+  .coll-filter-group {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+  }
+  .coll-filter-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .coll-filter-group__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  .coll-filter-group__toggle[aria-expanded="false"] .coll-filter-chevron {
+    transform: rotate(-90deg);
+  }
+  .coll-filter-chevron { transition: transform 0.2s ease; }
+
+  /* Availability checkboxes */
+  .coll-filter-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+  }
+  .coll-filter-check input { display: none; }
+  .coll-filter-check__box {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid #ccc;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+  .coll-filter-check input:checked + .coll-filter-check__box {
+    background: var(--cp-btn-bg);
+    border-color: var(--cp-btn-bg);
+  }
+  .coll-filter-check input:checked + .coll-filter-check__box::after {
+    content: '';
+    width: 10px;
+    height: 6px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translateY(-1px);
+  }
+  .coll-filter-check__label { flex: 1; }
+  .coll-filter-check__count {
+    font-size: 12px;
+    color: #999;
+  }
+
+  /* Price filter */
+  .coll-price-hint {
+    font-size: 12px;
+    color: #888;
+    margin: 0 0 16px;
+  }
+
+  .coll-price-slider {
+    position: relative;
+    height: 6px;
+    margin: 20px 0 24px;
+  }
+  .coll-price-slider__track {
+    position: absolute;
+    width: 100%;
+    height: 6px;
+    background: #e8e8e8;
+    border-radius: 3px;
+    top: 0;
+  }
+  .coll-price-slider__range {
+    position: absolute;
+    height: 100%;
+    background: var(--cp-btn-bg);
+    border-radius: 3px;
+    top: 0;
+  }
+  .coll-price-slider__input {
+    position: absolute;
+    width: 100%;
+    top: -6px;
+    height: 18px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    pointer-events: none;
+    margin: 0;
+  }
+  .coll-price-slider__input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--cp-btn-bg);
+    cursor: pointer;
+    pointer-events: all;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  .coll-price-slider__input::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--cp-btn-bg);
+    cursor: pointer;
+    pointer-events: all;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+
+  .coll-price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .coll-price-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 10px;
+    flex: 1;
+  }
+  .coll-price-currency {
+    font-size: 13px;
+    color: #999;
+    font-weight: 600;
+  }
+  .coll-price-input {
+    border: none;
+    outline: none;
+    font-size: 13px;
+    width: 100%;
+    color: #333;
+    background: transparent;
+  }
+  .coll-price-input::-webkit-outer-spin-button,
+  .coll-price-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .coll-price-input[type=number] { -moz-appearance: textfield; }
+  .coll-price-dash { color: #ccc; font-size: 16px; }
+
+  /* --- Product Grid --- */
+  .coll-product-grid-wrap { flex: 1; min-width: 0; }
+
+  .coll-product-grid,
+  .coll-product-grid--grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cp-cols), 1fr);
+    gap: 24px;
+  }
+
+  /* List view */
+  .coll-product-grid--list {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+  .coll-product-grid--list .coll-prod-card {
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    grid-template-rows: auto auto;
+    border-radius: 12px;
+  }
+  .coll-product-grid--list .coll-prod-card__media {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    width: 200px;
+    aspect-ratio: 1;
+  }
+  .coll-product-grid--list .coll-prod-card__info {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 20px 20px 8px;
+  }
+  .coll-product-grid--list .coll-prod-thumbs {
+    display: flex !important;
+    grid-column: 2;
+    grid-row: 2;
+    padding: 0 20px 16px;
+    background: transparent;
+  }
+  .coll-product-grid--list .coll-prod-card__actions {
+    grid-column: 3;
+    grid-row: 1 / -1;
+    display: flex;
+    align-items: flex-end;
+    padding: 20px;
+  }
+  .coll-product-grid--list .coll-prod-card__list-desc { display: none; }
+
+  /* --- Product Card --- */
+  .coll-prod-card {
+    background: var(--cp-card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .coll-prod-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  }
+
+  .coll-prod-card__media {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #f8f8f8;
+  }
+  .coll-prod-card__img-link { display: block; width: 100%; height: 100%; }
+  .coll-prod-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .coll-prod-card:hover .coll-prod-card__img { transform: scale(1.05); }
+  .coll-prod-card__media .placeholder-svg { width: 100%; height: 100%; }
+
+  .coll-prod-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: #ff4757;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    z-index: 2;
+  }
+
+  /* Thumbnails */
+  .coll-prod-thumbs {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    padding-right: calc(50% + 16px);
+    background: #fff;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .coll-prod-thumbs::-webkit-scrollbar { display: none; }
+  .coll-prod-thumb {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background: #f5f5f5;
+    cursor: pointer;
+    padding: 4px;
+    transition: all 0.2s ease;
+    overflow: hidden;
+  }
+  .coll-prod-thumb:hover { border-color: #ddd; transform: scale(1.05); }
+  .coll-prod-thumb.active { border-color: var(--cp-btn-bg); background: #fff; }
+  .coll-prod-thumb img { width: 100%; height: 100%; object-fit: contain; }
+  .coll-prod-thumb__label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 9px;
+    font-weight: 600;
+    text-align: center;
+    color: #333;
+    line-height: 1.1;
+    word-break: break-word;
+  }
+
+  /* Info */
+  .coll-prod-card__info {
+    padding: 16px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .coll-prod-card__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cp-header-text);
+    text-decoration: none;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.2s ease;
+  }
+  .coll-prod-card__title:hover { color: var(--cp-type); }
+  .coll-prod-card__type {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cp-type);
+    letter-spacing: 0.08em;
+  }
+  .coll-prod-card__price {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .coll-price--regular,
+  .coll-price--sale {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cp-sale);
+  }
+  .coll-price--regular { color: var(--cp-price); }
+  .coll-price--compare {
+    font-size: 14px;
+    color: var(--cp-compare);
+    text-decoration: line-through;
+  }
+
+  /* Actions */
+  .coll-prod-card__actions { padding: 0 16px 16px; }
+  .coll-prod-form { width: 100%; }
+  .coll-add-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    background: var(--cp-btn-bg);
+    color: var(--cp-btn-text);
+    border: none;
+    border-radius: 10px;
+    font-size: {{ section.settings.add_to_cart_font_size }}px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .coll-add-btn:hover:not(:disabled) {
+    background: var(--cp-type);
+    transform: translateY(-2px);
+  }
+  .coll-add-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .coll-add-btn .coll-cart-icon { width: 18px; height: 18px; }
+
+  /* List-view description (hidden by default) */
+  .coll-prod-card__list-desc {
+    display: none;
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+  }
+  .coll-prod-card__list-desc p { margin: 8px 0 0; }
+
+  /* --- Empty state --- */
+  .coll-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+  }
+  .coll-empty-state svg { opacity: 0.3; margin-bottom: 16px; }
+  .coll-empty-state p { font-size: 16px; margin: 0 0 20px; }
+  .coll-reset-filters {
+    padding: 10px 24px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #333;
+    transition: all 0.2s ease;
+  }
+  .coll-reset-filters:hover { border-color: var(--cp-accent); color: var(--cp-accent); }
+
+  /* --- Pagination --- */
+  .coll-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid #eee;
+  }
+  .coll-pagination__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .coll-pagination__btn:hover { border-color: var(--cp-accent); color: var(--cp-accent); }
+  .coll-pagination__num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .coll-pagination__num:hover { background: #f5f5f5; }
+  .coll-pagination__num--current {
+    background: var(--cp-btn-bg);
+    color: var(--cp-btn-text);
+    font-weight: 700;
+  }
+  .coll-pagination__num--current:hover { background: var(--cp-btn-bg); }
+  .coll-pagination__ellipsis { pointer-events: none; }
+
+  /* --- Mobile filter overlay --- */
+  .coll-sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .coll-sidebar-overlay.visible { display: block; opacity: 1; }
+
+  /* ========== RESPONSIVE ========== */
+
+  /* Desktop: sidebar always visible, hide toggle text */
+  @media screen and (min-width: 991px) {
+    .coll-filter-toggle { display: none; }
+  }
+
+  /* Tablet & Mobile */
+  @media screen and (max-width: 990px) {
+    .coll-sidebar {
+      position: fixed;
+      top: 0;
+      left: -320px;
+      width: 300px;
+      height: 100%;
+      background: #fff;
+      z-index: 1000;
+      padding: 0 24px 24px;
+      overflow-y: auto;
+      transition: left 0.3s ease;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+    }
+    .coll-sidebar.open { left: 0; }
+    .coll-sidebar__header-mobile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 20px;
+    }
+    .coll-sidebar__title-mobile {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .coll-sidebar__close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      padding: 4px;
+    }
+
+    .coll-main-layout { flex-direction: column; }
+    .coll-product-grid-wrap { width: 100%; }
+    .coll-product-grid,
+    .coll-product-grid--grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .coll-circles__track {
+      justify-content: flex-start;
+      padding: 8px 0;
+    }
+
+    .coll-trust-badges__grid {
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 8px;
+    }
+    .coll-trust-badge:nth-child(odd) .coll-badge-divider { display: none; }
+  }
+
+  @media screen and (max-width: 768px) {
+    .coll-hero { padding: 32px 16px; }
+    .coll-hero__title { font-size: clamp(28px, 6vw, var(--cp-header-fs)); }
+
+    .coll-product-grid,
+    .coll-product-grid--grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .coll-toolbar__right { gap: 12px; }
+    .coll-sort__label { display: none; }
+    .coll-sort__select { min-width: 140px; font-size: 12px; }
+
+    .coll-circles__track { gap: 20px; }
+    .coll-circle { width: 80px; }
+    .coll-circle__img-wrap { width: 72px; height: 72px; }
+    .coll-circle__name { font-size: 11px; }
+
+    /* List view on mobile */
+    .coll-product-grid--list .coll-prod-card {
+      display: flex;
+      flex-direction: column;
+    }
+    .coll-product-grid--list .coll-prod-card__media { width: 100%; }
+    .coll-product-grid--list .coll-prod-card__info { padding: 16px; }
+    .coll-product-grid--list .coll-prod-thumbs { padding: 0 16px 12px; }
+    .coll-product-grid--list .coll-prod-card__actions { width: 100%; padding: 0 16px 16px; }
+  }
+
+  @media screen and (max-width: 480px) {
+    .coll-hero { padding: 24px 12px; }
+    .coll-circles-wrap { padding: 24px 12px 0; }
+    .coll-breadcrumbs { padding: 16px 12px 0; }
+    .coll-description { padding: 20px 12px 0; }
+    .coll-products-section { padding: 24px 12px 0; }
+    .coll-trust-badges { padding: 24px 12px 0; }
+
+    .coll-product-grid,
+    .coll-product-grid--grid {
+      gap: 12px;
+    }
+
+    .coll-circles__track { gap: 16px; }
+    .coll-circle { width: 70px; }
+    .coll-circle__img-wrap { width: 64px; height: 64px; }
+
+    .coll-prod-badge { font-size: 10px; padding: 3px 8px; top: 8px; left: 8px; }
+    .coll-prod-thumbs { padding: 8px 10px; gap: 6px; }
+    .coll-prod-thumb { width: 32px; height: 32px; }
+    .coll-prod-card__info { padding: 10px; }
+    .coll-prod-card__title { font-size: 13px; }
+    .coll-prod-card__type { font-size: 10px; }
+    .coll-price--regular, .coll-price--sale { font-size: 15px; }
+    .coll-price--compare { font-size: 12px; }
+    .coll-prod-card__actions { padding: 0 10px 10px; }
+    .coll-add-btn { padding: 10px 12px; font-size: 11px; border-radius: 8px; }
+    .coll-add-btn .coll-cart-icon { width: 14px; height: 14px; }
+
+    .coll-pagination { gap: 4px; }
+    .coll-pagination__btn,
+    .coll-pagination__num { width: 36px; height: 36px; font-size: 13px; border-radius: 8px; }
+
+    .coll-trust-badge { padding: 0 12px; }
+    .coll-badge-divider { height: 32px; }
+  }
+</style>

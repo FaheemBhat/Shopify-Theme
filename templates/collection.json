@@ -1,20 +1,43 @@
-/*
- * ------------------------------------------------------------
- * IMPORTANT: The contents of this file are auto-generated.
- *
- * This file may be updated by the Shopify admin theme editor
- * or related systems. Please exercise caution as any changes
- * made to this file may be overwritten.
- * ------------------------------------------------------------
- */
 {
   "sections": {
     "main": {
-      "type": "collection",
+      "type": "collection-page",
+      "blocks": {
+        "breadcrumbs": {
+          "type": "breadcrumbs",
+          "settings": {}
+        },
+        "description": {
+          "type": "collection_description",
+          "settings": {}
+        },
+        "trust_badges": {
+          "type": "trust_badges",
+          "settings": {
+            "columns": 4,
+            "badge_title_1": "Secure Checkout",
+            "badge_subtitle_1": "SSL encrypted payments",
+            "badge_title_2": "Free Shipping",
+            "badge_subtitle_2": "On orders over $50",
+            "badge_title_3": "Easy Returns",
+            "badge_subtitle_3": "30-day return policy",
+            "badge_title_4": "24/7 Support",
+            "badge_subtitle_4": "We're here to help"
+          }
+        },
+        "circles": {
+          "type": "collection_circles",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "breadcrumbs",
+        "description",
+        "trust_badges",
+        "circles"
+      ],
       "settings": {}
     }
   },
-  "order": [
-    "main"
-  ]
+  "order": ["main"]
 }

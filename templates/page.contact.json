@@ -1,0 +1,50 @@
+{
+  "sections": {
+    "main": {
+      "type": "contact",
+      "blocks": {
+        "heading": {
+          "type": "heading",
+          "settings": {
+            "heading": "Shilpa Agarbatti Company Private Limited",
+            "heading_tag": "h2",
+            "heading_size": 28
+          }
+        },
+        "text": {
+          "type": "text",
+          "settings": {
+            "text": "<p>To us, quality has a broader purpose and as you can read about on this website, we are on a mission.</p>"
+          }
+        },
+        "address": {
+          "type": "icon_text",
+          "settings": {
+            "icon": "location",
+            "label": "General Office",
+            "text": "113 & 114, near Vishal Mega Mart, Kempegowda Layout, Laggere, Bengaluru, Karnataka 560058"
+          }
+        },
+        "phone": {
+          "type": "icon_text",
+          "settings": {
+            "icon": "phone",
+            "label": "",
+            "text": "+91-9711949949"
+          }
+        },
+        "email": {
+          "type": "icon_text",
+          "settings": {
+            "icon": "email",
+            "label": "",
+            "text": "sales@shilpamarketing.com"
+          }
+        }
+      },
+      "block_order": ["heading", "text", "address", "phone", "email"],
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}
