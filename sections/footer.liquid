@@ -79,25 +79,25 @@
     {%- comment -%} Column 2: Quick Links Menu {%- endcomment -%}
     <div class="footer-column footer-menu">
       <h4 class="footer-heading">{{ section.settings.menu_1_heading }}</h4>
-      {% if section.settings.menu_1 != blank %}
-        <ul class="footer-links">
+      <ul class="footer-links">
+        {% if section.settings.menu_1 != blank %}
           {% for link in linklists[section.settings.menu_1].links %}
             <li><a href="{{ link.url }}">{{ link.title }}</a></li>
           {% endfor %}
-        </ul>
-      {% endif %}
+        {% endif %}
+      </ul>
     </div>
 
     {%- comment -%} Column 3: Company Menu {%- endcomment -%}
     <div class="footer-column footer-menu">
       <h4 class="footer-heading">{{ section.settings.menu_2_heading }}</h4>
-      {% if section.settings.menu_2 != blank %}
-        <ul class="footer-links">
+      <ul class="footer-links">
+        {% if section.settings.menu_2 != blank %}
           {% for link in linklists[section.settings.menu_2].links %}
             <li><a href="{{ link.url }}">{{ link.title }}</a></li>
           {% endfor %}
-        </ul>
-      {% endif %}
+        {% endif %}
+      </ul>
     </div>
 
     {%- comment -%} Column 4: Contact {%- endcomment -%}
@@ -135,35 +135,12 @@
 
   </div>
 
-  {%- comment -%} Policies & Copyright {%- endcomment -%}
-  <div class="footer-bottom">
-    {% if section.settings.show_policies %}
-      <div class="footer-policies">
-        {% if shop.policies.refund_policy != blank %}
-          <a href="{{ shop.policies.refund_policy.url }}">{{ shop.policies.refund_policy.title }}</a>
-        {% endif %}
-        {% if shop.policies.privacy_policy != blank %}
-          <a href="{{ shop.policies.privacy_policy.url }}">{{ shop.policies.privacy_policy.title }}</a>
-        {% endif %}
-        {% if shop.policies.terms_of_service != blank %}
-          <a href="{{ shop.policies.terms_of_service.url }}">{{ shop.policies.terms_of_service.title }}</a>
-        {% endif %}
-        {% if shop.policies.shipping_policy != blank %}
-          <a href="{{ shop.policies.shipping_policy.url }}">{{ shop.policies.shipping_policy.title }}</a>
-        {% endif %}
-        {% if shop.policies.subscription_policy != blank %}
-          <a href="{{ shop.policies.subscription_policy.url }}">{{ shop.policies.subscription_policy.title }}</a>
-        {% endif %}
-        {% if section.settings.contact_page != blank %}
-          <a href="{{ section.settings.contact_page }}">Contact information</a>
-        {% endif %}
-      </div>
-    {% endif %}
-
-    {% if section.settings.show_copyright %}
+  {%- comment -%} Copyright {%- endcomment -%}
+  {% if section.settings.show_copyright %}
+    <div class="footer-bottom">
       <p class="copyright">© {{ 'now' | date: '%Y' }} {{ shop.name }}. {{ section.settings.copyright_text }}</p>
-    {% endif %}
-  </div>
+    </div>
+  {% endif %}
 </footer>
 
 <style>
@@ -397,25 +374,6 @@
     text-align: center;
   }
 
-  .footer-policies {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px 32px;
-    margin-bottom: 12px;
-  }
-
-  .footer-policies a {
-    color: var(--footer-link);
-    text-decoration: none;
-    font-size: 14px;
-    transition: color 0.2s ease;
-  }
-
-  .footer-policies a:hover {
-    color: var(--footer-link-hover);
-  }
-
   .copyright {
     font-size: 13px;
     color: var(--footer-text);
@@ -462,14 +420,6 @@
 
     .footer-bottom {
       padding: 20px;
-    }
-
-    .footer-policies {
-      gap: 8px 20px;
-    }
-
-    .footer-policies a {
-      font-size: 13px;
     }
 
     /* Mobile Logo Position - logo and description align together */
@@ -724,23 +674,6 @@
         { "value": "right", "label": "Right" }
       ],
       "default": "center"
-    },
-    {
-      "type": "header",
-      "content": "Policies"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_policies",
-      "label": "Show store policies",
-      "default": true,
-      "info": "Displays policies added in Settings > Policies"
-    },
-    {
-      "type": "url",
-      "id": "contact_page",
-      "label": "Contact page link",
-      "info": "Optional link to contact page"
     },
     {
       "type": "header",

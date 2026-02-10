@@ -14,10 +14,21 @@
     "comment_form_title": "Add a comment"
   },
   "cart": {
-    "checkout": "Checkout",
-    "title": "Cart",
+    "checkout": "Check Out",
+    "title": "Your cart",
     "update": "Update",
-    "remove": "Remove"
+    "remove": "Remove",
+    "empty": "Your cart is empty",
+    "continue_shopping": "Continue shopping",
+    "order_note": "Order note",
+    "order_note_placeholder": "Special instructions for your order...",
+    "save_note": "Save note",
+    "coupon": "Coupon",
+    "coupon_placeholder": "Discount code",
+    "coupon_apply": "Apply",
+    "estimated_total": "Estimated total",
+    "tax_note_html": "Tax included. <a href=\"/policies/shipping-policy\">Shipping</a> and discounts calculated at checkout.",
+    "free_shipping_reached": "You've unlocked FREE shipping!"
   },
   "customers": {
     "login": {
@@ -29,6 +40,9 @@
   },
   "collections": {
     "title": "Collections"
+  },
+  "general": {
+    "view_all": "View all"
   },
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",
