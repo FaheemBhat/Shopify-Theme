@@ -409,39 +409,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Add to Cart with AJAX
-  const productForm = document.getElementById('product-form');
-  const addToCartBtn = document.querySelector('.add-to-cart-btn');
-
-  if (productForm && addToCartBtn) {
-    productForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const originalText = addToCartBtn.innerHTML;
-      addToCartBtn.innerHTML = '<span class="btn-text">Adding...</span>';
-      addToCartBtn.disabled = true;
-
-      fetch('/cart/add.js', {
-        method: 'POST',
-        body: new FormData(productForm)
-      })
-      .then(response => response.json())
-      .then(data => {
-        addToCartBtn.innerHTML = '<span class="btn-text">Added!</span>';
-        document.dispatchEvent(new CustomEvent('cart:updated'));
-        setTimeout(() => {
-          addToCartBtn.innerHTML = originalText;
-          addToCartBtn.disabled = false;
-        }, 1000);
-      })
-      .catch(error => {
-        addToCartBtn.innerHTML = '<span class="btn-text">Error</span>';
-        setTimeout(() => {
-          addToCartBtn.innerHTML = originalText;
-          addToCartBtn.disabled = false;
-        }, 2000);
-      });
-    });
-  }
 });
 </script>
 
@@ -450,7 +417,6 @@ document.addEventListener('DOMContentLoaded', function() {
   padding: 40px 20px;
   max-width: 1440px;
   margin: 50px auto;
-  overflow-x: hidden;
 }
 
 .product-container {
@@ -469,8 +435,6 @@ document.addEventListener('DOMContentLoaded', function() {
   max-width: 400px;
   width: 100%;
   align-self: start;
-  max-height: calc(100vh - 40px);
-  overflow: hidden;
 }
 
 .product-main-image {
@@ -846,7 +810,6 @@ document.addEventListener('DOMContentLoaded', function() {
   .product-gallery {
     position: static;
     align-self: auto;
-    max-height: none;
   }
   .product-title { font-size: 24px; }
   .product-price { font-size: 28px; }
