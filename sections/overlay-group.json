@@ -5,9 +5,14 @@
     "cart-drawer": {
       "type": "cart-drawer",
       "settings": {}
+    },
+    "popup": {
+      "type": "popup",
+      "settings": {}
     }
   },
   "order": [
-    "cart-drawer"
+    "cart-drawer",
+    "popup"
   ]
 }
