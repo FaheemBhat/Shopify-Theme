@@ -1,0 +1,51 @@
+<div class="customer-page">
+  <div class="customer-form-container">
+    <h1 class="customer-heading">{{ 'customer.register.title' | t }}</h1>
+
+    {%- form 'create_customer', class: 'customer-form' -%}
+      {{ form.errors | default_errors }}
+
+      <div class="form-field">
+        <label for="FirstName">{{ 'customer.register.first_name' | t }}</label>
+        <input type="text" name="customer[first_name]" id="FirstName" autocomplete="given-name" required>
+      </div>
+
+      <div class="form-field">
+        <label for="LastName">{{ 'customer.register.last_name' | t }}</label>
+        <input type="text" name="customer[last_name]" id="LastName" autocomplete="family-name" required>
+      </div>
+
+      <div class="form-field">
+        <label for="Email">{{ 'customer.register.email' | t }}</label>
+        <input type="email" name="customer[email]" id="Email" autocomplete="email" required>
+      </div>
+
+      <div class="form-field">
+        <label for="CreatePassword">{{ 'customer.register.password' | t }}</label>
+        <input type="password" name="customer[password]" id="CreatePassword" autocomplete="new-password" required>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="customer-btn">{{ 'customer.register.submit' | t }}</button>
+      </div>
+
+      <div class="customer-links">
+        <a href="{{ routes.account_login_url }}">{{ 'customer.register.login' | t | default: 'Already have an account? Sign in' }}</a>
+      </div>
+    {%- endform -%}
+  </div>
+</div>
+
+{% style %}
+  .customer-page { max-width: 480px; margin: 60px auto; padding: 0 20px; }
+  .customer-heading { font-size: 28px; font-weight: 500; margin: 0 0 28px; text-align: center; }
+  .form-field { margin-bottom: 16px; }
+  .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #333; }
+  .form-field input { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit; }
+  .form-field input:focus { outline: none; border-color: #4A90D9; box-shadow: 0 0 0 3px rgba(74,144,217,0.15); }
+  .customer-btn { width: 100%; padding: 14px; background: #1a1a2e; color: white; border: none; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .customer-btn:hover { opacity: 0.9; }
+  .form-actions { margin-top: 20px; }
+  .customer-links { text-align: center; margin-top: 16px; }
+  .customer-links a { color: #4A90D9; text-decoration: none; font-size: 14px; }
+{% endstyle %}

@@ -6,19 +6,21 @@
           "background": "#FFFFFF",
           "background_gradient": "",
           "text": "#333333",
-          "primary": "#d3d3d3",
-          "secondary": "#6C757D",
-          "accent": "#E85A4F"
+          "button": "#4A90D9",
+          "button_label": "#FFFFFF",
+          "outline_button": "#333333",
+          "shadow": "#000000"
         }
       },
       "scheme-2": {
         "settings": {
           "background": "#1A1A1A",
           "background_gradient": "",
-          "text": "#FFFFFF",
-          "primary": "#4A90D9",
-          "secondary": "#888888",
-          "accent": "#E85A4F"
+          "text": "#E8E8E8",
+          "button": "#5A9FE8",
+          "button_label": "#FFFFFF",
+          "outline_button": "#E8E8E8",
+          "shadow": "#000000"
         }
       }
     }

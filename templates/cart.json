@@ -11,6 +11,33 @@
   "sections": {
     "main": {
       "type": "cart",
+      "blocks": {
+        "free_shipping": {
+          "type": "free_shipping_goal"
+        },
+        "note": {
+          "type": "cart_note"
+        },
+        "coupon": {
+          "type": "cart_coupon"
+        },
+        "subtotal": {
+          "type": "subtotal"
+        },
+        "checkout": {
+          "type": "checkout_button",
+          "settings": {
+            "show_dynamic_checkout": true
+          }
+        }
+      },
+      "block_order": [
+        "free_shipping",
+        "note",
+        "coupon",
+        "subtotal",
+        "checkout"
+      ],
       "settings": {}
     }
   },

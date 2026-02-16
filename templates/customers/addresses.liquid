@@ -1,0 +1,130 @@
+<div class="customer-page customer-addresses">
+  <div class="customer-addresses-container">
+    <a href="{{ routes.account_url }}" class="customer-back-link">&larr; {{ 'customer.account.return' | t }}</a>
+
+    <h1 class="customer-heading">{{ 'customer.addresses.title' | t }}</h1>
+
+    <button class="customer-btn customer-add-address-btn" onclick="document.getElementById('AddAddressForm').style.display = document.getElementById('AddAddressForm').style.display === 'none' ? 'block' : 'none'">
+      {{ 'customer.addresses.add_new' | t }}
+    </button>
+
+    <div id="AddAddressForm" style="display: none;">
+      <h2 class="customer-subheading">{{ 'customer.addresses.add_new' | t }}</h2>
+      {%- form 'customer_address', customer.new_address, class: 'customer-form address-form' -%}
+        <div class="form-row">
+          <div class="form-field">
+            <label for="AddressFirstName">{{ 'customer.addresses.first_name' | t }}</label>
+            <input type="text" name="address[first_name]" id="AddressFirstName" autocomplete="given-name">
+          </div>
+          <div class="form-field">
+            <label for="AddressLastName">{{ 'customer.addresses.last_name' | t }}</label>
+            <input type="text" name="address[last_name]" id="AddressLastName" autocomplete="family-name">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="AddressCompany">{{ 'customer.addresses.company' | t }}</label>
+          <input type="text" name="address[company]" id="AddressCompany" autocomplete="organization">
+        </div>
+
+        <div class="form-field">
+          <label for="AddressAddress1">{{ 'customer.addresses.address1' | t }}</label>
+          <input type="text" name="address[address1]" id="AddressAddress1" autocomplete="address-line1">
+        </div>
+
+        <div class="form-field">
+          <label for="AddressAddress2">{{ 'customer.addresses.address2' | t }}</label>
+          <input type="text" name="address[address2]" id="AddressAddress2" autocomplete="address-line2">
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="AddressCity">{{ 'customer.addresses.city' | t }}</label>
+            <input type="text" name="address[city]" id="AddressCity" autocomplete="address-level2">
+          </div>
+          <div class="form-field">
+            <label for="AddressCountry">{{ 'customer.addresses.country' | t }}</label>
+            <select name="address[country]" id="AddressCountry" data-default="{{ form.country }}">{{ all_country_option_tags }}</select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="AddressProvince">{{ 'customer.addresses.province' | t }}</label>
+            <select name="address[province]" id="AddressProvince" data-default="{{ form.province }}"></select>
+          </div>
+          <div class="form-field">
+            <label for="AddressZip">{{ 'customer.addresses.zip' | t }}</label>
+            <input type="text" name="address[zip]" id="AddressZip" autocomplete="postal-code">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="AddressPhone">{{ 'customer.addresses.phone' | t }}</label>
+          <input type="tel" name="address[phone]" id="AddressPhone" autocomplete="tel">
+        </div>
+
+        <div class="form-field">
+          <label>
+            <input type="checkbox" name="address[default]" value="1">
+            {{ 'customer.addresses.set_default' | t }}
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="customer-btn">{{ 'customer.addresses.add' | t }}</button>
+          <button type="button" class="customer-btn-secondary" onclick="document.getElementById('AddAddressForm').style.display = 'none'">{{ 'customer.addresses.cancel' | t }}</button>
+        </div>
+      {%- endform -%}
+    </div>
+
+    {% if customer.addresses.size > 0 %}
+      <div class="customer-addresses-list">
+        {% for address in customer.addresses %}
+          <div class="customer-address-card">
+            {% if address == customer.default_address %}
+              <span class="address-default-badge">{{ 'customer.addresses.default' | t }}</span>
+            {% endif %}
+            <p>{{ address | format_address }}</p>
+            <div class="address-actions">
+              <a href="{{ routes.account_addresses_url }}/{{ address.id }}/edit">{{ 'customer.addresses.edit' | t }}</a>
+              <button data-confirm="{{ 'customer.addresses.delete_confirm' | t }}" data-target="{{ routes.account_addresses_url }}/{{ address.id }}" class="address-delete-btn">{{ 'customer.addresses.delete' | t }}</button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.address-delete-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (confirm(this.dataset.confirm)) {
+        Shopify.postLink(this.dataset.target, { parameters: { _method: 'delete' } });
+      }
+    });
+  });
+</script>
+
+{% style %}
+  .customer-addresses { max-width: 800px; margin: 60px auto; padding: 0 20px; }
+  .customer-heading { font-size: 28px; font-weight: 500; margin: 0 0 20px; }
+  .customer-subheading { font-size: 20px; font-weight: 500; margin: 24px 0 16px; }
+  .customer-back-link { color: #4A90D9; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 16px; }
+  .customer-add-address-btn { width: auto; padding: 12px 24px; margin-bottom: 24px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-field { margin-bottom: 16px; }
+  .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #333; }
+  .form-field input, .form-field select { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit; }
+  .customer-btn { padding: 14px 28px; background: #1a1a2e; color: white; border: none; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .customer-btn-secondary { padding: 14px 28px; background: transparent; color: #333; border: 1px solid #ddd; border-radius: 30px; font-size: 15px; cursor: pointer; font-family: inherit; margin-left: 8px; }
+  .form-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .customer-addresses-list { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+  .customer-address-card { position: relative; padding: 20px; border: 1px solid #eee; border-radius: 12px; font-size: 14px; line-height: 1.6; color: #555; }
+  .address-default-badge { display: inline-block; padding: 4px 12px; background: #e8f5e9; color: #2e7d32; font-size: 12px; font-weight: 600; border-radius: 20px; margin-bottom: 8px; }
+  .address-actions { display: flex; gap: 12px; margin-top: 12px; }
+  .address-actions a { color: #4A90D9; text-decoration: none; font-size: 13px; }
+  .address-delete-btn { background: none; border: none; color: #cc0000; font-size: 13px; cursor: pointer; padding: 0; font-family: inherit; }
+  @media (max-width: 600px) { .form-row, .customer-addresses-list { grid-template-columns: 1fr; } }
+{% endstyle %}

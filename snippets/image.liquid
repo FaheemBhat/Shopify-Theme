@@ -45,7 +45,7 @@
     href="{{ url }}"
   {% endif %}
 >
-  {{ image | image_url: width: width, height: height, crop: crop | image_tag }}
+  {{ image | image_url: width: width, height: height, crop: crop | image_tag: alt: image.alt | default: '', widths: '200, 400, 600, 800, 1000, 1200', sizes: '(max-width: 768px) 100vw, 50vw' }}
 </{{ wrapper }}>
 
 {% stylesheet %}

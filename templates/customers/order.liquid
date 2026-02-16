@@ -1,0 +1,124 @@
+<div class="customer-page customer-order">
+  <div class="customer-order-container">
+    <a href="{{ routes.account_url }}" class="customer-back-link">&larr; {{ 'customer.account.return' | t }}</a>
+
+    <h1 class="customer-heading">{{ 'customer.order.title' | t: name: order.name }}</h1>
+    <p class="customer-order-date">{{ 'customer.order.date_html' | t: date: order.created_at | date: '%B %d, %Y' }}</p>
+
+    {% if order.cancelled %}
+      <div class="customer-order-cancelled">
+        {{ 'customer.order.cancelled_html' | t: date: order.cancelled_at | date: '%B %d, %Y' }}
+        <p>{{ 'customer.order.cancelled_reason' | t: reason: order.cancel_reason_label }}</p>
+      </div>
+    {% endif %}
+
+    <div class="customer-order-table-wrapper">
+      <table class="customer-order-table">
+        <thead>
+          <tr>
+            <th>{{ 'customer.order.product' | t }}</th>
+            <th>{{ 'customer.order.sku' | t }}</th>
+            <th>{{ 'customer.order.price' | t }}</th>
+            <th>{{ 'customer.order.quantity' | t }}</th>
+            <th>{{ 'customer.order.total' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for line_item in order.line_items %}
+            <tr>
+              <td>
+                <a href="{{ line_item.url }}">{{ line_item.title }}</a>
+                {% if line_item.selling_plan_allocation %}
+                  <div class="order-selling-plan">{{ line_item.selling_plan_allocation.selling_plan.name }}</div>
+                {% endif %}
+                {% if line_item.line_level_discount_allocations.size > 0 %}
+                  {% for discount in line_item.line_level_discount_allocations %}
+                    <div class="order-discount">{{ discount.discount_application.title }} (-{{ discount.amount | money }})</div>
+                  {% endfor %}
+                {% endif %}
+              </td>
+              <td>{{ line_item.sku }}</td>
+              <td>
+                {{ line_item.final_price | money }}
+                {% if line_item.unit_price_measurement %}
+                  <div class="order-unit-price">
+                    {{ line_item.unit_price | money }} /
+                    {% if line_item.unit_price_measurement.reference_value != 1 %}{{ line_item.unit_price_measurement.reference_value }}{% endif %}
+                    {{ line_item.unit_price_measurement.reference_unit }}
+                  </div>
+                {% endif %}
+              </td>
+              <td>{{ line_item.quantity }}</td>
+              <td>{{ line_item.final_line_price | money }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">{{ 'customer.order.subtotal' | t }}</td>
+            <td>{{ order.line_items_subtotal_price | money }}</td>
+          </tr>
+          {% for discount in order.cart_level_discount_applications %}
+            <tr class="order-discount-row">
+              <td colspan="4">{{ 'customer.order.discount' | t }}: {{ discount.title }}</td>
+              <td>-{{ discount.total_allocated_amount | money }}</td>
+            </tr>
+          {% endfor %}
+          {% for shipping_method in order.shipping_methods %}
+            <tr>
+              <td colspan="4">{{ 'customer.order.shipping' | t }} ({{ shipping_method.title }})</td>
+              <td>{{ shipping_method.price | money }}</td>
+            </tr>
+          {% endfor %}
+          {% for tax_line in order.tax_lines %}
+            <tr>
+              <td colspan="4">{{ 'customer.order.tax' | t }} ({{ tax_line.title }} {{ tax_line.rate | times: 100 }}%)</td>
+              <td>{{ tax_line.price | money }}</td>
+            </tr>
+          {% endfor %}
+          <tr class="order-total-row">
+            <td colspan="4">{{ 'customer.order.total' | t }}</td>
+            <td>{{ order.total_net_amount | money }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="customer-order-addresses">
+      <div class="order-address">
+        <h3>{{ 'customer.order.billing_address' | t }}</h3>
+        <p>{{ 'customer.order.payment_status' | t }}: {{ order.financial_status_label }}</p>
+        {{ order.billing_address | format_address }}
+      </div>
+
+      <div class="order-address">
+        <h3>{{ 'customer.order.shipping_address' | t }}</h3>
+        <p>{{ 'customer.order.fulfillment_status' | t }}: {{ order.fulfillment_status_label }}</p>
+        {{ order.shipping_address | format_address }}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% style %}
+  .customer-order { max-width: 900px; margin: 60px auto; padding: 0 20px; }
+  .customer-heading { font-size: 28px; font-weight: 500; margin: 0 0 4px; }
+  .customer-back-link { color: #4A90D9; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 16px; }
+  .customer-order-date { font-size: 14px; color: #777; margin: 0 0 24px; }
+  .customer-order-cancelled { background: #fef2f2; padding: 16px; border-radius: 8px; color: #dc2626; margin-bottom: 24px; font-size: 14px; }
+  .customer-order-table-wrapper { overflow-x: auto; }
+  .customer-order-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .customer-order-table th { text-align: left; padding: 12px 16px; background: #f5f5f5; font-weight: 600; border-bottom: 2px solid #ddd; }
+  .customer-order-table td { padding: 12px 16px; border-bottom: 1px solid #eee; color: #555; }
+  .customer-order-table td a { color: #4A90D9; text-decoration: none; }
+  .customer-order-table tfoot td { font-weight: 500; }
+  .order-total-row td { font-weight: 700; font-size: 16px; border-top: 2px solid #333; }
+  .order-selling-plan { font-size: 12px; color: #4A90D9; }
+  .order-discount { font-size: 12px; color: #cc0000; }
+  .order-discount-row td { color: #cc0000; }
+  .order-unit-price { font-size: 12px; color: #999; }
+  .customer-order-addresses { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 32px; }
+  .order-address h3 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+  .order-address p { font-size: 14px; color: #555; margin: 0 0 8px; }
+  @media (max-width: 600px) { .customer-order-addresses { grid-template-columns: 1fr; } }
+{% endstyle %}

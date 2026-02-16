@@ -1,0 +1,195 @@
+{
+  "404": {
+    "title": "404",
+    "heading": "Oups ! Page introuvable",
+    "not_found": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "back_to_shopping": "Retour aux achats",
+    "search_placeholder": "Rechercher dans notre boutique..."
+  },
+  "blog": {
+    "article_comments": "Commentaires",
+    "article_metadata_html": "{{ date }} par {{ author }}",
+    "back_to_blog": "Retour au blog",
+    "comment_form_body": "Commentaire",
+    "comment_form_email": "E-mail",
+    "comment_form_name": "Nom",
+    "comment_form_submit": "Publier",
+    "comment_form_title": "Ajouter un commentaire",
+    "comments_count": "{{ count }} commentaires",
+    "next_post": "Article suivant",
+    "no_comments": "Aucun commentaire pour le moment",
+    "previous_post": "Article précédent",
+    "share": "Partager",
+    "share_facebook": "Partager sur Facebook",
+    "share_pinterest": "Épingler",
+    "share_twitter": "Partager sur X",
+    "written_by": "Rédigé par",
+    "title": "Blog",
+    "read_more": "Lire la suite",
+    "no_articles": "Aucun article pour le moment",
+    "all_tags": "Tout"
+  },
+  "cart": {
+    "checkout": "Passer à la caisse",
+    "title": "Votre panier",
+    "update": "Mettre à jour",
+    "remove": "Supprimer",
+    "empty": "Votre panier est vide",
+    "continue_shopping": "Continuer vos achats",
+    "order_note": "Note de commande",
+    "order_note_placeholder": "Instructions spéciales pour votre commande...",
+    "save_note": "Enregistrer la note",
+    "coupon": "Coupon",
+    "coupon_placeholder": "Code de réduction",
+    "coupon_apply": "Appliquer",
+    "estimated_total": "Total estimé",
+    "tax_note_html": "Taxes incluses. <a href=\"/policies/shipping-policy\">Livraison</a> et réductions calculées à la caisse.",
+    "free_shipping_reached": "Vous avez débloqué la livraison GRATUITE !",
+    "taxes_included": "Taxes incluses"
+  },
+  "customer": {
+    "log_out": "Se déconnecter",
+    "login": {
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "sign_in": "Se connecter",
+      "title": "Connexion",
+      "forgot_password": "Mot de passe oublié ?",
+      "create_account": "Créer un compte"
+    },
+    "register": {
+      "title": "Créer un compte",
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "submit": "Créer",
+      "login": "Vous avez déjà un compte ? Connectez-vous"
+    },
+    "account": {
+      "title": "Mon compte",
+      "details": "Détails du compte",
+      "view_addresses": "Voir les adresses",
+      "return": "Retour aux détails du compte"
+    },
+    "orders": {
+      "title": "Historique des commandes",
+      "order_number": "Commande",
+      "date": "Date",
+      "payment_status": "Statut du paiement",
+      "fulfillment_status": "Statut de l'expédition",
+      "total": "Total",
+      "none": "Vous n'avez encore passé aucune commande."
+    },
+    "order": {
+      "title": "Commande {{ name }}",
+      "date_html": "Passée le {{ date }}",
+      "cancelled_html": "Commande annulée le {{ date }}",
+      "cancelled_reason": "Raison : {{ reason }}",
+      "billing_address": "Adresse de facturation",
+      "shipping_address": "Adresse de livraison",
+      "payment_status": "Statut du paiement",
+      "fulfillment_status": "Statut de l'expédition",
+      "product": "Produit",
+      "sku": "UGS",
+      "price": "Prix",
+      "quantity": "Quantité",
+      "subtotal": "Sous-total",
+      "discount": "Réduction",
+      "shipping": "Livraison",
+      "tax": "Taxes",
+      "total": "Total"
+    },
+    "addresses": {
+      "title": "Adresses",
+      "add_new": "Ajouter une nouvelle adresse",
+      "add": "Ajouter une adresse",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "delete_confirm": "Êtes-vous sûr de vouloir supprimer cette adresse ?",
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "company": "Entreprise",
+      "address1": "Adresse 1",
+      "address2": "Adresse 2",
+      "city": "Ville",
+      "country": "Pays/région",
+      "province": "Province",
+      "zip": "Code postal",
+      "phone": "Téléphone",
+      "set_default": "Définir comme adresse par défaut",
+      "default": "Par défaut",
+      "cancel": "Annuler"
+    },
+    "activate_account": {
+      "title": "Activer le compte",
+      "subtext": "Créez votre mot de passe pour activer votre compte.",
+      "password": "Mot de passe",
+      "password_confirm": "Confirmer le mot de passe",
+      "submit": "Activer le compte",
+      "cancel": "Refuser l'invitation"
+    },
+    "reset_password": {
+      "title": "Réinitialiser le mot de passe",
+      "subtext": "Entrez un nouveau mot de passe pour {{ email }}",
+      "password": "Mot de passe",
+      "password_confirm": "Confirmer le mot de passe",
+      "submit": "Réinitialiser le mot de passe"
+    }
+  },
+  "collections": {
+    "title": "Collections"
+  },
+  "general": {
+    "view_all": "Tout voir"
+  },
+  "gift_card": {
+    "add_to_apple_wallet": "Ajouter à Apple Wallet",
+    "card": "Carte cadeau",
+    "expired": "Cette carte cadeau a expiré",
+    "expires_on": "Expire le {{ expires_on }}",
+    "use_at_checkout": "Utilisez cette carte cadeau lors du paiement",
+    "print": "Imprimer"
+  },
+  "newsletter": {
+    "success": "Merci pour votre inscription !",
+    "email_label": "Adresse e-mail"
+  },
+  "password": {
+    "title": "Cette boutique est privée",
+    "password": "Mot de passe",
+    "enter": "Entrer"
+  },
+  "product": {
+    "tax_included": "Taxes incluses",
+    "share_facebook": "Partager sur Facebook",
+    "share_instagram": "Partager sur Instagram",
+    "share_x": "Partager sur X",
+    "gift_card_recipient": "C'est un cadeau",
+    "recipient_name": "Nom du destinataire",
+    "recipient_name_placeholder": "Entrez le nom du destinataire",
+    "recipient_email": "E-mail du destinataire",
+    "recipient_email_placeholder": "Entrez l'e-mail du destinataire",
+    "recipient_message": "Message",
+    "recipient_message_placeholder": "Écrivez un message personnel...",
+    "send_on": "Envoyer le",
+    "one_time_purchase": "Achat unique",
+    "pickup_available_at": "Retrait disponible à {{ location_name }}",
+    "pickup_unavailable": "Retrait actuellement indisponible"
+  },
+  "search": {
+    "title": "Recherche",
+    "placeholder": "Rechercher des articles, pages ou produits",
+    "submit": "Rechercher",
+    "no_results_html": "Aucun résultat trouvé pour {{ terms }}",
+    "results_for_html": "{{ count }} résultats trouvés pour {{ terms }}",
+    "start_searching": "Commencez à taper pour trouver ce que vous cherchez",
+    "type_product": "Produit",
+    "type_article": "Article",
+    "type_page": "Page"
+  },
+  "footer": {
+    "country_label": "Pays/région",
+    "language_label": "Langue"
+  }
+}

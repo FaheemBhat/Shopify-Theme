@@ -92,11 +92,12 @@
   }
   
   function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
     body.setAttribute('data-theme', theme);
     localStorage.setItem(STORAGE_KEY, theme);
-    
+
     body.classList.remove('color-scheme-1', 'color-scheme-2');
-    
+
     if (theme === 'dark') {
       body.classList.add('color-scheme-2');
     } else {

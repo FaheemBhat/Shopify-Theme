@@ -74,8 +74,110 @@ p:empty {
 /** Theme styles below */
 body {
   font-family: var(--font-primary--family);
+  font-style: var(--font-primary--style);
+  font-size: var(--font-body-base-size, 16px);
   background-color: var(--color-background);
   color: var(--color-foreground);
+}
+
+/** Heading typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading--family);
+  font-style: var(--font-heading--style);
+  font-weight: var(--font-heading--weight);
+  letter-spacing: var(--font-heading-letter-spacing, 0);
+  text-transform: var(--font-heading-text-transform, none);
+}
+
+h1 { font-size: calc(2.5rem * var(--font-heading-scale, 1)); }
+h2 { font-size: calc(2rem * var(--font-heading-scale, 1)); }
+h3 { font-size: calc(1.75rem * var(--font-heading-scale, 1)); }
+h4 { font-size: calc(1.5rem * var(--font-heading-scale, 1)); }
+h5 { font-size: calc(1.25rem * var(--font-heading-scale, 1)); }
+h6 { font-size: calc(1rem * var(--font-heading-scale, 1)); }
+
+@media (max-width: 768px) {
+  h1 { font-size: calc(2.5rem * var(--font-heading-scale-mobile, 0.7)); }
+  h2 { font-size: calc(2rem * var(--font-heading-scale-mobile, 0.7)); }
+  h3 { font-size: calc(1.75rem * var(--font-heading-scale-mobile, 0.7)); }
+  h4 { font-size: calc(1.5rem * var(--font-heading-scale-mobile, 0.7)); }
+  h5 { font-size: calc(1.25rem * var(--font-heading-scale-mobile, 0.7)); }
+  h6 { font-size: calc(1rem * var(--font-heading-scale-mobile, 0.7)); }
+}
+
+/** Mega titles — use class .mega-title on large hero headings */
+.mega-title {
+  font-size: var(--font-mega-title-size, 52px);
+  text-transform: var(--font-mega-title-text-transform, none);
+}
+
+@media (max-width: 768px) {
+  .mega-title {
+    font-size: calc(var(--font-mega-title-size, 52px) * var(--font-heading-scale-mobile, 0.7));
+  }
+}
+
+/** Subheadings — use class .subheading */
+.subheading {
+  font-family: var(--font-subheading--family);
+  font-weight: var(--font-subheading-weight, normal);
+  font-size: calc(1rem * var(--font-subheading-scale, 1.2));
+  letter-spacing: var(--font-subheading-letter-spacing, 0);
+  text-transform: var(--font-subheading-text-transform, none);
+}
+
+/** Bold text uses configurable weight */
+strong, b {
+  font-weight: var(--font-body-bold-weight, bold);
+}
+
+/** Product card typography */
+.product-card__title,
+.coll-prod-card__title,
+.product-title,
+.comp-card-title,
+.search-card__title a {
+  font-family: var(--font-card-title--family, var(--font-primary--family));
+  font-weight: var(--font-card-title-weight, 600);
+  text-transform: var(--font-card-title-text-transform, none);
+}
+
+.product-card__price,
+.coll-prod-card__price,
+.product-price,
+.comp-card-price,
+.search-card__price {
+  font-family: var(--font-card-price--family, var(--font-primary--family));
+  font-weight: var(--font-card-price-weight, bold);
+}
+
+.product-card__badge,
+.coll-prod-badge,
+.sale-badge {
+  font-family: var(--font-card-badge--family, var(--font-primary--family));
+  font-weight: var(--font-card-badge-weight, bold);
+}
+
+/** Navigation typography */
+.header__menu-link,
+.header__submenu-link,
+.mega-menu-title,
+.mobile-menu-link {
+  font-family: var(--font-nav--family, var(--font-primary--family));
+  font-weight: var(--font-nav-weight, 600);
+  text-transform: var(--font-nav-text-transform, none);
+}
+
+/** Button typography */
+button,
+input[type="submit"],
+input[type="button"],
+.button,
+.btn {
+  font-family: var(--font-button--family, var(--font-primary--family));
+  font-weight: var(--font-button-weight, 600);
+  letter-spacing: var(--font-button-letter-spacing, 0);
+  text-transform: var(--font-button-text-transform, capitalize);
 }
 
 /** Button styles */
@@ -87,11 +189,8 @@ input[type="button"] {
   border: 2px solid var(--color-button);
   padding: 12px 24px;
   font-size: 14px;
-  font-weight: 600;
   cursor: pointer;
   transition: opacity 0.3s ease, transform 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 button:hover,

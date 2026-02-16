@@ -135,10 +135,76 @@
 
   </div>
 
+  {%- comment -%} Localization & Follow on Shop {%- endcomment -%}
+  <div class="footer-localization">
+    <div class="footer-localization__inner">
+      {%- comment -%} Country / Currency Selector {%- endcomment -%}
+      {% if section.settings.show_country_selector and localization.available_countries.size > 1 %}
+        {%- form 'localization', id: 'FooterCountryForm', class: 'footer-localization__form' -%}
+          <div class="localization-selector">
+            <label for="FooterCountrySelector" class="localization-label">{{ 'footer.country_label' | t }}</label>
+            <select name="country_code" id="FooterCountrySelector" class="localization-select">
+              {% for country in localization.available_countries %}
+                <option value="{{ country.iso_code }}" {% if country.iso_code == localization.country.iso_code %}selected{% endif %}>
+                  {{ country.name }} ({{ country.currency.iso_code }} {{ country.currency.symbol }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        {%- endform -%}
+      {% endif %}
+
+      {%- comment -%} Language Selector {%- endcomment -%}
+      {% if section.settings.show_language_selector and localization.available_languages.size > 1 %}
+        {%- form 'localization', id: 'FooterLanguageForm', class: 'footer-localization__form' -%}
+          <div class="localization-selector">
+            <label for="FooterLanguageSelector" class="localization-label">{{ 'footer.language_label' | t }}</label>
+            <select name="locale_code" id="FooterLanguageSelector" class="localization-select">
+              {% for language in localization.available_languages %}
+                <option value="{{ language.iso_code }}" {% if language.iso_code == localization.language.iso_code %}selected{% endif %} lang="{{ language.iso_code }}">
+                  {{ language.endonym_name | capitalize }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        {%- endform -%}
+      {% endif %}
+
+      {%- comment -%} Follow on Shop {%- endcomment -%}
+      {% if section.settings.show_follow_on_shop %}
+        <div class="footer-follow-shop">
+          {{ shop | login_button: action: 'follow' }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var countrySelect = document.getElementById('FooterCountrySelector');
+      var languageSelect = document.getElementById('FooterLanguageSelector');
+
+      if (countrySelect) {
+        countrySelect.addEventListener('change', function() {
+          var form = this.closest('form');
+          if (form) form.submit();
+        });
+      }
+
+      if (languageSelect) {
+        languageSelect.addEventListener('change', function() {
+          var form = this.closest('form');
+          if (form) form.submit();
+        });
+      }
+    });
+  </script>
+
   {%- comment -%} Copyright {%- endcomment -%}
   {% if section.settings.show_copyright %}
     <div class="footer-bottom">
       <p class="copyright">© {{ 'now' | date: '%Y' }} {{ shop.name }}. {{ section.settings.copyright_text }}</p>
+      {{ powered_by_link }}
     </div>
   {% endif %}
 </footer>
@@ -379,6 +445,58 @@
     color: var(--footer-text);
     opacity: 0.7;
     margin: 0;
+  }
+
+  /* Localization */
+  .footer-localization {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 24px 40px;
+  }
+
+  .footer-localization__inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .footer-localization__form {
+    display: inline-flex;
+  }
+
+  .localization-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .localization-label {
+    font-size: 13px;
+    color: var(--footer-text);
+    opacity: 0.7;
+    white-space: nowrap;
+  }
+
+  .localization-select {
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    color: var(--footer-text);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .localization-select option {
+    background: #1a1a1a;
+    color: #fff;
+  }
+
+  .footer-follow-shop {
+    margin-left: auto;
   }
 
   /* Responsive */
@@ -674,6 +792,34 @@
         { "value": "right", "label": "Right" }
       ],
       "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Country/region & Language"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_country_selector",
+      "label": "Show country/region selector",
+      "default": true,
+      "info": "Only visible when multiple countries are enabled in your Markets settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_language_selector",
+      "label": "Show language selector",
+      "default": true,
+      "info": "Only visible when multiple languages are enabled"
+    },
+    {
+      "type": "header",
+      "content": "Follow on Shop"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_follow_on_shop",
+      "label": "Show Follow on Shop button",
+      "default": true
     },
     {
       "type": "header",

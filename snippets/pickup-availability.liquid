@@ -1,0 +1,56 @@
+{%- if variant.store_availabilities.size > 0 -%}
+  {%- assign pick_up_availabilities = variant.store_availabilities | where: 'pick_up_enabled', true -%}
+  {%- if pick_up_availabilities.size > 0 -%}
+    <div class="pickup-availability">
+      {%- assign closest_location = pick_up_availabilities.first -%}
+      {% if closest_location.available %}
+        <div class="pickup-availability__status pickup-availability__status--available">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#008000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <div class="pickup-availability__info">
+            <p class="pickup-availability__text">
+              {{ 'product.pickup_available_at' | t: location: closest_location.location.name | default: 'Pickup available' }}
+            </p>
+            <p class="pickup-availability__location">{{ closest_location.location.name }}</p>
+          </div>
+        </div>
+      {% else %}
+        <div class="pickup-availability__status pickup-availability__status--unavailable">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cc0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          <div class="pickup-availability__info">
+            <p class="pickup-availability__text">
+              {{ 'product.pickup_unavailable' | t | default: 'Pickup currently unavailable' }}
+            </p>
+            <p class="pickup-availability__location">{{ closest_location.location.name }}</p>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <style>
+      .pickup-availability__status {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 0;
+      }
+      .pickup-availability__status svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .pickup-availability__text {
+        font-size: 14px;
+        color: #333;
+        margin: 0;
+      }
+      .pickup-availability__location {
+        font-size: 13px;
+        color: #777;
+        margin: 2px 0 0;
+      }
+    </style>
+  {%- endif -%}
+{%- endif -%}

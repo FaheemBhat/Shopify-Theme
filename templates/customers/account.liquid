@@ -1,0 +1,63 @@
+<div class="customer-page customer-account">
+  <div class="customer-account-container">
+    <h1 class="customer-heading">{{ 'customer.account.title' | t }}</h1>
+
+    <div class="customer-account-header">
+      <p>{{ customer.name }}</p>
+      <a href="{{ routes.account_logout_url }}" class="customer-logout">{{ 'customer.log_out' | t }}</a>
+    </div>
+
+    <h2 class="customer-subheading">{{ 'customer.orders.title' | t }}</h2>
+
+    {% if customer.orders.size > 0 %}
+      <div class="customer-orders-table-wrapper">
+        <table class="customer-orders-table">
+          <thead>
+            <tr>
+              <th>{{ 'customer.orders.order_number' | t }}</th>
+              <th>{{ 'customer.orders.date' | t }}</th>
+              <th>{{ 'customer.orders.payment_status' | t }}</th>
+              <th>{{ 'customer.orders.fulfillment_status' | t }}</th>
+              <th>{{ 'customer.orders.total' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in customer.orders %}
+              <tr>
+                <td><a href="{{ order.customer_url }}">{{ order.name }}</a></td>
+                <td>{{ order.created_at | date: '%B %d, %Y' }}</td>
+                <td>{{ order.financial_status_label }}</td>
+                <td>{{ order.fulfillment_status_label }}</td>
+                <td>{{ order.total_net_amount | money }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="customer-no-orders">{{ 'customer.orders.none' | t }}</p>
+    {% endif %}
+
+    <h2 class="customer-subheading">{{ 'customer.account.details' | t }}</h2>
+    <div class="customer-details">
+      <p>{{ customer.default_address | format_address }}</p>
+      <a href="{{ routes.account_addresses_url }}">{{ 'customer.account.view_addresses' | t }} ({{ customer.addresses_count }})</a>
+    </div>
+  </div>
+</div>
+
+{% style %}
+  .customer-account { max-width: 900px; margin: 60px auto; padding: 0 20px; }
+  .customer-heading { font-size: 28px; font-weight: 500; margin: 0 0 12px; }
+  .customer-subheading { font-size: 20px; font-weight: 500; margin: 32px 0 16px; }
+  .customer-account-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .customer-logout { color: #4A90D9; text-decoration: none; font-size: 14px; }
+  .customer-orders-table-wrapper { overflow-x: auto; }
+  .customer-orders-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .customer-orders-table th { text-align: left; padding: 12px 16px; background: #f5f5f5; font-weight: 600; color: #333; border-bottom: 2px solid #ddd; }
+  .customer-orders-table td { padding: 12px 16px; border-bottom: 1px solid #eee; color: #555; }
+  .customer-orders-table td a { color: #4A90D9; text-decoration: none; }
+  .customer-no-orders { color: #777; font-size: 15px; }
+  .customer-details { font-size: 14px; line-height: 1.6; color: #555; }
+  .customer-details a { color: #4A90D9; text-decoration: none; display: block; margin-top: 8px; }
+{% endstyle %}

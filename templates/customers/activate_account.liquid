@@ -1,0 +1,41 @@
+<div class="customer-page">
+  <div class="customer-form-container">
+    <h1 class="customer-heading">{{ 'customer.activate_account.title' | t }}</h1>
+    <p class="customer-subtext">{{ 'customer.activate_account.subtext' | t }}</p>
+
+    {%- form 'activate_customer_password', class: 'customer-form' -%}
+      {{ form.errors | default_errors }}
+
+      <div class="form-field">
+        <label for="ActivatePassword">{{ 'customer.activate_account.password' | t }}</label>
+        <input type="password" name="customer[password]" id="ActivatePassword" autocomplete="new-password" required>
+      </div>
+
+      <div class="form-field">
+        <label for="ActivatePasswordConfirmation">{{ 'customer.activate_account.password_confirm' | t }}</label>
+        <input type="password" name="customer[password_confirmation]" id="ActivatePasswordConfirmation" autocomplete="new-password" required>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="customer-btn">{{ 'customer.activate_account.submit' | t }}</button>
+      </div>
+
+      <div class="customer-links">
+        <button type="submit" name="decline" class="customer-decline">{{ 'customer.activate_account.cancel' | t }}</button>
+      </div>
+    {%- endform -%}
+  </div>
+</div>
+
+{% style %}
+  .customer-page { max-width: 480px; margin: 60px auto; padding: 0 20px; }
+  .customer-heading { font-size: 28px; font-weight: 500; margin: 0 0 8px; text-align: center; }
+  .customer-subtext { font-size: 14px; color: #777; text-align: center; margin: 0 0 28px; }
+  .form-field { margin-bottom: 16px; }
+  .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #333; }
+  .form-field input { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit; }
+  .customer-btn { width: 100%; padding: 14px; background: #1a1a2e; color: white; border: none; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .form-actions { margin-top: 20px; }
+  .customer-links { text-align: center; margin-top: 16px; }
+  .customer-decline { background: none; border: none; color: #cc0000; font-size: 14px; cursor: pointer; font-family: inherit; }
+{% endstyle %}

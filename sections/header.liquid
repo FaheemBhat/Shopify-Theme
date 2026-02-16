@@ -95,7 +95,8 @@
       {% elsif menu_type_desktop == 'mega' %}
         <ul class="header__menu-list header__menu-mega">
           {% for link in linklists[menu].links %}
-            <li class="header__menu-item {% if link.links != blank %}has-mega-menu{% endif %}">
+            {% assign mega_index = forloop.index0 %}
+            <li class="header__menu-item {% if link.links != blank %}has-mega-menu{% endif %}" data-mega-index="{{ mega_index }}">
               <a href="{{ link.url }}" class="header__menu-link">
                 {{ link.title }}
                 {% if link.links != blank %}
@@ -107,23 +108,78 @@
 
               {% if link.links != blank %}
                 <div class="header__mega-menu">
-                  <div class="mega-menu-container">
-                    {% for child_link in link.links %}
-                      <div class="mega-menu-column">
-                        <a href="{{ child_link.url }}" class="mega-menu-title">
-                          {{ child_link.title }}
-                        </a>
-                        {% if child_link.links != blank %}
-                          <ul class="mega-menu-list">
-                            {% for grandchild_link in child_link.links %}
-                              <li>
-                                <a href="{{ grandchild_link.url }}">{{ grandchild_link.title }}</a>
-                              </li>
-                            {% endfor %}
-                          </ul>
-                        {% endif %}
-                      </div>
+                  <div class="mega-menu-inner">
+                    <div class="mega-menu-links">
+                      {% for child_link in link.links %}
+                        <div class="mega-menu-column">
+                          <a href="{{ child_link.url }}" class="mega-menu-title">
+                            {{ child_link.title }}
+                          </a>
+                          {% if child_link.links != blank %}
+                            <ul class="mega-menu-list">
+                              {% for grandchild_link in child_link.links %}
+                                <li>
+                                  <a href="{{ grandchild_link.url }}">{{ grandchild_link.title }}</a>
+                                </li>
+                              {% endfor %}
+                            </ul>
+                          {% endif %}
+                        </div>
+                      {% endfor %}
+                    </div>
+
+                    {%- comment -%} Promo images from blocks matching this menu index {%- endcomment -%}
+                    {% assign promo_blocks_exist = false %}
+                    {% for block in section.blocks %}
+                      {% if block.type == 'mega_menu_promo' and block.settings.menu_index == mega_index %}
+                        {% assign promo_blocks_exist = true %}
+                        {% break %}
+                      {% endif %}
                     {% endfor %}
+
+                    {% if promo_blocks_exist %}
+                      <div class="mega-menu-promos">
+                        {% for block in section.blocks %}
+                          {% if block.type == 'mega_menu_promo' and block.settings.menu_index == mega_index %}
+                            <a
+                              href="{{ block.settings.promo_url | default: '#' }}"
+                              class="mega-promo-card"
+                              {{ block.shopify_attributes }}
+                            >
+                              <div class="mega-promo-card__image">
+                                {% if block.settings.promo_image %}
+                                  <img
+                                    src="{{ block.settings.promo_image | image_url: width: 480, height: 600, crop: 'center' }}"
+                                    alt="{{ block.settings.promo_heading | escape }}"
+                                    width="480"
+                                    height="600"
+                                    loading="lazy"
+                                  >
+                                {% else %}
+                                  <div class="mega-promo-card__placeholder">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                  </div>
+                                {% endif %}
+                              </div>
+                              <div class="mega-promo-card__content">
+                                {% if block.settings.promo_label != blank %}
+                                  <span class="mega-promo-card__label">{{ block.settings.promo_label }}</span>
+                                {% endif %}
+                                {% if block.settings.promo_heading != blank %}
+                                  <span class="mega-promo-card__heading">{{ block.settings.promo_heading }}</span>
+                                {% endif %}
+                                {% if block.settings.promo_cta != blank %}
+                                  <span class="mega-promo-card__cta">
+                                    {{ block.settings.promo_cta }}
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                                  </span>
+                                {% endif %}
+                              </div>
+                            </a>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                    {% endif %}
                   </div>
                 </div>
               {% endif %}
@@ -158,11 +214,6 @@
           <div id="PredictiveResults" class="predictive-search"></div>
           <div id="RecentSearches" class="recent-searches"></div>
         </div>
-      {% endif %}
-
-      <!-- Theme Toggle (if available) -->
-      {% if section.settings.show_theme_toggle %}
-        {% render 'theme-toggle' %}
       {% endif %}
 
       <!-- Icons -->
@@ -512,19 +563,33 @@
 }
 
 /* Mega Menu */
+.has-mega-menu {
+  position: static;
+}
+
 .header__mega-menu {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
   background: var(--color-background);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  padding: 30px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 0;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
+  transform: translateY(4px);
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
   z-index: 1000;
+}
+
+.header__mega-menu::before {
+  content: '';
+  position: absolute;
+  top: -16px;
+  left: 0;
+  right: 0;
+  height: 16px;
 }
 
 .has-mega-menu:hover .header__mega-menu {
@@ -533,21 +598,52 @@
   transform: translateY(0);
 }
 
-.mega-menu-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 30px;
+.mega-menu-inner {
+  display: flex;
   max-width: 1400px;
   margin: 0 auto;
+  padding: 40px 40px;
+  gap: 40px;
+}
+
+.mega-menu-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 32px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mega-menu-column {
+  min-width: 0;
 }
 
 .mega-menu-title {
-  display: block;
+  display: inline-block;
   font-weight: 600;
   color: var(--color-foreground);
-  margin-bottom: 15px;
+  margin-bottom: 16px;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  position: relative;
+  padding-bottom: 8px;
+}
+
+.mega-menu-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 24px;
+  height: 2px;
+  background: var(--color-primary, #c28946);
+  border-radius: 1px;
+  transition: width 0.3s ease;
+}
+
+.mega-menu-title:hover::after {
+  width: 100%;
 }
 
 .mega-menu-list {
@@ -556,17 +652,120 @@
   padding: 0;
 }
 
+.mega-menu-list li {
+  margin: 0;
+}
+
 .mega-menu-list a {
-  display: block;
-  padding: 8px 0;
+  display: inline-block;
+  padding: 6px 0;
   color: var(--color-foreground);
   text-decoration: none;
   font-size: 14px;
-  transition: color 0.2s;
+  opacity: 0.7;
+  transition: opacity 0.2s, color 0.2s, padding-left 0.2s;
 }
 
 .mega-menu-list a:hover {
-  color: var(--color-primary);
+  color: var(--color-primary, #c28946);
+  opacity: 1;
+  padding-left: 4px;
+}
+
+/* Mega Promo Cards */
+.mega-menu-promos {
+  display: flex;
+  gap: 16px;
+  flex-shrink: 0;
+  max-width: 480px;
+}
+
+.mega-promo-card {
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--color-foreground);
+  background: var(--color-secondary, #f5f5f5);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mega-promo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+.mega-promo-card__image {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--color-secondary, #f5f5f5);
+}
+
+.mega-promo-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.mega-promo-card:hover .mega-promo-card__image img {
+  transform: scale(1.06);
+}
+
+.mega-promo-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-foreground);
+  opacity: 0.2;
+}
+
+.mega-promo-card__content {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mega-promo-card__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-primary, #c28946);
+}
+
+.mega-promo-card__heading {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-foreground);
+}
+
+.mega-promo-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary, #c28946);
+  margin-top: 4px;
+  transition: gap 0.2s ease;
+}
+
+.mega-promo-card:hover .mega-promo-card__cta {
+  gap: 8px;
+}
+
+@media (max-width: 1100px) {
+  .mega-menu-promos {
+    display: none;
+  }
 }
 
 /* Header Right Section */
@@ -1123,6 +1322,16 @@
 }
 
 /* Responsive */
+@media screen and (max-width: 1024px) {
+  .header__search {
+    display: none !important;
+  }
+
+  .header__menu {
+    display: none !important;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .desktop-only {
     display: none !important;
@@ -1605,12 +1814,6 @@ document.addEventListener('DOMContentLoaded', function() {
       "default": true
     },
     {
-      "type": "checkbox",
-      "id": "show_theme_toggle",
-      "label": "Show theme toggle (light/dark mode)",
-      "default": true
-    },
-    {
       "type": "header",
       "content": "Color Scheme"
     },
@@ -1664,6 +1867,50 @@ document.addEventListener('DOMContentLoaded', function() {
       "label": "Padding bottom",
       "default": 0
     }
-  ]
+  ],
+  "blocks": [
+    {
+      "type": "mega_menu_promo",
+      "name": "Mega menu promo",
+      "settings": [
+        {
+          "type": "number",
+          "id": "menu_index",
+          "label": "Menu item index (0-based)",
+          "default": 0,
+          "info": "Which top-level menu item this promo belongs to. 0 = first item, 1 = second, etc."
+        },
+        {
+          "type": "image_picker",
+          "id": "promo_image",
+          "label": "Promo image"
+        },
+        {
+          "type": "text",
+          "id": "promo_label",
+          "label": "Label",
+          "default": "New arrival"
+        },
+        {
+          "type": "text",
+          "id": "promo_heading",
+          "label": "Heading",
+          "default": "Spring collection"
+        },
+        {
+          "type": "text",
+          "id": "promo_cta",
+          "label": "Call to action text",
+          "default": "Shop now"
+        },
+        {
+          "type": "url",
+          "id": "promo_url",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8
 }
 {% endschema %}

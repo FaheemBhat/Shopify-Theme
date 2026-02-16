@@ -12,13 +12,339 @@
     "settings": [
       {
         "type": "header",
-        "content": "t:general.fonts"
+        "content": "Body"
       },
       {
         "type": "font_picker",
         "id": "type_primary_font",
         "default": "work_sans_n4",
-        "label": "t:general.primary"
+        "label": "Font",
+        "info": "Selecting a different font can affect the speed of your store. [Learn more about system fonts.](https://help.shopify.com/manual/online-store/os/store-speed/speed-report#fonts)"
+      },
+      {
+        "type": "select",
+        "id": "body_bold_weight",
+        "label": "Bolder font weight",
+        "info": "Used to highlight certain titles and labels",
+        "options": [
+          { "value": "bold", "label": "Bold" },
+          { "value": "bolder", "label": "Bolder" },
+          { "value": "600", "label": "Semi bold" }
+        ],
+        "default": "bold"
+      },
+      {
+        "type": "range",
+        "id": "body_base_size",
+        "label": "Base size",
+        "min": 12,
+        "max": 24,
+        "step": 1,
+        "default": 16,
+        "unit": "px"
+      },
+      {
+        "type": "header",
+        "content": "Headings"
+      },
+      {
+        "type": "font_picker",
+        "id": "type_heading_font",
+        "default": "work_sans_n6",
+        "label": "Font",
+        "info": "Selecting a different font can affect the speed of your store. [Learn more about system fonts.](https://help.shopify.com/manual/online-store/os/store-speed/speed-report#fonts)"
+      },
+      {
+        "type": "range",
+        "id": "heading_font_size_scale",
+        "label": "Font size scale",
+        "min": 50,
+        "max": 150,
+        "step": 5,
+        "default": 100,
+        "unit": "%"
+      },
+      {
+        "type": "range",
+        "id": "heading_font_size_scale_mobile",
+        "label": "Mobile font size scale",
+        "min": 50,
+        "max": 150,
+        "step": 5,
+        "default": 70,
+        "unit": "%"
+      },
+      {
+        "type": "range",
+        "id": "heading_letter_spacing",
+        "label": "Letter spacing",
+        "min": -5,
+        "max": 10,
+        "step": 1,
+        "default": 0,
+        "unit": "%"
+      },
+      {
+        "type": "checkbox",
+        "id": "heading_uppercase",
+        "label": "Uppercase headings",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Mega titles"
+      },
+      {
+        "type": "paragraph",
+        "content": "Use for large titles"
+      },
+      {
+        "type": "range",
+        "id": "mega_title_base_size",
+        "label": "Base size",
+        "min": 32,
+        "max": 80,
+        "step": 2,
+        "default": 52,
+        "unit": "px"
+      },
+      {
+        "type": "checkbox",
+        "id": "mega_title_uppercase",
+        "label": "Uppercase mega titles",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Subheadings"
+      },
+      {
+        "type": "range",
+        "id": "subheading_font_size_scale",
+        "label": "Desktop font size scale",
+        "min": 50,
+        "max": 200,
+        "step": 5,
+        "default": 120,
+        "unit": "%"
+      },
+      {
+        "type": "select",
+        "id": "subheading_font_family",
+        "label": "Font family",
+        "options": [
+          { "value": "heading", "label": "Headings font" },
+          { "value": "body", "label": "Body font" }
+        ],
+        "default": "heading"
+      },
+      {
+        "type": "select",
+        "id": "subheading_font_weight",
+        "label": "Font weight",
+        "options": [
+          { "value": "normal", "label": "Regular" },
+          { "value": "500", "label": "Medium" },
+          { "value": "600", "label": "Semi bold" },
+          { "value": "bold", "label": "Bold" }
+        ],
+        "default": "normal"
+      },
+      {
+        "type": "range",
+        "id": "subheading_letter_spacing",
+        "label": "Letter spacing",
+        "min": -5,
+        "max": 10,
+        "step": 1,
+        "default": 0,
+        "unit": "%"
+      },
+      {
+        "type": "select",
+        "id": "subheading_text_transform",
+        "label": "Text transform",
+        "options": [
+          { "value": "none", "label": "Normal" },
+          { "value": "uppercase", "label": "Uppercase" },
+          { "value": "lowercase", "label": "Lowercase" },
+          { "value": "capitalize", "label": "Title Case" }
+        ],
+        "default": "none"
+      },
+      {
+        "type": "header",
+        "content": "Product cards title"
+      },
+      {
+        "type": "range",
+        "id": "product_card_title_size_scale",
+        "label": "Font size scale",
+        "min": 50,
+        "max": 150,
+        "step": 5,
+        "default": 100,
+        "unit": "%"
+      },
+      {
+        "type": "select",
+        "id": "product_card_title_font",
+        "label": "Font family",
+        "options": [
+          { "value": "body", "label": "Body font" },
+          { "value": "heading", "label": "Headings font" }
+        ],
+        "default": "body"
+      },
+      {
+        "type": "select",
+        "id": "product_card_title_weight",
+        "label": "Font weight",
+        "options": [
+          { "value": "normal", "label": "Regular" },
+          { "value": "500", "label": "Medium" },
+          { "value": "600", "label": "Semi bold" },
+          { "value": "bold", "label": "Bold" }
+        ],
+        "default": "600"
+      },
+      {
+        "type": "checkbox",
+        "id": "product_card_title_uppercase",
+        "label": "Uppercase product title",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Product cards price"
+      },
+      {
+        "type": "select",
+        "id": "product_card_price_font",
+        "label": "Font family",
+        "options": [
+          { "value": "body", "label": "Body font" },
+          { "value": "heading", "label": "Headings font" }
+        ],
+        "default": "body"
+      },
+      {
+        "type": "select",
+        "id": "product_card_price_weight",
+        "label": "Font weight",
+        "options": [
+          { "value": "normal", "label": "Regular" },
+          { "value": "500", "label": "Medium" },
+          { "value": "600", "label": "Semi bold" },
+          { "value": "bold", "label": "Bold" }
+        ],
+        "default": "bold"
+      },
+      {
+        "type": "header",
+        "content": "Product cards badge"
+      },
+      {
+        "type": "select",
+        "id": "product_card_badge_font",
+        "label": "Font family",
+        "options": [
+          { "value": "body", "label": "Body font" },
+          { "value": "heading", "label": "Headings font" }
+        ],
+        "default": "body"
+      },
+      {
+        "type": "select",
+        "id": "product_card_badge_weight",
+        "label": "Font weight",
+        "options": [
+          { "value": "normal", "label": "Regular" },
+          { "value": "500", "label": "Medium" },
+          { "value": "600", "label": "Semi bold" },
+          { "value": "bold", "label": "Bold" }
+        ],
+        "default": "bold"
+      },
+      {
+        "type": "header",
+        "content": "Navigation"
+      },
+      {
+        "type": "select",
+        "id": "nav_font_family",
+        "label": "Font family",
+        "options": [
+          { "value": "body", "label": "Body font" },
+          { "value": "heading", "label": "Headings font" }
+        ],
+        "default": "body"
+      },
+      {
+        "type": "select",
+        "id": "nav_font_weight",
+        "label": "Font weight",
+        "options": [
+          { "value": "normal", "label": "Regular" },
+          { "value": "500", "label": "Medium" },
+          { "value": "600", "label": "Semi bold" },
+          { "value": "bold", "label": "Bold" }
+        ],
+        "default": "600"
+      },
+      {
+        "type": "checkbox",
+        "id": "nav_uppercase",
+        "label": "Uppercase navigation",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Buttons"
+      },
+      {
+        "type": "select",
+        "id": "button_font_family",
+        "label": "Font family",
+        "options": [
+          { "value": "body", "label": "Body font" },
+          { "value": "heading", "label": "Headings font" }
+        ],
+        "default": "body"
+      },
+      {
+        "type": "select",
+        "id": "button_font_weight",
+        "label": "Font weight",
+        "options": [
+          { "value": "normal", "label": "Regular" },
+          { "value": "500", "label": "Medium" },
+          { "value": "600", "label": "Semi bold" },
+          { "value": "bold", "label": "Bold" }
+        ],
+        "default": "600"
+      },
+      {
+        "type": "range",
+        "id": "button_letter_spacing",
+        "label": "Letter spacing",
+        "min": -5,
+        "max": 10,
+        "step": 1,
+        "default": 0,
+        "unit": "%"
+      },
+      {
+        "type": "select",
+        "id": "button_text_transform",
+        "label": "Text transform",
+        "options": [
+          { "value": "none", "label": "Normal" },
+          { "value": "uppercase", "label": "Uppercase" },
+          { "value": "lowercase", "label": "Lowercase" },
+          { "value": "capitalize", "label": "Title Case" }
+        ],
+        "default": "capitalize"
       }
     ]
   },
@@ -127,6 +453,17 @@
         "unit": "px",
         "label": "t:labels.input_corner_radius",
         "default": 4
+      }
+    ]
+  },
+  {
+    "name": "Favicon",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon image",
+        "info": "32 x 32px .png recommended"
       }
     ]
   },

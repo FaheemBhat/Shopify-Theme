@@ -29,7 +29,9 @@
           {{ section.settings.image | image_url: width: 1200 | image_tag:
             class: 'iwt-image__img',
             loading: 'lazy',
-            widths: '375, 550, 750, 1100'
+            widths: '375, 550, 750, 1100',
+            alt: section.settings.image.alt | default: section.settings.heading | default: 'Image',
+            sizes: '(max-width: 768px) 100vw, 50vw'
           }}
         {% else %}
           <div class="iwt-image__placeholder">

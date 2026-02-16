@@ -19,7 +19,10 @@
             {% if collection.featured_image %}
               <img
                 src="{{ collection.featured_image | image_url: width: 600, height: 600, crop: 'center' }}"
-                alt="{{ collection.title | escape }}"
+                srcset="{{ collection.featured_image | image_url: width: 300, height: 300, crop: 'center' }} 300w, {{ collection.featured_image | image_url: width: 450, height: 450, crop: 'center' }} 450w, {{ collection.featured_image | image_url: width: 600, height: 600, crop: 'center' }} 600w"
+                sizes="(max-width: 480px) 50vw, (max-width: 900px) 50vw, 25vw"
+                alt="{{ collection.featured_image.alt | default: collection.title | escape }}"
+                {% if collection.featured_image.presentation %}style="object-position: {{ collection.featured_image.presentation.focal_point }}"{% endif %}
                 width="600"
                 height="600"
                 loading="lazy"

@@ -1,70 +1,777 @@
-{% comment %}
-  This section is used in the search template to render search results for
-  products, articles, and pages.
+{% paginate search.results by section.settings.results_per_page %}
 
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/search
-{% endcomment %}
+<div class="search-section">
 
-<h1>{{ 'search.title' | t }}</h1>
+  {%- comment -%} Hero search bar {%- endcomment -%}
+  <div class="search-hero">
+    <h1 class="search-hero__heading">{{ 'search.title' | t }}</h1>
 
-<form action="{{ routes.search_url }}" method="get" role="search">
-  <input
-    type="search"
-    size="50"
-    name="q"
-    value="{{ search.terms | escape }}"
-    placeholder="{{ 'search.placeholder' | t }}"
-  >
-  <button type="submit">{{ 'search.submit' | t }}</button>
-</form>
+    <form action="{{ routes.search_url }}" method="get" class="search-hero__form" role="search">
+      <input
+        type="search"
+        name="q"
+        class="search-hero__input"
+        value="{{ search.terms | escape }}"
+        placeholder="{{ 'search.placeholder' | t }}"
+        aria-label="{{ 'search.title' | t }}"
+      >
+      <button type="submit" class="search-hero__btn" aria-label="{{ 'search.submit' | t }}">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+  </div>
 
-{% if search.performed %}
-  {% if search.results_count == 0 %}
-    <p>{{ 'search.no_results_html' | t: terms: search.terms }}</p>
-  {% else %}
-    <p>{{ 'search.results_for_html' | t: terms: search.terms, count: search.results_count }}</p>
+  {% if search.performed %}
 
-    <div class="search-results">
-      {% paginate search.results by 20 %}
-        {% # Search result items may be an article, a page, or a product. %}
-        {% for result in search.results %}
-          <div class="search-result">
-            {% assign featured_image = result.featured_image | default: result.image %}
-            {% if featured_image %}
-              {% render 'image', class: 'search-result__image', image: featured_image, url: result.url, width: 400 %}
-            {% endif %}
-            <div class="search-result__content">
-              <p>
-                {{ result.title | link_to: result.url }}
-                {% if result.price %}
-                  {{ result.price | money_with_currency }}
-                {% endif %}
-              </p>
+    {% if search.results_count == 0 %}
+      {%- comment -%} Empty state {%- endcomment -%}
+      <div class="search-empty">
+        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          <line x1="8" y1="8" x2="14" y2="14"/>
+          <line x1="14" y1="8" x2="8" y2="14"/>
+        </svg>
+        <p class="search-empty__text">{{ 'search.no_results_html' | t: terms: search.terms }}</p>
+      </div>
+
+    {% else %}
+      {%- comment -%} Results summary {%- endcomment -%}
+      <p class="search-summary">{{ 'search.results_for_html' | t: terms: search.terms, count: search.results_count }}</p>
+
+      {%- comment -%} Filters + Results layout {%- endcomment -%}
+      <div class="search-layout">
+        {% if search.filters.size > 0 %}
+          <aside class="search-filters" id="searchFilterSidebar">
+            <div class="search-filters__header-mobile">
+              <span>Filters</span>
+              <button type="button" class="search-filters__close" id="searchFilterClose" aria-label="Close filters">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
-          </div>
-        {% endfor %}
+            <form id="SearchFiltersForm" class="search-facet-form">
+              <input type="hidden" name="q" value="{{ search.terms | escape }}">
+              {%- for filter in search.filters -%}
+                <div class="search-filter-group">
+                  <button type="button" class="search-filter-group__toggle" aria-expanded="true">
+                    <span>{{ filter.label | escape }}</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <div class="search-filter-group__body">
+                    {%- case filter.type -%}
+                      {%- when 'list' or 'boolean' -%}
+                        {%- for value in filter.values -%}
+                          <label class="search-filter-check">
+                            <input type="checkbox" name="{{ value.param_name }}" value="{{ value.value }}" {% if value.active %}checked{% endif %} {% if value.count == 0 and value.active == false %}disabled{% endif %}>
+                            <span class="search-filter-check__box"></span>
+                            <span class="search-filter-check__label">{{ value.label | escape }}</span>
+                            <span class="search-filter-check__count">({{ value.count }})</span>
+                          </label>
+                        {%- endfor -%}
+                      {%- when 'price_range' -%}
+                        {%- assign sr_max = filter.range_max | divided_by: 100.0 | ceil -%}
+                        <div class="search-price-inputs">
+                          <div class="search-price-wrap">
+                            <span>{{ cart.currency.symbol }}</span>
+                            <input type="number" name="{{ filter.min_value.param_name }}" value="{{ filter.min_value.value | default: 0 | money_without_currency | replace: ',', '' | strip }}" min="0" max="{{ sr_max }}" placeholder="0" class="search-price-input">
+                          </div>
+                          <span>&ndash;</span>
+                          <div class="search-price-wrap">
+                            <span>{{ cart.currency.symbol }}</span>
+                            <input type="number" name="{{ filter.max_value.param_name }}" value="{{ filter.max_value.value | default: filter.range_max | money_without_currency | replace: ',', '' | strip }}" min="0" max="{{ sr_max }}" placeholder="{{ sr_max }}" class="search-price-input">
+                          </div>
+                        </div>
+                    {%- endcase -%}
+                  </div>
+                </div>
+              {%- endfor -%}
+            </form>
+          </aside>
+          <div class="search-filters-overlay" id="searchFiltersOverlay"></div>
+        {% endif %}
 
-        {{ paginate | default_pagination }}
-      {% endpaginate %}
+        <div class="search-results-main">
+          {% if search.filters.size > 0 %}
+            <button type="button" class="search-filter-toggle" id="searchFilterToggle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Filter
+            </button>
+          {% endif %}
+
+          {%- comment -%} Results list {%- endcomment -%}
+          <div class="search-results">
+            {% for result in search.results %}
+              <div class="search-card">
+
+                {% if section.settings.show_images %}
+                  <a href="{{ result.url }}" class="search-card__image-wrapper" aria-hidden="true" tabindex="-1">
+                    {% assign featured_image = result.featured_image | default: result.image %}
+                    {% if featured_image %}
+                      <img
+                        src="{{ featured_image | image_url: width: 400, height: 400, crop: 'center' }}"
+                        srcset="{{ featured_image | image_url: width: 200 }} 200w, {{ featured_image | image_url: width: 400 }} 400w, {{ featured_image | image_url: width: 600 }} 600w"
+                        sizes="(max-width: 767px) 280px, 140px"
+                        alt="{{ result.title | escape }}"
+                        {% if featured_image.presentation %}style="object-position: {{ featured_image.presentation.focal_point }}"{% endif %}
+                        loading="lazy"
+                        width="400"
+                        height="400"
+                      >
+                    {% else %}
+                      <div class="search-card__placeholder">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                      </div>
+                    {% endif %}
+                  </a>
+                {% endif %}
+
+                <div class="search-card__content">
+                  <span class="search-card__type">
+                    {% if result.object_type == 'product' %}
+                      {{ 'search.type_product' | t }}
+                    {% elsif result.object_type == 'article' %}
+                      {{ 'search.type_article' | t }}
+                    {% else %}
+                      {{ 'search.type_page' | t }}
+                    {% endif %}
+                  </span>
+
+                  <h2 class="search-card__title">
+                    <a href="{{ result.url }}">{{ result.title }}</a>
+                  </h2>
+
+                  {% if result.object_type == 'product' %}
+                    {% if result.price_varies %}
+                      <p class="search-card__price">{{ result.price_min | money }} – {{ result.price_max | money }}</p>
+                    {% else %}
+                      <p class="search-card__price">{{ result.price | money }}</p>
+                    {% endif %}
+                  {% else %}
+                    <p class="search-card__excerpt">{{ result.content | strip_html | truncatewords: 20 }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+      {%- comment -%} Pagination {%- endcomment -%}
+      {% if paginate.pages > 1 %}
+        <nav class="search-pagination" aria-label="Pagination">
+          {% if paginate.previous %}
+            <a href="{{ paginate.previous.url }}" class="search-pagination__btn search-pagination__prev" aria-label="Previous page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </a>
+          {% else %}
+            <span class="search-pagination__btn search-pagination__prev disabled" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </span>
+          {% endif %}
+
+          <div class="search-pagination__numbers">
+            {% for part in paginate.parts %}
+              {% if part.is_link %}
+                <a href="{{ part.url }}" class="search-pagination__number">{{ part.title }}</a>
+              {% else %}
+                {% if part.title == paginate.current_page %}
+                  <span class="search-pagination__number active" aria-current="page">{{ part.title }}</span>
+                {% else %}
+                  <span class="search-pagination__number gap">{{ part.title }}</span>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          {% if paginate.next %}
+            <a href="{{ paginate.next.url }}" class="search-pagination__btn search-pagination__next" aria-label="Next page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          {% else %}
+            <span class="search-pagination__btn search-pagination__next disabled" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+          {% endif %}
+        </nav>
+      {% endif %}
+
+        </div>{%- comment -%} .search-results-main {%- endcomment -%}
+      </div>{%- comment -%} .search-layout {%- endcomment -%}
+
+    {% endif %}
+
+  {% else %}
+    {%- comment -%} Initial state — no search performed yet {%- endcomment -%}
+    <div class="search-initial">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <p>{{ 'search.start_searching' | t }}</p>
     </div>
   {% endif %}
-{% endif %}
+
+</div>
+
+{% endpaginate %}
 
 {% stylesheet %}
-  .search-results {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+.search-section {
+  max-width: var(--page-width, 1200px);
+  margin: 0 auto;
+  padding: 60px var(--page-margin, 20px) 80px;
+  font-family: var(--font-primary--family, sans-serif);
+  color: var(--color-foreground, #1a1a1a);
+}
+
+/* ===== HERO ===== */
+.search-hero {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.search-hero__heading {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 28px;
+  color: var(--color-foreground, #1a1a1a);
+}
+
+.search-hero__form {
+  display: flex;
+  max-width: 560px;
+  margin: 0 auto;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-background, #fff);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.search-hero__form:focus-within {
+  border-color: var(--color-primary, #c28946);
+  box-shadow: 0 0 0 3px rgba(194, 137, 70, 0.15);
+}
+
+.search-hero__input {
+  flex: 1;
+  padding: 16px 24px;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  font-family: var(--font-primary--family, sans-serif);
+  background: transparent;
+  color: var(--color-foreground, #1a1a1a);
+}
+
+.search-hero__input::placeholder {
+  color: var(--color-foreground, #1a1a1a);
+  opacity: 0.4;
+}
+
+.search-hero__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  border: none;
+  background: var(--color-button, var(--color-primary, #c28946));
+  color: var(--color-button-label, #fff);
+  cursor: pointer;
+  border-radius: 0 999px 999px 0;
+  transition: opacity 0.25s ease;
+}
+
+.search-hero__btn:hover {
+  opacity: 0.85;
+}
+
+/* ===== RESULTS SUMMARY ===== */
+.search-summary {
+  font-size: 0.92rem;
+  color: var(--color-foreground, #1a1a1a);
+  opacity: 0.55;
+  margin: 0 0 32px;
+  line-height: 1.5;
+}
+
+/* ===== RESULTS LIST ===== */
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.search-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 28px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.search-card:first-child {
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+/* ===== CARD IMAGE ===== */
+.search-card__image-wrapper {
+  display: block;
+  flex-shrink: 0;
+  width: 140px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--style-border-radius-inputs, 10px);
+  overflow: hidden;
+  background: var(--color-secondary, #f5f5f5);
+  text-decoration: none;
+}
+
+.search-card__image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+.search-card:hover .search-card__image-wrapper img {
+  transform: scale(1.06);
+}
+
+.search-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary, #c28946);
+  opacity: 0.3;
+}
+
+.search-card__placeholder svg {
+  width: 40px;
+  height: 40px;
+}
+
+/* ===== CARD CONTENT ===== */
+.search-card__content {
+  flex: 1;
+  min-width: 0;
+  padding-top: 4px;
+}
+
+.search-card__type {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--color-primary, #c28946);
+  color: var(--color-button-label, #fff);
+  border-radius: 4px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.search-card__title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0 0 8px;
+}
+
+.search-card__title a {
+  color: var(--color-foreground, #1a1a1a);
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+.search-card__title a:hover {
+  color: var(--color-primary, #c28946);
+}
+
+.search-card__price {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary, #c28946);
+  margin: 0;
+}
+
+.search-card__excerpt {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-foreground, #1a1a1a);
+  opacity: 0.6;
+  margin: 0;
+}
+
+/* ===== PAGINATION ===== */
+.search-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 56px;
+}
+
+.search-pagination__numbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.search-pagination__btn,
+.search-pagination__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--color-foreground, #1a1a1a);
+  background: transparent;
+  border: 1.5px solid transparent;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.search-pagination__btn:hover,
+.search-pagination__number:hover {
+  background: var(--color-secondary, #f5f5f5);
+}
+
+.search-pagination__number.active {
+  background: var(--color-primary, #c28946);
+  color: var(--color-button-label, #fff);
+  border-color: var(--color-primary, #c28946);
+}
+
+.search-pagination__number.gap {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.search-pagination__btn.disabled {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/* ===== EMPTY STATE ===== */
+.search-empty {
+  text-align: center;
+  padding: 60px 20px 80px;
+  color: var(--color-foreground, #1a1a1a);
+}
+
+.search-empty svg {
+  margin-bottom: 20px;
+  color: var(--color-primary, #c28946);
+  opacity: 0.35;
+}
+
+.search-empty__text {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin: 0;
+  opacity: 0.6;
+}
+
+/* ===== SEARCH FILTERS ===== */
+.search-layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+.search-filters {
+  width: 240px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 20px;
+}
+.search-results-main { flex: 1; min-width: 0; }
+.search-filters__header-mobile { display: none; }
+.search-filter-toggle {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px solid #ddd;
+  border-radius: 30px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+.search-filter-group {
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+.search-filter-group:last-child { border-bottom: none; margin-bottom: 0; }
+.search-filter-group__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-foreground, #1a1a1a);
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+.search-filter-group__toggle[aria-expanded="false"] svg {
+  transform: rotate(-90deg);
+}
+.search-filter-group__toggle svg {
+  transition: transform 0.2s;
+}
+.search-filter-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+  font-size: 14px;
+}
+.search-filter-check input { display: none; }
+.search-filter-check__box {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #ccc;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.search-filter-check input:checked + .search-filter-check__box {
+  background: var(--color-primary, #c28946);
+  border-color: var(--color-primary, #c28946);
+}
+.search-filter-check input:checked + .search-filter-check__box::after {
+  content: '';
+  width: 8px;
+  height: 5px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) translateY(-1px);
+}
+.search-filter-check__label { flex: 1; }
+.search-filter-check__count { font-size: 12px; color: #999; }
+.search-filter-check input:disabled ~ .search-filter-check__label { opacity: 0.4; }
+
+.search-price-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.search-price-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  padding: 6px 8px;
+  flex: 1;
+  font-size: 13px;
+}
+.search-price-input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 13px;
+  background: transparent;
+}
+.search-price-input::-webkit-outer-spin-button,
+.search-price-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.search-price-input[type=number] { -moz-appearance: textfield; }
+
+.search-filters-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 999;
+}
+
+@media (max-width: 767px) {
+  .search-layout { flex-direction: column; }
+  .search-filter-toggle { display: inline-flex; }
+  .search-filters {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 280px;
+    height: 100%;
+    background: var(--color-background, #fff);
+    z-index: 1000;
+    padding: 0 20px 20px;
+    overflow-y: auto;
+    transition: left 0.3s;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
   }
-  .search-results .prev,
-  .search-results .page,
-  .search-results .next {
-    grid-column: 1 / -1;
+  .search-filters.open { left: 0; }
+  .search-filters__header-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+    margin-bottom: 16px;
+    font-weight: 700;
+    font-size: 16px;
   }
+  .search-filters__close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 4px;
+  }
+  .search-filters-overlay.visible { display: block; }
+}
+
+/* ===== INITIAL STATE ===== */
+.search-initial {
+  text-align: center;
+  padding: 40px 20px 60px;
+  color: var(--color-foreground, #1a1a1a);
+  opacity: 0.4;
+}
+
+.search-initial svg {
+  margin-bottom: 16px;
+}
+
+.search-initial p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 767px) {
+  .search-section {
+    padding: 40px var(--page-margin, 16px) 60px;
+  }
+
+  .search-hero {
+    margin-bottom: 32px;
+  }
+
+  .search-hero__input {
+    padding: 14px 18px;
+    font-size: 0.95rem;
+  }
+
+  .search-hero__btn {
+    width: 46px;
+  }
+
+  .search-card {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 0;
+  }
+
+  .search-card__image-wrapper {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .search-card__content {
+    padding-top: 0;
+  }
+
+  .search-card__title {
+    font-size: 1.05rem;
+  }
+}
 {% endstylesheet %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var filterForm = document.getElementById('SearchFiltersForm');
+  var sidebar = document.getElementById('searchFilterSidebar');
+  var overlay = document.getElementById('searchFiltersOverlay');
+  var toggle = document.getElementById('searchFilterToggle');
+  var closeBtn = document.getElementById('searchFilterClose');
+
+  if (toggle && sidebar) {
+    toggle.addEventListener('click', function() { sidebar.classList.add('open'); if (overlay) overlay.classList.add('visible'); document.body.style.overflow = 'hidden'; });
+  }
+  if (closeBtn && sidebar) {
+    closeBtn.addEventListener('click', function() { sidebar.classList.remove('open'); if (overlay) overlay.classList.remove('visible'); document.body.style.overflow = ''; });
+  }
+  if (overlay) {
+    overlay.addEventListener('click', function() { sidebar.classList.remove('open'); overlay.classList.remove('visible'); document.body.style.overflow = ''; });
+  }
+
+  /* Collapse toggles */
+  document.querySelectorAll('.search-filter-group__toggle').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var exp = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', !exp);
+      btn.nextElementSibling.style.display = exp ? 'none' : '';
+    });
+  });
+
+  /* Filter form submission */
+  if (filterForm) {
+    function submitSearchFilters() {
+      var url = new URL(window.location.href);
+      var keysToRemove = [];
+      url.searchParams.forEach(function(v, k) { if (k.startsWith('filter.')) keysToRemove.push(k); });
+      keysToRemove.forEach(function(k) { url.searchParams.delete(k); });
+      url.searchParams.delete('page');
+
+      filterForm.querySelectorAll('input[type="checkbox"]:checked').forEach(function(cb) {
+        url.searchParams.append(cb.name, cb.value);
+      });
+      filterForm.querySelectorAll('.search-price-input').forEach(function(input) {
+        if (input.value !== '' && input.name) url.searchParams.set(input.name, input.value);
+      });
+      window.location.href = url.toString();
+    }
+
+    filterForm.addEventListener('change', function(e) {
+      if (e.target.type === 'checkbox') submitSearchFilters();
+    });
+    var pt;
+    filterForm.querySelectorAll('.search-price-input').forEach(function(input) {
+      input.addEventListener('change', function() { clearTimeout(pt); pt = setTimeout(submitSearchFilters, 500); });
+    });
+  }
+});
+</script>
 
 {% schema %}
 {
   "name": "t:general.search",
-  "settings": []
+  "tag": "section",
+  "class": "section-search",
+  "settings": [
+    {
+      "type": "range",
+      "id": "results_per_page",
+      "label": "Results per page",
+      "min": 8,
+      "max": 40,
+      "step": 4,
+      "default": 20
+    },
+    {
+      "type": "checkbox",
+      "id": "show_images",
+      "label": "Show images",
+      "default": true
+    }
+  ]
 }
 {% endschema %}

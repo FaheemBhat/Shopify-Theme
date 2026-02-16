@@ -12,9 +12,22 @@
     "main": {
       "type": "product",
       "settings": {}
+    },
+    "complementary": {
+      "type": "complementary-products",
+      "settings": {
+        "heading": "Pairs well with",
+        "products_to_show": 4
+      }
+    },
+    "recommendations": {
+      "type": "product-recomendations",
+      "settings": {}
     }
   },
   "order": [
-    "main"
+    "main",
+    "complementary",
+    "recommendations"
   ]
 }

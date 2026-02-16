@@ -19,7 +19,7 @@
     --action-bg: {{ section.settings.action_btn_color }};
     --action-text: {{ section.settings.action_btn_text_color }};
     --action-font-size: {{ section.settings.action_font_size }}px;
-  ">
+   margin-top: 50px">
   {% if cart.item_count > 0 %}
     <h1 class="cart-page__heading">{{ 'cart.title' | t }} (<span id="cartItemCount">{{ cart.item_count }}</span>)</h1>
     <div class="cart-page__layout">
@@ -45,7 +45,34 @@
               {% if item.variant.title != 'Default Title' %}
                 <span class="cart-item__variant">{{ item.variant.title }}</span>
               {% endif %}
+              {% if item.options_with_values.size > 0 %}
+                <div class="cart-item__options">
+                  {% for option in item.options_with_values %}
+                    <span class="cart-item__option">{{ option.name }}: {{ option.value }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              {% if item.selling_plan_allocation %}
+                <span class="cart-item__selling-plan">{{ item.selling_plan_allocation.selling_plan.name }}</span>
+              {% endif %}
               <span class="cart-item__unit-price">{{ item.original_price | money }}</span>
+              {% if item.unit_price_measurement %}
+                <span class="cart-item__unit-measure">
+                  {{ item.unit_price | money }} /
+                  {% if item.unit_price_measurement.reference_value != 1 %}{{ item.unit_price_measurement.reference_value }}{% endif %}
+                  {{ item.unit_price_measurement.reference_unit }}
+                </span>
+              {% endif %}
+              {% if item.line_level_discount_allocations.size > 0 %}
+                <ul class="cart-item__discounts">
+                  {% for discount in item.line_level_discount_allocations %}
+                    <li class="cart-item__discount">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                      {{ discount.discount_application.title }} (-{{ discount.amount | money }})
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
             </div>
 
             <div class="cart-item__qty">
@@ -59,69 +86,100 @@
         {% endfor %}
       </div>
 
-      {%- comment -%} ===== RIGHT: SUMMARY ===== {%- endcomment -%}
+      {%- comment -%} ===== RIGHT: SUMMARY (block-driven) ===== {%- endcomment -%}
       <div class="cart-page__summary">
+        {% for block in section.blocks %}
+          {% case block.type %}
 
-        {%- comment -%} Free shipping progress {%- endcomment -%}
-        {% if section.settings.show_free_shipping %}
-          <div class="cart-summary__shipping" id="cartProgressWrap">
-            <p class="cart-summary__shipping-msg" id="cartProgressMsg">
-              {% if remaining > 0 %}
-                Spend <span style="color: #008000;"><strong>{{ remaining | money }}</strong></span> more to reach free shipping!
-              {% else %}
-                {{ 'cart.free_shipping_reached' | t }}
-              {% endif %}
-            </p>
-            <div class="cart-summary__progress-bar">
-              <div class="cart-summary__progress-fill" id="cartProgressFill" style="width: {{ progress }}%;"></div>
-            </div>
-          </div>
-        {% endif %}
-
-        {%- comment -%} Order note accordion {%- endcomment -%}
-        {% if section.settings.show_order_note %}
-          <div class="cart-summary__accordion">
-            <button class="cart-summary__accordion-btn" id="cartNoteToggle" aria-expanded="false">
-              <span>{{ 'cart.order_note' | t }}</span>
-              <svg class="cart-summary__accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="cart-summary__accordion-panel" id="cartNotePanel" style="display: none;">
-              <textarea class="cart-summary__note-input" id="cartNoteInput" placeholder="{{ 'cart.order_note_placeholder' | t }}" rows="3">{{ cart.note }}</textarea>
-              <button class="cart-summary__note-save" id="cartNoteSave">{{ 'cart.save_note' | t }}</button>
-            </div>
-          </div>
-        {% endif %}
-
-        {%- comment -%} Coupon accordion {%- endcomment -%}
-        {% if section.settings.show_coupon %}
-          <div class="cart-summary__accordion">
-            <button class="cart-summary__accordion-btn" id="cartCouponToggle" aria-expanded="false">
-              <span>{{ 'cart.coupon' | t }}</span>
-              <svg class="cart-summary__accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="cart-summary__accordion-panel" id="cartCouponPanel" style="display: none;">
-              <div class="cart-summary__coupon-row">
-                <input type="text" class="cart-summary__coupon-input" id="cartCouponInput" placeholder="{{ 'cart.coupon_placeholder' | t }}">
-                <button class="cart-summary__coupon-apply" id="cartCouponApply">{{ 'cart.coupon_apply' | t }}</button>
+            {%- when 'free_shipping_goal' -%}
+              <div class="cart-summary__shipping" id="cartProgressWrap" {{ block.shopify_attributes }}>
+                <p class="cart-summary__shipping-msg" id="cartProgressMsg">
+                  {% if remaining > 0 %}
+                    Spend <span class="cart-summary__shipping-amount"><strong>{{ remaining | money }}</strong></span> more to reach free shipping!
+                  {% else %}
+                    {{ 'cart.free_shipping_reached' | t }}
+                  {% endif %}
+                </p>
+                <div class="cart-summary__progress-bar">
+                  <div class="cart-summary__progress-fill" id="cartProgressFill" style="width: {{ progress }}%;"></div>
+                </div>
               </div>
-              <p class="cart-summary__coupon-msg" id="cartCouponMsg"></p>
-            </div>
-          </div>
-        {% endif %}
 
-        {%- comment -%} Totals {%- endcomment -%}
-        <div class="cart-summary__totals">
-          <div class="cart-summary__total-row">
-            <span class="cart-summary__total-label">{{ 'cart.estimated_total' | t }}</span>
-            <span class="cart-summary__total-price" id="cartTotal">{{ cart.total_price | money }}</span>
-          </div>
-          <p class="cart-summary__tax-note">{{ 'cart.tax_note_html' | t }}</p>
-        </div>
+            {%- when 'cart_note' -%}
+              <div class="cart-summary__accordion" {{ block.shopify_attributes }}>
+                <button class="cart-summary__accordion-btn" id="cartNoteToggle" aria-expanded="false">
+                  <span>{{ 'cart.order_note' | t }}</span>
+                  <svg class="cart-summary__accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cart-summary__accordion-panel" id="cartNotePanel" style="display: none;">
+                  <textarea class="cart-summary__note-input" id="cartNoteInput" placeholder="{{ 'cart.order_note_placeholder' | t }}" rows="3">{{ cart.note }}</textarea>
+                  <button class="cart-summary__note-save" id="cartNoteSave">{{ 'cart.save_note' | t }}</button>
+                </div>
+              </div>
 
-        {%- comment -%} Checkout button {%- endcomment -%}
-        <a href="/checkout" class="cart-summary__checkout-btn">
-          {{ 'cart.checkout' | t }}
-        </a>
+            {%- when 'cart_coupon' -%}
+              <div class="cart-summary__accordion" {{ block.shopify_attributes }}>
+                <button class="cart-summary__accordion-btn" id="cartCouponToggle" aria-expanded="false">
+                  <span>{{ 'cart.coupon' | t }}</span>
+                  <svg class="cart-summary__accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cart-summary__accordion-panel" id="cartCouponPanel" style="display: none;">
+                  <div class="cart-summary__coupon-row">
+                    <input type="text" class="cart-summary__coupon-input" id="cartCouponInput" placeholder="{{ 'cart.coupon_placeholder' | t }}">
+                    <button class="cart-summary__coupon-apply" id="cartCouponApply">{{ 'cart.coupon_apply' | t }}</button>
+                  </div>
+                  <p class="cart-summary__coupon-msg" id="cartCouponMsg"></p>
+                </div>
+              </div>
+
+            {%- when 'subtotal' -%}
+              {%- comment -%} Cart-level discounts {%- endcomment -%}
+              {% if cart.cart_level_discount_applications.size > 0 %}
+                <div class="cart-summary__discounts">
+                  {% for discount in cart.cart_level_discount_applications %}
+                    <div class="cart-summary__discount-row">
+                      <span class="cart-summary__discount-name">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                        {{ discount.title }}
+                      </span>
+                      <span class="cart-summary__discount-amount">-{{ discount.total_allocated_amount | money }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+
+              <div class="cart-summary__totals" {{ block.shopify_attributes }}>
+                <div class="cart-summary__total-row">
+                  <span class="cart-summary__total-label">{{ 'cart.estimated_total' | t }}</span>
+                  <span class="cart-summary__total-price" id="cartTotal">{{ cart.total_price | money }}</span>
+                </div>
+                {% if cart.taxes_included %}
+                  <p class="cart-summary__tax-note">{{ 'cart.taxes_included' | t | default: 'Tax included' }}</p>
+                {% else %}
+                  <p class="cart-summary__tax-note">{{ 'cart.tax_note_html' | t }}</p>
+                {% endif %}
+              </div>
+
+            {%- when 'checkout_button' -%}
+              <div {{ block.shopify_attributes }}>
+                {%- form 'cart', cart, id: 'cart-form' -%}
+                  <button type="submit" name="checkout" class="cart-summary__checkout-btn">
+                    {{ 'cart.checkout' | t }}
+                  </button>
+
+                  {% if block.settings.show_dynamic_checkout %}
+                    <div class="cart-summary__dynamic-checkout">
+                      {{ form | payment_button }}
+                    </div>
+                  {% endif %}
+                {%- endform -%}
+              </div>
+
+            {%- when '@app' -%}
+              {% render block %}
+
+          {% endcase %}
+        {% endfor %}
       </div>
 
     </div>
@@ -279,19 +337,22 @@
   }
   .cart-summary__shipping-msg {
     font-size: 14px;
-    color: #008000;
+    color: var(--color-success, #008000);
     margin: 0 0 8px;
+  }
+  .cart-summary__shipping-amount {
+    color: var(--color-success, #008000);
   }
   .cart-summary__progress-bar {
     width: 100%;
     height: 6px;
-    background: #e5e5e5;
+    background: var(--color-progress-bg, #e5e5e5);
     border-radius: 3px;
     overflow: hidden;
   }
   .cart-summary__progress-fill {
     height: 100%;
-    background: #008000;
+    background: var(--color-success, #008000);
     border-radius: 3px;
     transition: width 0.4s ease;
   }
@@ -424,6 +485,66 @@
   }
   .cart-summary__checkout-btn:hover {
     opacity: 0.9;
+  }
+
+  /* Options & selling plan */
+  .cart-item__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .cart-item__option {
+    font-size: 12px;
+    color: #777;
+  }
+  .cart-item__option + .cart-item__option::before {
+    content: '/ ';
+  }
+  .cart-item__selling-plan {
+    font-size: 12px;
+    color: #4A90D9;
+    font-weight: 500;
+  }
+  .cart-item__unit-measure {
+    font-size: 12px;
+    color: #999;
+  }
+  .cart-item__discounts {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0;
+  }
+  .cart-item__discount {
+    font-size: 12px;
+    color: #cc0000;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Cart-level discounts */
+  .cart-summary__discounts {
+    padding: 8px 0;
+  }
+  .cart-summary__discount-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #cc0000;
+    margin-bottom: 4px;
+  }
+  .cart-summary__discount-name {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Dynamic checkout */
+  .cart-summary__dynamic-checkout {
+    margin-top: 12px;
+  }
+  .cart-summary__dynamic-checkout .shopify-payment-button {
+    margin: 0;
   }
 
   /* Empty state */
@@ -604,29 +725,11 @@
 
 {% schema %}
 {
-  "name": "Cart page",
+  "name": "Main cart",
   "settings": [
     {
       "type": "header",
-      "content": "General"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_order_note",
-      "label": "Show order note",
-      "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "show_coupon",
-      "label": "Show coupon field",
-      "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "show_free_shipping",
-      "label": "Show free shipping progress",
-      "default": true
+      "content": "Free shipping"
     },
     {
       "type": "text",
@@ -686,6 +789,49 @@
       "step": 1,
       "unit": "px",
       "default": 13
+    }
+  ],
+  "blocks": [
+    {
+      "type": "free_shipping_goal",
+      "name": "Free shipping goal",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "cart_note",
+      "name": "Cart note",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "cart_coupon",
+      "name": "Cart coupon",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "subtotal",
+      "name": "Subtotal",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "checkout_button",
+      "name": "Checkout button",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_dynamic_checkout",
+          "label": "Show dynamic checkout buttons",
+          "default": true,
+          "info": "Displays additional payment buttons (e.g. PayPal, Google Pay)"
+        }
+      ]
+    },
+    {
+      "type": "@app"
     }
   ]
 }

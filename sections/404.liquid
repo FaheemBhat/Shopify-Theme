@@ -1,23 +1,290 @@
 {% comment %}
-  This section is used in the 404 template to render page shown when customers
-  enter an invalid store URL.
-
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/404
+  404 page section — Beautiful, illustrated error page with search and
+  popular collections to help customers find what they're looking for.
 {% endcomment %}
 
-<h1>{{ '404.title' | t }}</h1>
+<div class="error-page">
+  <div class="error-page__content">
 
-<p>
-  {{ '404.not_found' | t }}
-</p>
+    {%- comment -%} Animated 404 number {%- endcomment -%}
+    <div class="error-page__number" aria-hidden="true">
+      <span class="error-page__digit">4</span>
+      <span class="error-page__digit error-page__digit--circle">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="currentColor" stroke-width="6" stroke-dasharray="8 8" class="error-page__ring" />
+          <circle cx="42" cy="48" r="6" fill="currentColor" class="error-page__eye" />
+          <circle cx="78" cy="48" r="6" fill="currentColor" class="error-page__eye" />
+          <path d="M40 78 Q60 68 80 78" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" class="error-page__mouth" />
+        </svg>
+      </span>
+      <span class="error-page__digit">4</span>
+    </div>
 
-<a href="{{ routes.all_products_collection_url }}">
-  {{ '404.back_to_shopping' | t }}
-</a>
+    <h1 class="error-page__heading" style="--heading-color: {{ section.settings.heading_color }}">{{ '404.heading' | t }}</h1>
+    <p class="error-page__text">{{ '404.not_found' | t }}</p>
+
+    {%- comment -%} Search bar {%- endcomment -%}
+    <form action="{{ routes.search_url }}" method="get" class="error-page__search" role="search">
+      <input
+        type="search"
+        name="q"
+        class="error-page__search-input"
+        placeholder="{{ '404.search_placeholder' | t }}"
+        aria-label="{{ 'search.title' | t }}"
+      >
+      <button type="submit" class="error-page__search-btn" aria-label="{{ 'search.submit' | t }}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+
+    <a href="{{ routes.all_products_collection_url }}" class="error-page__cta" style="--btn-color: {{ section.settings.button_color }}">
+      {{ '404.back_to_shopping' | t }}
+    </a>
+
+    {%- comment -%} Popular collections {%- endcomment -%}
+    {% if section.settings.show_collections %}
+      <div class="error-page__collections">
+        {% for collection in collections limit: 4 %}
+          {% if collection.handle != 'frontpage' %}
+            <a href="{{ collection.url }}" class="error-page__collection-card">
+              <div class="error-page__collection-img">
+                {% if collection.featured_image %}
+                  <img
+                    src="{{ collection.featured_image | image_url: width: 300, height: 300, crop: 'center' }}"
+                    alt="{{ collection.title | escape }}"
+                    width="300"
+                    height="300"
+                    loading="lazy"
+                  >
+                {% else %}
+                  {{ 'collection-1' | placeholder_svg_tag: 'error-page__placeholder' }}
+                {% endif %}
+              </div>
+              <span class="error-page__collection-name">{{ collection.title }}</span>
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% stylesheet %}
+  .error-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 60px 20px;
+    text-align: center;
+    font-family: inherit;
+  }
+
+  .error-page__content {
+    max-width: 640px;
+    width: 100%;
+  }
+
+  /* ===== 404 NUMBER ===== */
+  .error-page__number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 24px;
+    color: #c28946;
+  }
+
+  .error-page__digit {
+    font-size: 100px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .error-page__digit--circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .error-page__ring {
+    animation: error-spin 12s linear infinite;
+    transform-origin: 60px 60px;
+  }
+
+  .error-page__eye {
+    animation: error-blink 4s ease-in-out infinite;
+  }
+
+  @keyframes error-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes error-blink {
+    0%, 90%, 100% { r: 6; }
+    95% { r: 1; }
+  }
+
+  /* ===== TEXT ===== */
+  .error-page__heading {
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--heading-color, #1a1a1a);
+    margin: 0 0 10px;
+  }
+
+  .error-page__text {
+    font-size: 16px;
+    color: #777;
+    margin: 0 0 32px;
+    line-height: 1.6;
+  }
+
+  /* ===== SEARCH ===== */
+  .error-page__search {
+    display: flex;
+    max-width: 440px;
+    margin: 0 auto 24px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .error-page__search:focus-within {
+    border-color: #c28946;
+  }
+
+  .error-page__search-input {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: inherit;
+    background: transparent;
+  }
+
+  .error-page__search-btn {
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #777;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+  }
+  .error-page__search-btn:hover {
+    color: #c28946;
+  }
+
+  /* ===== CTA ===== */
+  .error-page__cta {
+    display: inline-block;
+    padding: 13px 36px;
+    background: var(--btn-color, #c28946);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+    margin-bottom: 48px;
+  }
+  .error-page__cta:hover {
+    opacity: 0.9;
+  }
+
+  /* ===== COLLECTIONS ===== */
+  .error-page__collections {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+  }
+
+  .error-page__collection-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    gap: 8px;
+  }
+
+  .error-page__collection-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f5f5f5;
+    transition: transform 0.3s ease;
+  }
+  .error-page__collection-card:hover .error-page__collection-img {
+    transform: scale(1.05);
+  }
+
+  .error-page__collection-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .error-page__placeholder {
+    width: 100%;
+    height: 100%;
+  }
+
+  .error-page__collection-name {
+    font-size: 13px;
+    color: #1a1a1a;
+    font-weight: 500;
+  }
+  .error-page__collection-card:hover .error-page__collection-name {
+    text-decoration: underline;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 600px) {
+    .error-page__digit {
+      font-size: 64px;
+    }
+    .error-page__digit--circle svg {
+      width: 80px;
+      height: 80px;
+    }
+    .error-page__heading {
+      font-size: 22px;
+    }
+    .error-page__collections {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+{% endstylesheet %}
 
 {% schema %}
 {
-  "name": "t:general.404",
-  "settings": []
+  "name": "404 page",
+  "settings": [
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button color",
+      "default": "#c28946"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collections",
+      "label": "Show popular collections",
+      "default": true
+    }
+  ]
 }
 {% endschema %}
