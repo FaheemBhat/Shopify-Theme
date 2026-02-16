@@ -1,5 +1,8 @@
 {% paginate search.results by section.settings.results_per_page %}
 
+{% if section.settings.show_breadcrumbs %}
+  {% render 'breadcrumbs', breadcrumb_type: 'search' %}
+{% endif %}
 <div class="search-section">
 
   {%- comment -%} Hero search bar {%- endcomment -%}
@@ -757,6 +760,12 @@ document.addEventListener('DOMContentLoaded', function() {
   "tag": "section",
   "class": "section-search",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "Show breadcrumbs",
+      "default": true
+    },
     {
       "type": "range",
       "id": "results_per_page",

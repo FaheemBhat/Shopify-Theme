@@ -3,13 +3,16 @@
 
 {%- assign current_variant = product.selected_or_first_available_variant -%}
 
+{% if section.settings.show_breadcrumbs %}
+  {% render 'breadcrumbs', breadcrumb_type: 'product' %}
+{% endif %}
 <section class="product-section" style="--thumb-active: {{ section.settings.thumbnail_active_color }}">
   <div class="product-container">
     <!-- Left Column - Product Media -->
     <div class="product-gallery">
       <div class="product-main-image">
         {% if product.media.size > 0 %}
-          {% assign featured_media = current_variant.featured_media | default: product.featured_media %}
+          {% assign featured_media = current_variant.featured_media | default: product.featured_media | default: product.media[0] %}
           {% if featured_media.media_type == 'video' %}
             <div class="product-media-video">
               {{ featured_media | media_tag: autoplay: false, controls: true }}
@@ -48,7 +51,7 @@
           <div class="product-thumbnails" id="product-thumbnails">
             {% for media in product.media %}
               <button
-                class="product-thumbnail {% if media == featured_media %}active{% endif %}"
+                class="product-thumbnail {% if media.id == featured_media.id %}active{% endif %}"
                 data-media-id="{{ media.id }}"
                 data-media-type="{{ media.media_type }}"
                 {% if media.media_type == 'image' %}
@@ -752,9 +755,22 @@ document.addEventListener('DOMContentLoaded', function() {
   thumbnails.forEach(function(thumb) {
     thumb.addEventListener('click', function() {
       var type = this.dataset.mediaType;
-      if (type === 'image' && mainImage) {
+      var mainImageContainer = document.querySelector('.product-main-image');
+
+      if (type === 'image' && mainImageContainer) {
         var newImageUrl = this.dataset.imageUrl;
-        if (newImageUrl) mainImage.src = newImageUrl;
+        if (newImageUrl) {
+          var imgEl = mainImageContainer.querySelector('#main-product-image');
+          if (imgEl) {
+            imgEl.src = newImageUrl;
+            imgEl.alt = this.querySelector('img') ? this.querySelector('img').alt : '';
+          } else {
+            var thumbImg = this.querySelector('img');
+            var altText = thumbImg ? thumbImg.alt : '';
+            mainImageContainer.innerHTML = '<img id="main-product-image" src="' + newImageUrl + '" alt="' + altText + '" width="800" height="800" loading="eager">';
+            mainImage = document.getElementById('main-product-image');
+          }
+        }
       }
       thumbnails.forEach(function(t) { t.classList.remove('active'); });
       this.classList.add('active');
@@ -845,7 +861,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .product-section {
   padding: 40px 20px;
   max-width: 1440px;
-  margin: 50px auto;
+  margin: 50px 0px;
 }
 
 .product-container {
@@ -1731,6 +1747,12 @@ document.addEventListener('DOMContentLoaded', function() {
   "class": "product-page-section",
   "settings": [
     {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "Show breadcrumbs",
+      "default": true
+    },
+    {
       "type": "color",
       "id": "thumbnail_active_color",
       "label": "Thumbnail active border color",
@@ -1859,7 +1881,7 @@ document.addEventListener('DOMContentLoaded', function() {
           "type": "text",
           "id": "feature_icon",
           "label": "Icon (emoji)",
-          "default": "🚚"
+          "default": "\uD83D\uDE9A"
         },
         {
           "type": "text",

@@ -38,9 +38,20 @@
   }
 
   .slide {
-    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+  }
+
+  .slide.active-slide {
+    opacity: 1;
+    position: relative;
+    pointer-events: auto;
   }
 
   .slide-link {
@@ -341,15 +352,7 @@
     transform: scale(1.5);
   }
 
-  /* Fade animation (applied via JS only on auto-rotate) */
-  .slide.fade-in {
-    animation: slideFadeIn 0.5s ease forwards;
-  }
 
-  @keyframes slideFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
 
   /* Mobile Responsive */
   @media screen and (max-width: 768px) {
@@ -582,18 +585,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (n < 1) { slideIndex = slides.length; }
 
     for (var i = 0; i < slides.length; i++) {
-      slides[i].style.display = 'none';
-      slides[i].classList.remove('fade-in');
+      slides[i].classList.remove('active-slide');
     }
     for (var j = 0; j < dots.length; j++) {
       dots[j].className = dots[j].className.replace(' active', '');
     }
 
     if (slides[slideIndex - 1]) {
-      slides[slideIndex - 1].style.display = 'block';
-      if (animate) {
-        slides[slideIndex - 1].classList.add('fade-in');
-      }
+      slides[slideIndex - 1].classList.add('active-slide');
     }
     if (dots[slideIndex - 1]) {
       dots[slideIndex - 1].className += ' active';
@@ -729,7 +728,7 @@ document.addEventListener('DOMContentLoaded', function() {
       "id": "slide_height",
       "label": "Slide height (desktop)",
       "min": 300,
-      "max": 800,
+      "max": 1200,
       "step": 50,
       "unit": "px",
       "default": 500

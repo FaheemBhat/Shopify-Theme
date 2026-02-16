@@ -205,6 +205,7 @@
 
           if (mainImage && active.dataset.imageUrl) {
             mainImage.src = active.dataset.imageUrl;
+            mainImage.removeAttribute('srcset');
             mainImage.alt = active.dataset.imageAlt || '';
           }
 
@@ -246,17 +247,11 @@
           }
 
           if (thumbContainer && active) {
-            active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            thumbContainer.scrollLeft = active.offsetLeft - thumbContainer.offsetWidth / 2 + active.offsetWidth / 2;
           }
         }
 
-        if (mainImageLink && thumbnails.length > 1) {
-          mainImageLink.addEventListener('click', function (e) {
-            e.preventDefault();
-            updateImage(currentIndex + 1);
-          });
-          mainImageLink.style.cursor = 'pointer';
-        }
+
 
         thumbnails.forEach(function (thumb, i) {
           thumb.addEventListener('click', function (e) {
@@ -264,8 +259,6 @@
             updateImage(i);
           });
         });
-
-        updateImage(0);
       });
     }
   });

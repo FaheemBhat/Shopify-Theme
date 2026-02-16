@@ -5,13 +5,53 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/page
 {% endcomment %}
 
-<h1>{{ page.title }}</h1>
+{% if section.settings.show_breadcrumbs %}
+  {% render 'breadcrumbs', breadcrumb_type: 'page' %}
+{% endif %}
+<div class="page-section">
+  <div class="page-container">
+    <h1 class="page-title">{{ page.title }}</h1>
+    <div class="page-content rte">
+      {{ page.content }}
+    </div>
+  </div>
+</div>
 
-{{ page.content }}
+<style>
+  .page-section {
+    padding: 20px 0 60px;
+  }
+  .page-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  .page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 24px 0 20px;
+  }
+  .page-content {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #444;
+  }
+  @media (max-width: 768px) {
+    .page-title { font-size: 26px; }
+  }
+</style>
 
 {% schema %}
 {
   "name": "t:general.page",
-  "settings": []
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "Show breadcrumbs",
+      "default": true
+    }
+  ]
 }
 {% endschema %}

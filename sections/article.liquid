@@ -1,7 +1,9 @@
 {% assign article_url = request.origin | append: article.url %}
 {% assign article_title_encoded = article.title | url_encode %}
 
-<article class="article-page">
+{% if section.settings.show_breadcrumbs %}
+  {% render 'breadcrumbs', breadcrumb_type: 'article' %}
+{% else %}
   <div class="article-page__nav">
     <a href="{{ blog.url }}" class="article-page__back">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -10,6 +12,8 @@
       {{ 'blog.back_to_blog' | t }}
     </a>
   </div>
+{% endif %}
+<article class="article-page">
 
   {% if article.image and section.settings.show_featured_image %}
     <div class="article-page__hero">
@@ -747,6 +751,12 @@
 {
   "name": "t:general.article",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "Show breadcrumbs",
+      "default": true
+    },
     {
       "type": "checkbox",
       "id": "show_featured_image",

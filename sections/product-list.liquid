@@ -252,25 +252,13 @@
           }
         }
 
-        // Center the active thumbnail
+        // Center the active thumbnail within its container
         if (thumbnailContainer && activeThumbnail) {
-          activeThumbnail.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-            inline: 'center'
-          });
+          thumbnailContainer.scrollLeft = activeThumbnail.offsetLeft - thumbnailContainer.offsetWidth / 2 + activeThumbnail.offsetWidth / 2;
         }
       }
 
-      // Click on main image to cycle to next
-      if (mainImageLink && thumbnails.length > 1) {
-        mainImageLink.addEventListener('click', function(e) {
-          e.preventDefault();
-          updateImage(currentIndex + 1);
-        });
-        // Add cursor pointer to indicate clickable
-        mainImageLink.style.cursor = 'pointer';
-      }
+
 
       // Click on thumbnail to select specific image/variant
       thumbnails.forEach((thumb, index) => {

@@ -204,24 +204,14 @@
           mainImage.alt = thumbnails[currentIndex].dataset.imageAlt || '';
         }
 
-        // Center the active thumbnail
+        // Center the active thumbnail within its container
         if (thumbnailContainer && thumbnails[currentIndex]) {
-          thumbnails[currentIndex].scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-            inline: 'center'
-          });
+          var thumb = thumbnails[currentIndex];
+          thumbnailContainer.scrollLeft = thumb.offsetLeft - thumbnailContainer.offsetWidth / 2 + thumb.offsetWidth / 2;
         }
       }
 
-      // Click on main image to cycle to next
-      if (mainImageLink && thumbnails.length > 1) {
-        mainImageLink.addEventListener('click', function(e) {
-          e.preventDefault();
-          updateImage(currentIndex + 1);
-        });
-        mainImageLink.style.cursor = 'pointer';
-      }
+
 
       // Click on thumbnail to select specific image
       thumbnails.forEach((thumb, index) => {

@@ -1,0 +1,133 @@
+{%- comment -%}
+  Reusable breadcrumb snippet.
+  Usage: {% render 'breadcrumbs', breadcrumb_type: 'product' %}
+  Supported types: product, article, blog, search, page
+{%- endcomment -%}
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol class="breadcrumbs__list">
+    {%- comment -%} Home {%- endcomment -%}
+    <li class="breadcrumbs__item">
+      <a href="{{ routes.root_url }}" class="breadcrumbs__link">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+    </li>
+
+    {%- case breadcrumb_type -%}
+
+      {%- when 'product' -%}
+        {%- if collection -%}
+          <li class="breadcrumbs__sep" aria-hidden="true">
+            <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+          </li>
+          <li class="breadcrumbs__item">
+            <a href="{{ collection.url }}" class="breadcrumbs__link">{{ collection.title }}</a>
+          </li>
+        {%- endif -%}
+        <li class="breadcrumbs__sep" aria-hidden="true">
+          <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+        </li>
+        <li class="breadcrumbs__item breadcrumbs__item--current" aria-current="page">
+          {{ product.title }}
+        </li>
+
+      {%- when 'article' -%}
+        <li class="breadcrumbs__sep" aria-hidden="true">
+          <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+        </li>
+        <li class="breadcrumbs__item">
+          <a href="{{ blog.url }}" class="breadcrumbs__link">{{ blog.title }}</a>
+        </li>
+        <li class="breadcrumbs__sep" aria-hidden="true">
+          <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+        </li>
+        <li class="breadcrumbs__item breadcrumbs__item--current" aria-current="page">
+          {{ article.title }}
+        </li>
+
+      {%- when 'blog' -%}
+        <li class="breadcrumbs__sep" aria-hidden="true">
+          <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+        </li>
+        <li class="breadcrumbs__item breadcrumbs__item--current" aria-current="page">
+          {{ blog.title }}
+        </li>
+
+      {%- when 'search' -%}
+        <li class="breadcrumbs__sep" aria-hidden="true">
+          <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+        </li>
+        <li class="breadcrumbs__item breadcrumbs__item--current" aria-current="page">
+          Search
+        </li>
+
+      {%- when 'page' -%}
+        <li class="breadcrumbs__sep" aria-hidden="true">
+          <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+        </li>
+        <li class="breadcrumbs__item breadcrumbs__item--current" aria-current="page">
+          {{ page.title }}
+        </li>
+
+      {%- when 'collections' -%}
+        <li class="breadcrumbs__sep" aria-hidden="true">
+          <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+        </li>
+        <li class="breadcrumbs__item breadcrumbs__item--current" aria-current="page">
+          {{ 'collections.title' | t | default: 'Collections' }}
+        </li>
+
+      {%- when 'cart' -%}
+        <li class="breadcrumbs__sep" aria-hidden="true">
+          <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+        </li>
+        <li class="breadcrumbs__item breadcrumbs__item--current" aria-current="page">
+          {{ 'cart.title' | t | default: 'Cart' }}
+        </li>
+
+      {%- when 'contact' -%}
+        <li class="breadcrumbs__sep" aria-hidden="true">
+          <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5-5 5"/></svg>
+        </li>
+        <li class="breadcrumbs__item breadcrumbs__item--current" aria-current="page">
+          {{ page.title | default: 'Contact' }}
+        </li>
+
+    {%- endcase -%}
+  </ol>
+</nav>
+
+<style>
+  .breadcrumbs {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 20px 0;
+  }
+  .breadcrumbs__list {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+  }
+  .breadcrumbs__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #666;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .breadcrumbs__link:hover { color: #1a1a2e; }
+  .breadcrumbs__link svg { opacity: 0.5; }
+  .breadcrumbs__sep { display: flex; align-items: center; color: #ccc; }
+  .breadcrumbs__item--current {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+</style>

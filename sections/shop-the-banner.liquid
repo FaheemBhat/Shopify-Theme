@@ -222,6 +222,55 @@
       }
     }, { passive: true });
     
+    // Mouse drag support (desktop)
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartTranslate = 0;
+    let dragDelta = 0;
+
+    slider.addEventListener('mousedown', function(e) {
+      isDragging = true;
+      dragStartX = e.clientX;
+      dragDelta = 0;
+      const gap = 16;
+      dragStartTranslate = currentIndex * (slideWidth + gap);
+      track.style.transition = 'none';
+      slider.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (!isDragging) return;
+      dragDelta = dragStartX - e.clientX;
+      var newTranslate = dragStartTranslate + dragDelta;
+      track.style.transform = 'translateX(-' + newTranslate + 'px)';
+    });
+
+    document.addEventListener('mouseup', function() {
+      if (!isDragging) return;
+      isDragging = false;
+      slider.style.cursor = 'grab';
+      if (Math.abs(dragDelta) > 50) {
+        if (dragDelta > 0) {
+          goToSlide(currentIndex + 1);
+        } else {
+          goToSlide(currentIndex - 1);
+        }
+      } else {
+        updateSlider();
+      }
+    });
+
+    slider.style.cursor = 'grab';
+
+    // Prevent click after drag
+    slider.addEventListener('click', function(e) {
+      if (Math.abs(dragDelta) > 5) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
     // Initialize
     calculateDimensions();
     

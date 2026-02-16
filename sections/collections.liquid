@@ -4,6 +4,9 @@
   collection name below, and a "View all" button.
 {% endcomment %}
 
+{% if section.settings.show_breadcrumbs %}
+  {% render 'breadcrumbs', breadcrumb_type: 'collections' %}
+{% endif %}
 <div class="collections-page" style="
   --btn-bg: {{ section.settings.button_color }};
   --btn-text: {{ section.settings.button_text_color }};
@@ -159,6 +162,12 @@
 {
   "name": "Collections list",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "Show breadcrumbs",
+      "default": true
+    },
     {
       "type": "header",
       "content": "View all button"

@@ -4,6 +4,9 @@
   Right: free shipping bar, order note, coupon, estimated total, checkout button
 {% endcomment %}
 
+{% if section.settings.show_breadcrumbs %}
+  {% render 'breadcrumbs', breadcrumb_type: 'cart' %}
+{% endif %}
 {% assign free_ship_threshold = section.settings.free_shipping_threshold | default: '800' | times: 1 %}
 {% assign cart_total = cart.total_price | divided_by: 100.0 %}
 {% assign remaining = free_ship_threshold | minus: cart_total %}
@@ -727,6 +730,12 @@
 {
   "name": "Main cart",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "Show breadcrumbs",
+      "default": true
+    },
     {
       "type": "header",
       "content": "Free shipping"

@@ -49,6 +49,10 @@
     {% render 'meta-tags' %}
 
     {{ content_for_header }}
+
+    <script>
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    </script>
   </head>
 
   <body class="color-scheme-1">
@@ -69,6 +73,8 @@
 
     {% # Reveal body after all section CSS has loaded %}
     <style>body { opacity: 1; transition: opacity 0.15s ease; }</style>
+
+
 
     {% # Predictive search %}
     <script>

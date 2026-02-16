@@ -6,7 +6,7 @@
         "heading": {
           "type": "heading",
           "settings": {
-            "heading": "Shilpa Agarbatti Company Private Limited",
+            "heading": "Arismeta Technologies Pvt Ltd",
             "heading_tag": "h2",
             "heading_size": 28
           }
@@ -14,7 +14,7 @@
         "text": {
           "type": "text",
           "settings": {
-            "text": "<p>To us, quality has a broader purpose and as you can read about on this website, we are on a mission.</p>"
+            "text": "<p>Empower your online presence with our top-tier web development and digital marketing. Tailored strategies for fueling your business growth.</p>"
           }
         },
         "address": {
@@ -22,7 +22,7 @@
           "settings": {
             "icon": "location",
             "label": "General Office",
-            "text": "113 & 114, near Vishal Mega Mart, Kempegowda Layout, Laggere, Bengaluru, Karnataka 560058"
+            "text": "Vinyas Vijay, 41, Dr. BR Ambedkar Rd, Ramanashree Enclave, Bilekahalli, Bengaluru, Karnataka 560076"
           }
         },
         "phone": {
@@ -30,7 +30,7 @@
           "settings": {
             "icon": "phone",
             "label": "",
-            "text": "+91-9711949949"
+            "text": "+91-8867751005"
           }
         },
         "email": {
@@ -38,7 +38,7 @@
           "settings": {
             "icon": "email",
             "label": "",
-            "text": "sales@shilpamarketing.com"
+            "text": "info@arismeta.com"
           }
         }
       },

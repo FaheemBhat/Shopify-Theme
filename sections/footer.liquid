@@ -138,8 +138,7 @@
   {%- comment -%} Localization & Follow on Shop {%- endcomment -%}
   <div class="footer-localization">
     <div class="footer-localization__inner">
-      {%- comment -%} Country / Currency Selector {%- endcomment -%}
-      {% if section.settings.show_country_selector and localization.available_countries.size > 1 %}
+      {%- if section.settings.show_country_selector and localization.available_countries.size > 1 -%}
         {%- form 'localization', id: 'FooterCountryForm', class: 'footer-localization__form' -%}
           <div class="localization-selector">
             <label for="FooterCountrySelector" class="localization-label">{{ 'footer.country_label' | t }}</label>
@@ -152,10 +151,8 @@
             </select>
           </div>
         {%- endform -%}
-      {% endif %}
-
-      {%- comment -%} Language Selector {%- endcomment -%}
-      {% if section.settings.show_language_selector and localization.available_languages.size > 1 %}
+      {%- endif -%}
+      {%- if section.settings.show_language_selector and localization.available_languages.size > 1 -%}
         {%- form 'localization', id: 'FooterLanguageForm', class: 'footer-localization__form' -%}
           <div class="localization-selector">
             <label for="FooterLanguageSelector" class="localization-label">{{ 'footer.language_label' | t }}</label>
@@ -168,14 +165,12 @@
             </select>
           </div>
         {%- endform -%}
-      {% endif %}
-
-      {%- comment -%} Follow on Shop {%- endcomment -%}
-      {% if section.settings.show_follow_on_shop %}
+      {%- endif -%}
+      {%- if section.settings.show_follow_on_shop -%}
         <div class="footer-follow-shop">
           {{ shop | login_button: action: 'follow' }}
         </div>
-      {% endif %}
+      {%- endif -%}
     </div>
   </div>
 
@@ -200,6 +195,7 @@
     });
   </script>
 
+  <div class="copyright-wrapper">
   {%- comment -%} Copyright {%- endcomment -%}
   {% if section.settings.show_copyright %}
     <div class="footer-bottom">
@@ -207,6 +203,7 @@
       {{ powered_by_link }}
     </div>
   {% endif %}
+</div>
 </footer>
 
 <style>
@@ -434,10 +431,16 @@
   }
 
   /* Footer Bottom - Policies & Copyright */
-  .footer-bottom {
+  .copyright-wrapper {
     background-color: var(--policy-bg);
+  }
+  .footer-bottom {
     padding: 20px 40px;
-    text-align: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .copyright {
@@ -447,10 +450,11 @@
     margin: 0;
   }
 
-  /* Localization */
+  /* Localization – hidden by default, shown only when it has visible children */
+
   .footer-localization {
+    display: block;
     border-top: 1px solid rgba(255,255,255,0.1);
-    padding: 24px 40px;
   }
 
   .footer-localization__inner {
@@ -470,6 +474,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 24px 40px;
   }
 
   .localization-label {
@@ -538,6 +543,9 @@
 
     .footer-bottom {
       padding: 20px;
+      flex-direction: column;
+      gap: 8px;
+      text-align: center;
     }
 
     /* Mobile Logo Position - logo and description align together */

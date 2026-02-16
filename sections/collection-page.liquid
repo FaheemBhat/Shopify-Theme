@@ -149,7 +149,7 @@
     text-decoration: none;
     transition: color 0.2s ease;
   }
-  .coll-breadcrumbs__link:hover { color: var(--cp-accent); }
+  .coll-breadcrumbs__link:hover { color: #000; }
   .coll-breadcrumbs__link svg { opacity: 0.5; }
   .coll-breadcrumbs__sep { display: flex; align-items: center; color: #ccc; }
   .coll-breadcrumbs__item--current {
@@ -1580,7 +1580,7 @@ document.addEventListener('DOMContentLoaded', function () {
             addBtn.innerHTML = svg + (va ? ' {{ section.settings.add_to_cart_text }}' : ' SOLD OUT');
           }
         }
-        if (initialized && thumbContainer) t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        if (initialized && thumbContainer) thumbContainer.scrollLeft = t.offsetLeft - thumbContainer.offsetWidth / 2 + t.offsetWidth / 2;
       }
 
       thumbs.forEach(function (th, i) { th.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); setThumb(i); }); });

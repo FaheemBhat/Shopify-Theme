@@ -1,5 +1,8 @@
 {% paginate blog.articles by section.settings.articles_per_page %}
 
+{% if section.settings.show_breadcrumbs %}
+  {% render 'breadcrumbs', breadcrumb_type: 'blog' %}
+{% endif %}
 <div class="blog-section">
   <div class="blog-header">
     <h1 class="blog-title">{{ blog.title }}</h1>
@@ -410,6 +413,12 @@
   "tag": "section",
   "class": "section-blog",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "Show breadcrumbs",
+      "default": true
+    },
     {
       "type": "range",
       "id": "articles_per_page",
