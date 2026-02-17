@@ -432,7 +432,7 @@
               </button>
 
               {% if block.settings.show_buy_now %}
-                <form action="/cart" method="post" id="buy-now-form" class="buy-now-form">
+                <form action="{{ routes.cart_url }}" method="post" id="buy-now-form" class="buy-now-form">
                   <input type="hidden" name="id" id="buy-now-variant-id" value="{{ current_variant.id }}">
                   <input type="hidden" name="quantity" value="1">
                   <button

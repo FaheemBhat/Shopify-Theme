@@ -503,6 +503,13 @@
     color: white;
     border:none;
     border-radius:8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .slide-add-to-cart:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(92, 155, 221, 0.3);
   }
 
 
@@ -747,7 +754,7 @@
       "type": "color",
       "id": "cart_button_bg",
       "label": "Add to cart button background",
-      "default": "#000000"
+      "default": "#5c9bdd"
     }
   ],
   "presets": [

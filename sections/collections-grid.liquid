@@ -152,6 +152,8 @@
               class="cg-card-img"
               width="1400"
               height="1400">
+          {% else %}
+            {{ 'collection-1' | placeholder_svg_tag: 'cg-card-img cg-card-placeholder' }}
           {% endif %}
 
           <span class="cg-card-overlay" style="background-color: {{ overlay_color }}; opacity: {{ overlay_opacity }};"></span>
