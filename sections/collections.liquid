@@ -54,7 +54,6 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 40px 20px;
-    margin-top: 80px;
   }
 
   .collections-page__heading {
@@ -132,12 +131,13 @@
     font-size: var(--btn-font-size);
     font-weight: 500;
     text-decoration: none;
-    border-radius: 30px;
-    transition: opacity 0.2s;
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     margin-top: 4px;
   }
   .collection-card__view-all:hover {
-    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(92, 155, 221, 0.3);
   }
 
   @media (max-width: 900px) {
@@ -176,7 +176,7 @@
       "type": "color",
       "id": "button_color",
       "label": "Button color",
-      "default": "#c28946"
+      "default": "#5c9bdd"
     },
     {
       "type": "color",

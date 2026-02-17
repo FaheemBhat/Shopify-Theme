@@ -94,7 +94,7 @@
     justify-content: center;
     gap: 4px;
     margin-bottom: 24px;
-    color: #c28946;
+    color: #5c9bdd;
   }
 
   .error-page__digit {
@@ -148,12 +148,12 @@
     max-width: 440px;
     margin: 0 auto 24px;
     border: 1px solid #ddd;
-    border-radius: 30px;
+    border-radius: 8px;
     overflow: hidden;
     transition: border-color 0.2s;
   }
   .error-page__search:focus-within {
-    border-color: #c28946;
+    border-color: #5c9bdd;
   }
 
   .error-page__search-input {
@@ -177,24 +177,25 @@
     transition: color 0.2s;
   }
   .error-page__search-btn:hover {
-    color: #c28946;
+    color: #5c9bdd;
   }
 
   /* ===== CTA ===== */
   .error-page__cta {
     display: inline-block;
     padding: 13px 36px;
-    background: var(--btn-color, #c28946);
+    background: var(--btn-color, #5c9bdd);
     color: #fff;
     text-decoration: none;
-    border-radius: 30px;
+    border-radius: 8px;
     font-size: 15px;
     font-weight: 500;
-    transition: opacity 0.2s;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     margin-bottom: 48px;
   }
   .error-page__cta:hover {
-    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(92, 155, 221, 0.3);
   }
 
   /* ===== COLLECTIONS ===== */
@@ -278,7 +279,7 @@
       "type": "color",
       "id": "button_color",
       "label": "Button color",
-      "default": "#c28946"
+      "default": "#5c9bdd"
     },
     {
       "type": "checkbox",

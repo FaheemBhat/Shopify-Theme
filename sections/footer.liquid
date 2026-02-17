@@ -3,7 +3,7 @@
   Four fixed columns: Logo, Quick Links, Company, Contact
 {% endcomment %}
 
-<footer class="site-footer" data-mobile-logo-position="{{ section.settings.mobile_logo_position }}" data-mobile-menu1-align="{{ section.settings.mobile_menu1_align }}" data-mobile-menu2-align="{{ section.settings.mobile_menu2_align }}" data-mobile-contact-align="{{ section.settings.mobile_contact_align }}">
+<footer class="site-footer" data-logo-align="{{ section.settings.logo_align }}" data-mobile-logo-position="{{ section.settings.mobile_logo_position }}" data-mobile-menu1-align="{{ section.settings.mobile_menu1_align }}" data-mobile-menu2-align="{{ section.settings.mobile_menu2_align }}" data-mobile-contact-align="{{ section.settings.mobile_contact_align }}">
   <div class="footer-container">
     
     {%- comment -%} Column 1: Logo & Social {%- endcomment -%}
@@ -268,6 +268,46 @@
   .footer-brand {
     max-width: 320px;
     overflow: hidden;
+  }
+
+  /* Desktop Logo Alignment */
+  .site-footer[data-logo-align="left"] .footer-brand {
+    text-align: left;
+    align-items: flex-start;
+  }
+  .site-footer[data-logo-align="left"] .footer-logo img,
+  .site-footer[data-logo-align="left"] .footer-logo-text {
+    margin-left: 0;
+    margin-right: auto;
+  }
+  .site-footer[data-logo-align="left"] .footer-social {
+    justify-content: flex-start;
+  }
+
+  .site-footer[data-logo-align="center"] .footer-brand {
+    text-align: center;
+    align-items: center;
+  }
+  .site-footer[data-logo-align="center"] .footer-logo img,
+  .site-footer[data-logo-align="center"] .footer-logo-text {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .site-footer[data-logo-align="center"] .footer-social {
+    justify-content: center;
+  }
+
+  .site-footer[data-logo-align="right"] .footer-brand {
+    text-align: right;
+    align-items: flex-end;
+  }
+  .site-footer[data-logo-align="right"] .footer-logo img,
+  .site-footer[data-logo-align="right"] .footer-logo-text {
+    margin-left: auto;
+    margin-right: 0;
+  }
+  .site-footer[data-logo-align="right"] .footer-social {
+    justify-content: flex-end;
   }
 
   .footer-logo {
@@ -654,6 +694,17 @@
       "step": 10,
       "unit": "px",
       "default": 150
+    },
+    {
+      "type": "select",
+      "id": "logo_align",
+      "label": "Logo content alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
     },
     {
       "type": "textarea",

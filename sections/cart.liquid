@@ -21,8 +21,7 @@
     --checkout-font-size: {{ section.settings.checkout_font_size }}px;
     --action-bg: {{ section.settings.action_btn_color }};
     --action-text: {{ section.settings.action_btn_text_color }};
-    --action-font-size: {{ section.settings.action_font_size }}px;
-   margin-top: 50px">
+    --action-font-size: {{ section.settings.action_font_size }}px;">
   {% if cart.item_count > 0 %}
     <h1 class="cart-page__heading">{{ 'cart.title' | t }} (<span id="cartItemCount">{{ cart.item_count }}</span>)</h1>
     <div class="cart-page__layout">
@@ -291,7 +290,7 @@
     display: flex;
     align-items: center;
     border: 1px solid #ddd;
-    border-radius: 30px;
+    border-radius: 8px;
     overflow: hidden;
   }
   .cart-item__qty-btn {
@@ -363,7 +362,7 @@
   /* Accordions */
   .cart-summary__accordion {
     border: 1px solid #e5e5e5;
-    border-radius: 30px;
+    border-radius: 8px;
     overflow: hidden;
   }
   .cart-summary__accordion-btn {
@@ -407,13 +406,14 @@
     background: var(--action-bg);
     color: var(--action-text);
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: var(--action-font-size);
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   }
   .cart-summary__note-save:hover {
-    opacity: 0.85;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(92, 155, 221, 0.25);
   }
 
   /* Coupon */
@@ -441,7 +441,8 @@
     transition: opacity 0.2s;
   }
   .cart-summary__coupon-apply:hover {
-    opacity: 0.85;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(92, 155, 221, 0.25);
   }
   .cart-summary__coupon-msg {
     font-size: 13px;
@@ -479,15 +480,16 @@
     color: var(--checkout-text);
     text-align: center;
     border: none;
-    border-radius: 30px;
+    border-radius: 8px;
     font-size: var(--checkout-font-size);
     font-weight: 500;
     text-decoration: none;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .cart-summary__checkout-btn:hover {
-    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(92, 155, 221, 0.3);
   }
 
   /* Options & selling plan */
@@ -505,7 +507,7 @@
   }
   .cart-item__selling-plan {
     font-size: 12px;
-    color: #4A90D9;
+    color: #5c9bdd;
     font-weight: 500;
   }
   .cart-item__unit-measure {
@@ -563,11 +565,16 @@
   .cart-page__continue-btn {
     display: inline-block;
     padding: 12px 32px;
-    background: #1a1a1a;
+    background: #5c9bdd;
     color: #fff;
     text-decoration: none;
-    border-radius: 30px;
+    border-radius: 8px;
     font-size: 14px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .cart-page__continue-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(92, 155, 221, 0.3);
   }
 
   /* ===== RESPONSIVE ===== */
@@ -755,7 +762,7 @@
       "type": "color",
       "id": "checkout_btn_color",
       "label": "Checkout button color",
-      "default": "#c28946"
+      "default": "#5c9bdd"
     },
     {
       "type": "color",

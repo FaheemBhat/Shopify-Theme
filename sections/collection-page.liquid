@@ -93,12 +93,12 @@
     background: #f5f5f5;
   }
   .coll-circle:hover .coll-circle__img-wrap {
-    border-color: var(--cp-accent);
+    border-color: var(--circle-hover, var(--cp-accent));
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   }
   .coll-circle--active .coll-circle__img-wrap {
-    border-color: var(--cp-accent);
-    box-shadow: 0 0 0 3px rgba(196,122,64,0.2);
+    border-color: var(--circle-active, var(--cp-accent));
+    box-shadow: 0 0 0 3px rgba(92,155,221,0.2);
   }
   .coll-circle__img-wrap img {
     width: 100%;
@@ -122,7 +122,7 @@
   }
   .coll-circle--active .coll-circle__name {
     font-weight: 700;
-    color: var(--cp-accent);
+    color: var(--circle-active, var(--cp-accent));
   }
 
   /* ========== 3. BREADCRUMBS ========== */
@@ -1120,7 +1120,7 @@
   {%- comment -%} ========== 5. COLLECTION CIRCLES (single block) ========== {%- endcomment -%}
   {%- for block in section.blocks -%}
     {%- if block.type == 'collection_circles' -%}
-      <div class="coll-circles-wrap" {{ block.shopify_attributes }}>
+      <div class="coll-circles-wrap" style="--circle-hover: {{ block.settings.hover_color }}; --circle-active: {{ block.settings.active_color }};" {{ block.shopify_attributes }}>
         <div class="coll-circles">
           <div class="coll-circles__track">
             {%- for i in (1..10) -%}
@@ -1672,7 +1672,7 @@ document.addEventListener('DOMContentLoaded', function () {
       "type": "color",
       "id": "accent_color",
       "label": "Accent color",
-      "default": "#c47a40"
+      "default": "#5c9bdd"
     },
     {
       "type": "color",
@@ -1690,7 +1690,7 @@ document.addEventListener('DOMContentLoaded', function () {
       "type": "color",
       "id": "sale_price_color",
       "label": "Sale price color",
-      "default": "#c47a40"
+      "default": "#5c9bdd"
     },
     {
       "type": "color",
@@ -1702,7 +1702,7 @@ document.addEventListener('DOMContentLoaded', function () {
       "type": "color",
       "id": "type_color",
       "label": "Product type color",
-      "default": "#4A90D9"
+      "default": "#5c9bdd"
     },
     {
       "type": "color",
@@ -1808,7 +1808,10 @@ document.addEventListener('DOMContentLoaded', function () {
         { "type": "collection", "id": "collection_7", "label": "Collection 7" },
         { "type": "collection", "id": "collection_8", "label": "Collection 8" },
         { "type": "collection", "id": "collection_9", "label": "Collection 9" },
-        { "type": "collection", "id": "collection_10", "label": "Collection 10" }
+        { "type": "collection", "id": "collection_10", "label": "Collection 10" },
+        { "type": "header", "content": "Circle colors" },
+        { "type": "color", "id": "hover_color", "label": "Hover color", "default": "#5c9bdd" },
+        { "type": "color", "id": "active_color", "label": "Active (clicked) color", "default": "#5c9bdd" }
       ]
     }
   ],

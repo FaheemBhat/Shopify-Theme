@@ -230,7 +230,7 @@
     width: 100%;
     padding: 12px 16px;
     border: 1px solid #ddd;
-    border-radius: 30px;
+    border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
     outline: none;
@@ -247,15 +247,16 @@
     background: var(--popup-btn-bg);
     color: var(--popup-btn-text);
     border: none;
-    border-radius: 30px;
+    border-radius: 8px;
     font-size: var(--popup-btn-font-size);
     font-weight: 500;
     cursor: pointer;
     font-family: inherit;
-    transition: opacity 0.2s;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .popup__submit:hover {
-    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(92, 155, 221, 0.3);
   }
 
   /* ===== SOCIAL ===== */
@@ -288,10 +289,10 @@
     right: 24px;
     z-index: 9989;
     padding: 12px 24px;
-    background: var(--popup-btn-bg, #c28946);
+    background: var(--popup-btn-bg, #5c9bdd);
     color: var(--popup-btn-text, #fff);
     border: none;
-    border-radius: 30px;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -541,7 +542,7 @@
       "type": "color",
       "id": "button_color",
       "label": "Button color",
-      "default": "#c28946"
+      "default": "#5c9bdd"
     },
     {
       "type": "color",
