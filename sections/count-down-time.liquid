@@ -169,6 +169,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     min-height: var(--countdown-height);
+    align-items: center;
   }
 
   .countdown-grid.image-right {
@@ -577,75 +578,85 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const section = document.querySelector('[data-section-id="{{ section.id }}"]');
-  if (!section) return;
+(function() {
+  function initCountdown(section) {
+    if (!section) return;
 
-  const endDate = section.getAttribute('data-end-date');
-  const endTime = section.getAttribute('data-end-time') || '00:00';
-  const hideExpired = section.getAttribute('data-hide-expired') === 'true';
+    var endDate = section.getAttribute('data-end-date');
+    var endTime = section.getAttribute('data-end-time') || '00:00';
+    var hideExpired = section.getAttribute('data-hide-expired') === 'true';
 
-  const timer = section.querySelector('[data-timer-id="{{ section.id }}"]');
-  const daysEl = timer.querySelector('[data-days]');
-  const hoursEl = timer.querySelector('[data-hours]');
-  const minutesEl = timer.querySelector('[data-minutes]');
-  const secondsEl = timer.querySelector('[data-seconds]');
-  const expiredEl = section.querySelector('.countdown-expired');
-  const progressEl = section.querySelector('[data-progress]');
+    var timer = section.querySelector('[data-timer-id="{{ section.id }}"]') || section.querySelector('[data-timer-id]');
+    if (!timer) return;
+    var daysEl = timer.querySelector('[data-days]');
+    var hoursEl = timer.querySelector('[data-hours]');
+    var minutesEl = timer.querySelector('[data-minutes]');
+    var secondsEl = timer.querySelector('[data-seconds]');
+    var expiredEl = section.querySelector('.countdown-expired');
+    var progressEl = section.querySelector('[data-progress]');
 
-  if (!endDate) return;
+    if (!endDate) return;
 
-  const endDateTime = new Date(endDate + 'T' + endTime + ':00').getTime();
-  const startTime = Date.now();
-  const totalDuration = endDateTime - startTime;
+    var endDateTime = new Date(endDate + 'T' + endTime + ':00').getTime();
+    var startTime = Date.now();
+    var totalDuration = endDateTime - startTime;
 
-  function padZero(num) {
-    return num < 10 ? '0' + num : num.toString();
-  }
-
-  function animateValue(el, newVal) {
-    var padded = padZero(newVal);
-    if (el.textContent !== padded) {
-      el.classList.add('flip');
-      setTimeout(function() {
-        el.textContent = padded;
-        el.classList.remove('flip');
-      }, 200);
-    }
-  }
-
-  function updateCountdown() {
-    var now = Date.now();
-    var distance = endDateTime - now;
-
-    if (distance <= 0) {
-      clearInterval(interval);
-      timer.style.display = 'none';
-      if (expiredEl) expiredEl.style.display = 'block';
-      if (hideExpired) section.style.display = 'none';
-      if (progressEl) progressEl.style.width = '0%';
-      return;
+    function padZero(num) {
+      return num < 10 ? '0' + num : num.toString();
     }
 
-    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    animateValue(daysEl, days);
-    animateValue(hoursEl, hours);
-    animateValue(minutesEl, minutes);
-    animateValue(secondsEl, seconds);
-
-    if (progressEl && totalDuration > 0) {
-      var remaining = (distance / totalDuration) * 100;
-      progressEl.style.width = Math.max(0, Math.min(100, remaining)) + '%';
+    function animateValue(el, newVal) {
+      var padded = padZero(newVal);
+      if (el.textContent !== padded) {
+        el.classList.add('flip');
+        setTimeout(function() {
+          el.textContent = padded;
+          el.classList.remove('flip');
+        }, 200);
+      }
     }
+
+    function updateCountdown() {
+      var now = Date.now();
+      var distance = endDateTime - now;
+
+      if (distance <= 0) {
+        clearInterval(interval);
+        timer.style.display = 'none';
+        if (expiredEl) expiredEl.style.display = 'block';
+        if (hideExpired) section.style.display = 'none';
+        if (progressEl) progressEl.style.width = '0%';
+        return;
+      }
+
+      var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      animateValue(daysEl, days);
+      animateValue(hoursEl, hours);
+      animateValue(minutesEl, minutes);
+      animateValue(secondsEl, seconds);
+
+      if (progressEl && totalDuration > 0) {
+        var remaining = (distance / totalDuration) * 100;
+        progressEl.style.width = Math.max(0, Math.min(100, remaining)) + '%';
+      }
+    }
+
+    updateCountdown();
+    var interval = setInterval(updateCountdown, 1000);
   }
 
-  updateCountdown();
-  var interval = setInterval(updateCountdown, 1000);
-});
+  document.addEventListener('DOMContentLoaded', function() {
+    initCountdown(document.querySelector('[data-section-id="{{ section.id }}"]'));
+  });
+
+  document.addEventListener('shopify:section:load', function(e) {
+    initCountdown(e.target.querySelector('[data-section-id]') || e.target);
+  });
+})();
 </script>
 
 {% schema %}

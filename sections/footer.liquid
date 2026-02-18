@@ -175,7 +175,8 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+  (function() {
+    function initFooter() {
       var countrySelect = document.getElementById('FooterCountrySelector');
       var languageSelect = document.getElementById('FooterLanguageSelector');
 
@@ -192,7 +193,11 @@
           if (form) form.submit();
         });
       }
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', initFooter);
+    document.addEventListener('shopify:section:load', initFooter);
+  })();
   </script>
 
   <div class="copyright-wrapper">

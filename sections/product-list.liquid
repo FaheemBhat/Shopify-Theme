@@ -24,13 +24,26 @@
         {% for product in section.settings.collection.products limit: section.settings.products_to_show %}
           <div class="product-card" data-product-id="{{ product.id }}">
             
-            {%- comment -%} Main Product Image {%- endcomment -%}
+            {%- comment -%} Main Product Image — show first thumbnail image by default {%- endcomment -%}
+            {%- liquid
+              assign main_img = product.featured_image
+              if product.variants.size > 1
+                assign first_variant = product.variants | first
+                if first_variant.featured_image
+                  assign main_img = first_variant.featured_image
+                endif
+              elsif product.images.size > 1
+                assign main_img = product.images | first
+              endif
+            -%}
             <div class="product-card-media">
               <a href="{{ product.url }}" class="product-card-link">
-                {% if product.featured_image != blank %}
-                  <img 
-                    src="{{ product.featured_image | image_url: width: 600 }}"
-                    alt="{{ product.featured_image.alt | escape }}"
+                {% if main_img != blank %}
+                  <img
+                    src="{{ main_img | image_url: width: 600 }}"
+                    srcset="{{ main_img | image_url: width: 300 }} 300w, {{ main_img | image_url: width: 450 }} 450w, {{ main_img | image_url: width: 600 }} 600w"
+                    sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, 25vw"
+                    alt="{{ main_img.alt | default: product.title | escape }}"
                     class="product-card-image main-image"
                     loading="lazy"
                     width="300"
@@ -161,117 +174,90 @@
 </section>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Image/Variant cycling functionality
-    const productCards = document.querySelectorAll('.product-card');
+(function() {
+  function initProductListCards(sectionEl) {
+    if (!sectionEl) return;
+    var productCards = sectionEl.querySelectorAll('.product-card');
 
-    productCards.forEach(card => {
-      const thumbnails = card.querySelectorAll('.thumbnail-item');
-      const thumbnailContainer = card.querySelector('.product-thumbnails');
-      const mainImage = card.querySelector('.main-image');
-      const mainImageLink = card.querySelector('.product-card-link');
-      const priceContainer = card.querySelector('.product-price');
-      const variantInput = card.querySelector('input[name="id"]');
-      const addToCartBtn = card.querySelector('.add-to-cart-btn');
-      const isVariantType = thumbnailContainer?.dataset.thumbnailType === 'variants';
-      let currentIndex = 0;
+    productCards.forEach(function(card) {
+      var thumbnails = card.querySelectorAll('.thumbnail-item');
+      var thumbnailContainer = card.querySelector('.product-thumbnails');
+      var mainImage = card.querySelector('.main-image');
+      var priceContainer = card.querySelector('.product-price');
+      var variantInput = card.querySelector('input[name="id"]');
+      var addToCartBtn = card.querySelector('.add-to-cart-btn');
+      var isVariantType = thumbnailContainer && thumbnailContainer.dataset.thumbnailType === 'variants';
+      var currentIndex = 0;
 
       if (thumbnails.length === 0) return;
 
+      var svgMarkup = '<svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
+
       function updateImage(index) {
-        // Ensure index wraps around
-        if (index >= thumbnails.length) {
-          currentIndex = 0;
-        } else if (index < 0) {
-          currentIndex = thumbnails.length - 1;
-        } else {
-          currentIndex = index;
-        }
+        if (index >= thumbnails.length) { currentIndex = 0; }
+        else if (index < 0) { currentIndex = thumbnails.length - 1; }
+        else { currentIndex = index; }
 
-        const activeThumbnail = thumbnails[currentIndex];
-
-        // Update active state on thumbnails
-        thumbnails.forEach(t => t.classList.remove('active'));
+        var activeThumbnail = thumbnails[currentIndex];
+        thumbnails.forEach(function(t) { t.classList.remove('active'); });
         activeThumbnail.classList.add('active');
 
-        // Update main image
         if (mainImage && activeThumbnail.dataset.imageUrl) {
           mainImage.src = activeThumbnail.dataset.imageUrl;
           mainImage.alt = activeThumbnail.dataset.imageAlt || '';
         }
 
-        // If this is a variant thumbnail, update price and variant ID
         if (isVariantType) {
-          const variantPrice = activeThumbnail.dataset.variantPrice;
-          const variantComparePrice = activeThumbnail.dataset.variantComparePrice;
-          const variantId = activeThumbnail.dataset.variantId;
-          const variantAvailable = activeThumbnail.dataset.variantAvailable === 'true';
+          var variantPrice = activeThumbnail.dataset.variantPrice;
+          var variantComparePrice = activeThumbnail.dataset.variantComparePrice;
+          var variantId = activeThumbnail.dataset.variantId;
+          var variantAvailable = activeThumbnail.dataset.variantAvailable === 'true';
 
-          // Update price display
           if (priceContainer && variantPrice) {
             if (variantComparePrice) {
-              priceContainer.innerHTML = `
-                <span class="price-sale">${variantPrice}</span>
-                <span class="price-compare">${variantComparePrice}</span>
-              `;
+              priceContainer.innerHTML = '<span class="price-sale">' + variantPrice + '</span><span class="price-compare">' + variantComparePrice + '</span>';
             } else {
-              priceContainer.innerHTML = `
-                <span class="price-regular">${variantPrice}</span>
-              `;
+              priceContainer.innerHTML = '<span class="price-regular">' + variantPrice + '</span>';
             }
           }
 
-          // Update hidden variant ID input
-          if (variantInput && variantId) {
-            variantInput.value = variantId;
-          }
+          if (variantInput && variantId) { variantInput.value = variantId; }
 
-          // Update add to cart button availability
           if (addToCartBtn) {
             if (variantAvailable) {
               addToCartBtn.disabled = false;
-              addToCartBtn.innerHTML = `
-                <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="9" cy="21" r="1"/>
-                  <circle cx="20" cy="21" r="1"/>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                </svg>
-                {{ section.settings.add_to_cart_text }}
-              `;
+              addToCartBtn.innerHTML = svgMarkup + ' {{ section.settings.add_to_cart_text }}';
             } else {
               addToCartBtn.disabled = true;
-              addToCartBtn.innerHTML = `
-                <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="9" cy="21" r="1"/>
-                  <circle cx="20" cy="21" r="1"/>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                </svg>
-                SOLD OUT
-              `;
+              addToCartBtn.innerHTML = svgMarkup + ' SOLD OUT';
             }
           }
         }
 
-        // Center the active thumbnail within its container
         if (thumbnailContainer && activeThumbnail) {
           thumbnailContainer.scrollLeft = activeThumbnail.offsetLeft - thumbnailContainer.offsetWidth / 2 + activeThumbnail.offsetWidth / 2;
         }
       }
 
-
-
-      // Click on thumbnail to select specific image/variant
-      thumbnails.forEach((thumb, index) => {
+      thumbnails.forEach(function(thumb, index) {
         thumb.addEventListener('click', function(e) {
           e.stopPropagation();
           updateImage(index);
         });
       });
 
-      // Initialize
       updateImage(0);
     });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initProductListCards(document.querySelector('[data-section-id="{{ section.id }}"]'));
   });
+
+  document.addEventListener('shopify:section:load', function(e) {
+    initProductListCards(e.target.querySelector('[data-section-id]') || e.target);
+  });
+})();
 </script>
 
 {% schema %}

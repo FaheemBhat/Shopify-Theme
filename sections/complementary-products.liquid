@@ -59,22 +59,32 @@
 </section>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  var section = document.querySelector('.comp-products-section[data-section-id="{{ section.id }}"]');
-  if (!section || !section.dataset.url) return;
+(function() {
+  function initCompProducts(section) {
+    if (!section || !section.dataset.url) return;
 
-  fetch(section.dataset.url)
-    .then(function(response) { return response.text(); })
-    .then(function(html) {
-      var parser = new DOMParser();
-      var doc = parser.parseFromString(html, 'text/html');
-      var newSection = doc.querySelector('.comp-products-section');
-      if (newSection && newSection.querySelector('.comp-products-grid')) {
-        section.innerHTML = newSection.innerHTML;
-      }
-    })
-    .catch(function() {});
-});
+    fetch(section.dataset.url)
+      .then(function(response) { return response.text(); })
+      .then(function(html) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var newSection = doc.querySelector('.comp-products-section');
+        if (newSection && newSection.querySelector('.comp-products-grid')) {
+          section.innerHTML = newSection.innerHTML;
+        }
+      })
+      .catch(function() {});
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initCompProducts(document.querySelector('.comp-products-section[data-section-id="{{ section.id }}"]'));
+  });
+
+  document.addEventListener('shopify:section:load', function(e) {
+    var section = e.target.querySelector('.comp-products-section') || e.target;
+    initCompProducts(section);
+  });
+})();
 </script>
 
 {% stylesheet %}

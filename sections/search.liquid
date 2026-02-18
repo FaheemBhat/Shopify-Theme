@@ -699,7 +699,8 @@
 {% endstylesheet %}
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
+function initSearchFilters() {
   var filterForm = document.getElementById('SearchFiltersForm');
   var sidebar = document.getElementById('searchFilterSidebar');
   var overlay = document.getElementById('searchFiltersOverlay');
@@ -751,7 +752,11 @@ document.addEventListener('DOMContentLoaded', function() {
       input.addEventListener('change', function() { clearTimeout(pt); pt = setTimeout(submitSearchFilters, 500); });
     });
   }
-});
+}
+
+document.addEventListener('DOMContentLoaded', initSearchFilters);
+document.addEventListener('shopify:section:load', initSearchFilters);
+})();
 </script>
 
 {% schema %}

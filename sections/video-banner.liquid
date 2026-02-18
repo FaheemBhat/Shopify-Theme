@@ -489,107 +489,98 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  var section = document.querySelector('[data-section-id="{{ section.id }}"]');
-  if (!section) return;
+(function() {
+  function initVideoBanner(section) {
+    if (!section) return;
 
-  var playBtn = section.querySelector('[data-play-btn]');
-  var closeBtn = section.querySelector('[data-close-btn]');
-  var posterLayer = section.querySelector('[data-poster-layer]');
-  var videoLayer = section.querySelector('[data-video-layer]');
-  var videoEl = section.querySelector('[data-video-el]');
-  var iframeWrap = section.querySelector('[data-iframe-wrap]');
-  var content = section.querySelector('.video-content');
-  var videoType = section.getAttribute('data-video-type');
-  var shouldAutoplay = section.getAttribute('data-autoplay') === 'true';
-  var isPlaying = false;
+    var playBtn = section.querySelector('[data-play-btn]');
+    var closeBtn = section.querySelector('[data-close-btn]');
+    var posterLayer = section.querySelector('[data-poster-layer]');
+    var videoLayer = section.querySelector('[data-video-layer]');
+    var videoEl = section.querySelector('[data-video-el]');
+    var iframeWrap = section.querySelector('[data-iframe-wrap]');
+    var content = section.querySelector('.video-content');
+    var videoType = section.getAttribute('data-video-type');
+    var shouldAutoplay = section.getAttribute('data-autoplay') === 'true';
+    var isPlaying = false;
 
-  if (shouldAutoplay && videoEl) {
-    startVideo();
-  }
+    if (shouldAutoplay && videoEl) { startVideo(); }
 
-  if (playBtn) {
-    playBtn.addEventListener('click', function() {
-      if (!isPlaying) {
-        startVideo();
-      }
-    });
-  }
+    if (playBtn) {
+      playBtn.addEventListener('click', function() { if (!isPlaying) startVideo(); });
+    }
 
-  if (closeBtn) {
-    closeBtn.addEventListener('click', function() {
-      stopVideo();
-    });
-  }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() { stopVideo(); });
+    }
 
-  function startVideo() {
-    if (!videoLayer) return;
+    function startVideo() {
+      if (!videoLayer) return;
+      videoLayer.style.display = 'block';
 
-    videoLayer.style.display = 'block';
+      requestAnimationFrame(function() {
+        videoLayer.classList.add('active');
+        posterLayer.classList.add('hidden');
+        content.classList.add('fade-out');
+        closeBtn.style.display = 'flex';
+        isPlaying = true;
 
-    requestAnimationFrame(function() {
-      videoLayer.classList.add('active');
-      posterLayer.classList.add('hidden');
-      content.classList.add('fade-out');
-      closeBtn.style.display = 'flex';
-      isPlaying = true;
+        if (videoType === 'hosted' && videoEl) { videoEl.play().catch(function() {}); }
 
-      if (videoType === 'hosted' && videoEl) {
-        videoEl.play().catch(function() {});
-      }
+        if (videoType === 'iframe' && iframeWrap) {
+          var iframe = iframeWrap.querySelector('iframe');
+          if (iframe) {
+            var src = iframe.getAttribute('src') || iframe.getAttribute('data-src');
+            if (src) {
+              var separator = src.indexOf('?') > -1 ? '&' : '?';
+              if (src.indexOf('autoplay=') === -1) { iframe.setAttribute('src', src + separator + 'autoplay=1'); }
+            }
+          }
+        }
+      });
+    }
+
+    function stopVideo() {
+      posterLayer.classList.remove('hidden');
+      content.classList.remove('fade-out');
+      closeBtn.style.display = 'none';
+      isPlaying = false;
+
+      if (videoType === 'hosted' && videoEl) { videoEl.pause(); videoEl.currentTime = 0; }
 
       if (videoType === 'iframe' && iframeWrap) {
         var iframe = iframeWrap.querySelector('iframe');
         if (iframe) {
-          var src = iframe.getAttribute('src') || iframe.getAttribute('data-src');
-          if (src) {
-            var separator = src.indexOf('?') > -1 ? '&' : '?';
-            if (src.indexOf('autoplay=') === -1) {
-              iframe.setAttribute('src', src + separator + 'autoplay=1');
-            }
-          }
+          var src = iframe.getAttribute('src');
+          iframe.setAttribute('src', '');
+          setTimeout(function() {
+            iframe.setAttribute('src', src.replace('&autoplay=1', '').replace('?autoplay=1', ''));
+          }, 100);
         }
       }
-    });
-  }
 
-  function stopVideo() {
-    posterLayer.classList.remove('hidden');
-    content.classList.remove('fade-out');
-    closeBtn.style.display = 'none';
-    isPlaying = false;
-
-    if (videoType === 'hosted' && videoEl) {
-      videoEl.pause();
-      videoEl.currentTime = 0;
+      setTimeout(function() {
+        videoLayer.classList.remove('active');
+        videoLayer.style.display = 'none';
+      }, 600);
     }
 
-    if (videoType === 'iframe' && iframeWrap) {
-      var iframe = iframeWrap.querySelector('iframe');
-      if (iframe) {
-        var src = iframe.getAttribute('src');
-        iframe.setAttribute('src', '');
-        setTimeout(function() {
-          iframe.setAttribute('src', src.replace('&autoplay=1', '').replace('?autoplay=1', ''));
-        }, 100);
-      }
+    if (videoEl) {
+      videoEl.addEventListener('ended', function() {
+        var shouldLoop = section.getAttribute('data-loop') === 'true';
+        if (!shouldLoop) { stopVideo(); }
+      });
     }
-
-    setTimeout(function() {
-      videoLayer.classList.remove('active');
-      videoLayer.style.display = 'none';
-    }, 600);
   }
 
-  if (videoEl) {
-    videoEl.addEventListener('ended', function() {
-      var shouldLoop = section.getAttribute('data-loop') === 'true';
-      if (!shouldLoop) {
-        stopVideo();
-      }
-    });
-  }
-});
+  document.addEventListener('DOMContentLoaded', function() {
+    initVideoBanner(document.querySelector('[data-section-id="{{ section.id }}"]'));
+  });
+
+  document.addEventListener('shopify:section:load', function(e) {
+    initVideoBanner(e.target.querySelector('[data-section-id]') || e.target);
+  });
+})();
 </script>
 
 {% schema %}

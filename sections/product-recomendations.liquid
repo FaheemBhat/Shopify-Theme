@@ -151,117 +151,106 @@
 </section>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var section = document.querySelector('.product-recs-section[data-section-id="{{ section.id }}"]');
-    if (!section) return;
+(function() {
+  function initRecCards(container) {
+    var cards = container.querySelectorAll('.rec-product-card');
+    cards.forEach(function (card) {
+      var thumbnails      = card.querySelectorAll('.rec-thumb');
+      var thumbContainer   = card.querySelector('.rec-thumbnails');
+      var mainImage        = card.querySelector('.main-image');
+      var priceContainer   = card.querySelector('.rec-product-price');
+      var variantInput     = card.querySelector('input[name="id"]');
+      var addToCartBtn     = card.querySelector('.rec-add-to-cart-btn');
+      var isVariantType    = thumbContainer && thumbContainer.dataset.thumbnailType === 'variants';
+      var currentIndex     = 0;
 
-    var productId = section.dataset.productId;
-    if (!productId) return;
+      if (thumbnails.length === 0) return;
 
-    /* Fetch recommendations via Shopify's Section Rendering API */
-    var url = section.dataset.url;
+      var svgMarkup = '<svg class="rec-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
 
-    fetch(url)
-      .then(function (res) { return res.text(); })
-      .then(function (html) {
-        var parser = new DOMParser();
-        var doc = parser.parseFromString(html, 'text/html');
-        var freshSection = doc.querySelector('.product-recs-section');
-        if (freshSection && freshSection.querySelector('.rec-product-card')) {
-          section.innerHTML = freshSection.innerHTML;
-          initRecCards(section);
+      function updateImage(index) {
+        if (index >= thumbnails.length) currentIndex = 0;
+        else if (index < 0) currentIndex = thumbnails.length - 1;
+        else currentIndex = index;
+
+        var active = thumbnails[currentIndex];
+        thumbnails.forEach(function (t) { t.classList.remove('active'); });
+        active.classList.add('active');
+
+        if (mainImage && active.dataset.imageUrl) {
+          mainImage.src = active.dataset.imageUrl;
+          mainImage.removeAttribute('srcset');
+          mainImage.alt = active.dataset.imageAlt || '';
         }
-      })
-      .catch(function (err) {
-        console.error('Product recommendations fetch error:', err);
-      });
 
-    /* Initialise already-rendered cards (server-side Liquid) */
-    initRecCards(section);
+        if (isVariantType) {
+          var vPrice   = active.dataset.variantPrice;
+          var vCompare = active.dataset.variantComparePrice;
+          var vId      = active.dataset.variantId;
+          var vAvail   = active.dataset.variantAvailable === 'true';
 
-    function initRecCards(container) {
-      var cards = container.querySelectorAll('.rec-product-card');
-      cards.forEach(function (card) {
-        var thumbnails      = card.querySelectorAll('.rec-thumb');
-        var thumbContainer   = card.querySelector('.rec-thumbnails');
-        var mainImage        = card.querySelector('.main-image');
-        var mainImageLink    = card.querySelector('.rec-card-link');
-        var priceContainer   = card.querySelector('.rec-product-price');
-        var variantInput     = card.querySelector('input[name="id"]');
-        var addToCartBtn     = card.querySelector('.rec-add-to-cart-btn');
-        var isVariantType    = thumbContainer && thumbContainer.dataset.thumbnailType === 'variants';
-        var currentIndex     = 0;
-
-        if (thumbnails.length === 0) return;
-
-        function updateImage(index) {
-          if (index >= thumbnails.length) currentIndex = 0;
-          else if (index < 0) currentIndex = thumbnails.length - 1;
-          else currentIndex = index;
-
-          var active = thumbnails[currentIndex];
-          thumbnails.forEach(function (t) { t.classList.remove('active'); });
-          active.classList.add('active');
-
-          if (mainImage && active.dataset.imageUrl) {
-            mainImage.src = active.dataset.imageUrl;
-            mainImage.removeAttribute('srcset');
-            mainImage.alt = active.dataset.imageAlt || '';
+          if (priceContainer && vPrice) {
+            priceContainer.innerHTML = vCompare
+              ? '<span class="rec-price-sale">' + vPrice + '</span><span class="rec-price-compare">' + vCompare + '</span>'
+              : '<span class="rec-price-regular">' + vPrice + '</span>';
           }
-
-          if (isVariantType) {
-            var vPrice   = active.dataset.variantPrice;
-            var vCompare = active.dataset.variantComparePrice;
-            var vId      = active.dataset.variantId;
-            var vAvail   = active.dataset.variantAvailable === 'true';
-
-            if (priceContainer && vPrice) {
-              if (vCompare) {
-                priceContainer.innerHTML =
-                  '<span class="rec-price-sale">' + vPrice + '</span>' +
-                  '<span class="rec-price-compare">' + vCompare + '</span>';
-              } else {
-                priceContainer.innerHTML =
-                  '<span class="rec-price-regular">' + vPrice + '</span>';
-              }
-            }
-
-            if (variantInput && vId) variantInput.value = vId;
-
-            if (addToCartBtn) {
-              var svgMarkup =
-                '<svg class="rec-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                  '<circle cx="9" cy="21" r="1"/>' +
-                  '<circle cx="20" cy="21" r="1"/>' +
-                  '<path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>' +
-                '</svg>';
-
-              if (vAvail) {
-                addToCartBtn.disabled = false;
-                addToCartBtn.innerHTML = svgMarkup + ' {{ section.settings.add_to_cart_text }}';
-              } else {
-                addToCartBtn.disabled = true;
-                addToCartBtn.innerHTML = svgMarkup + ' SOLD OUT';
-              }
-            }
-          }
-
-          if (thumbContainer && active) {
-            thumbContainer.scrollLeft = active.offsetLeft - thumbContainer.offsetWidth / 2 + active.offsetWidth / 2;
+          if (variantInput && vId) variantInput.value = vId;
+          if (addToCartBtn) {
+            addToCartBtn.disabled = !vAvail;
+            addToCartBtn.innerHTML = svgMarkup + (vAvail ? ' {{ section.settings.add_to_cart_text }}' : ' SOLD OUT');
           }
         }
 
+        if (thumbContainer && active) {
+          thumbContainer.scrollLeft = active.offsetLeft - thumbContainer.offsetWidth / 2 + active.offsetWidth / 2;
+        }
+      }
 
-
-        thumbnails.forEach(function (thumb, i) {
-          thumb.addEventListener('click', function (e) {
-            e.stopPropagation();
-            updateImage(i);
-          });
+      thumbnails.forEach(function (thumb, i) {
+        thumb.addEventListener('click', function (e) {
+          e.stopPropagation();
+          updateImage(i);
         });
       });
+    });
+  }
+
+  function initProductRecs(sectionEl) {
+    if (!sectionEl) return;
+
+    var productId = sectionEl.dataset.productId;
+    if (!productId) return;
+
+    var url = sectionEl.dataset.url;
+    if (url) {
+      fetch(url)
+        .then(function (res) { return res.text(); })
+        .then(function (html) {
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, 'text/html');
+          var freshSection = doc.querySelector('.product-recs-section');
+          if (freshSection && freshSection.querySelector('.rec-product-card')) {
+            sectionEl.innerHTML = freshSection.innerHTML;
+            initRecCards(sectionEl);
+          }
+        })
+        .catch(function (err) {
+          console.error('Product recommendations fetch error:', err);
+        });
     }
+
+    initRecCards(sectionEl);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initProductRecs(document.querySelector('.product-recs-section[data-section-id="{{ section.id }}"]'));
   });
+
+  document.addEventListener('shopify:section:load', function(e) {
+    var section = e.target.querySelector('.product-recs-section') || e.target;
+    initProductRecs(section);
+  });
+})();
 </script>
 
 {% schema %}

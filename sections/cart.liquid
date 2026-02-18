@@ -339,11 +339,11 @@
   }
   .cart-summary__shipping-msg {
     font-size: 14px;
-    color: var(--color-success, #008000);
+    color: var(--color-primary, #5c9bdd);
     margin: 0 0 8px;
   }
   .cart-summary__shipping-amount {
-    color: var(--color-success, #008000);
+    color: var(--color-primary, #5c9bdd);
   }
   .cart-summary__progress-bar {
     width: 100%;
@@ -354,7 +354,7 @@
   }
   .cart-summary__progress-fill {
     height: 100%;
-    background: var(--color-success, #008000);
+    background: var(--color-primary, #5c9bdd);
     border-radius: 3px;
     transition: width 0.4s ease;
   }
@@ -674,7 +674,7 @@
       var fillEl = document.getElementById('cartProgressFill');
       if (msgEl) {
         if (remaining > 0) {
-          msgEl.innerHTML = 'Spend <span style="color:#008000;"><strong>' + formatMoney(remaining * 100) + '</strong></span> more to reach free shipping!';
+          msgEl.innerHTML = 'Spend <span style="color:#5c9bdd;"><strong>' + formatMoney(remaining * 100) + '</strong></span> more to reach free shipping!';
         } else {
           msgEl.innerHTML = 'You\'ve unlocked <strong>FREE shipping!</strong>';
         }
@@ -726,7 +726,7 @@
         if (!code) return;
         if (couponMsg) {
           couponMsg.textContent = 'Code "' + code + '" will be applied at checkout.';
-          couponMsg.style.color = '#008000';
+          couponMsg.style.color = '#5c9bdd';
         }
       });
     }

@@ -1,6 +1,10 @@
 <!doctype html>
 <html lang="{{ request.locale.iso_code }}">
   <head>
+    {% # Preconnect to Shopify CDN early for faster resource loading %}
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.shopify.com">
+
     {% # Inlined CSS Variables %}
     {% render 'css-variables' %}
 
@@ -37,9 +41,6 @@
     {% # Load and preload the critical CSS %}
     {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
 
-    {% # Prevent FOUC — hide body until styles are parsed %}
-    <style>body { opacity: 0; }</style>
-
     {% # Favicon %}
     {% if settings.favicon %}
       <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
@@ -49,12 +50,6 @@
     {% render 'meta-tags' %}
 
     {{ content_for_header }}
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <script>
-      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-    </script>
   </head>
 
   <body class="color-scheme-1">
@@ -73,69 +68,51 @@
 
     {% sections 'overlay-group' %}
 
-    {% # Reveal body after all section CSS has loaded %}
-    <style>body { opacity: 1; transition: opacity 0.15s ease; }</style>
-
-
-
-    {% # Predictive search %}
+    {% # Predictive search — deferred to not block rendering %}
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const input = document.getElementById("HeaderSearchInput");
-      const results = document.getElementById("PredictiveResults");
-      const recentBox = document.getElementById("RecentSearches");
+    window.requestIdleCallback = window.requestIdleCallback || function(cb) { return setTimeout(cb, 1); };
+    requestIdleCallback(function() {
+      var input = document.getElementById("HeaderSearchInput");
+      var results = document.getElementById("PredictiveResults");
+      var recentBox = document.getElementById("RecentSearches");
       if (!input || !results || !recentBox) return;
 
-      let controller;
+      var controller;
 
       function highlight(text, query) {
-        const reg = new RegExp(`(${query})`, "gi");
+        var reg = new RegExp("(" + query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
         return text.replace(reg, '<span class="highlight">$1</span>');
       }
 
       function showSkeleton() {
-        results.innerHTML = `
-          <div class="skeleton">
-            <div class="skeleton-img"></div>
-            <div class="skeleton-lines">
-              <span></span><span></span>
-            </div>
-          </div>
-          <div class="skeleton">
-            <div class="skeleton-img"></div>
-            <div class="skeleton-lines">
-              <span></span><span></span>
-            </div>
-          </div>
-        `;
+        results.innerHTML = '<div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-lines"><span></span><span></span></div></div><div class="skeleton"><div class="skeleton-img"></div><div class="skeleton-lines"><span></span><span></span></div></div>';
         results.style.display = "block";
       }
 
       function saveRecent(query) {
-        let searches = JSON.parse(localStorage.getItem("recent_searches") || "[]");
-        searches = searches.filter(s => s !== query);
+        var searches = JSON.parse(localStorage.getItem("recent_searches") || "[]");
+        searches = searches.filter(function(s) { return s !== query; });
         searches.unshift(query);
         localStorage.setItem("recent_searches", JSON.stringify(searches.slice(0,5)));
       }
 
       function showRecent() {
-        const searches = JSON.parse(localStorage.getItem("recent_searches") || "[]");
+        var searches = JSON.parse(localStorage.getItem("recent_searches") || "[]");
         if (!searches.length) return;
-
-        recentBox.innerHTML = searches.map(s => `<div>${s}</div>`).join("");
+        recentBox.innerHTML = searches.map(function(s) { return "<div>" + s + "</div>"; }).join("");
         recentBox.style.display = "block";
       }
 
       input.addEventListener("focus", showRecent);
 
-      recentBox.addEventListener("click", e => {
+      recentBox.addEventListener("click", function(e) {
         input.value = e.target.innerText;
         input.dispatchEvent(new Event("input"));
         recentBox.style.display = "none";
       });
 
-      input.addEventListener("input", async () => {
-        const query = input.value.trim();
+      input.addEventListener("input", function() {
+        var query = input.value.trim();
         recentBox.style.display = "none";
 
         if (query.length < 2) {
@@ -148,36 +125,31 @@
         if (controller) controller.abort();
         controller = new AbortController();
 
-        const res = await fetch(`/search/suggest.json?q=${query}&resources[type]=product&resources[limit]=6`);
-        const data = await res.json();
-        const products = data.resources.results.products;
+        fetch("/search/suggest.json?q=" + encodeURIComponent(query) + "&resources[type]=product&resources[limit]=6", { signal: controller.signal })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            var products = data.resources.results.products;
+            saveRecent(query);
 
-        saveRecent(query);
+            if (!products.length) {
+              results.innerHTML = '<div class="no-results">No results found for "' + query + '"</div>';
+              return;
+            }
 
-        if (!products.length) {
-          results.innerHTML = `<div class="no-results">No results found for "${query}"</div>`;
-          return;
-        }
-
-        results.innerHTML = products.map(p => `
-          <a href="${p.url}" class="search-item">
-            <img src="${p.featured_image.url}">
-            <div>
-              <div class="search-title">${highlight(p.title, query)}</div>
-              <div class="search-price">₹${(p.price/100).toFixed(2)}</div>
-            </div>
-          </a>
-        `).join("") + `<a class="view-all" href="/search?q=${query}&type=product">View all results →</a>`;
-
+            results.innerHTML = products.map(function(p) {
+              return '<a href="' + p.url + '" class="search-item"><img src="' + p.featured_image.url + '" loading="lazy" width="60" height="60"><div><div class="search-title">' + highlight(p.title, query) + '</div><div class="search-price">\u20B9' + (p.price/100).toFixed(2) + '</div></div></a>';
+            }).join("") + '<a class="view-all" href="/search?q=' + encodeURIComponent(query) + '&type=product">View all results \u2192</a>';
+          })
+          .catch(function() {});
       });
 
-      document.addEventListener("click", e => {
+      document.addEventListener("click", function(e) {
         if (!e.target.closest(".header__search")) {
           results.style.display = "none";
           recentBox.style.display = "none";
         }
       });
-    });
+    }, { timeout: 2000 });
     </script>
   </body>
 </html>

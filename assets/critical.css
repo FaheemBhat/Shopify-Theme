@@ -27,6 +27,17 @@ svg {
   height: auto;
 }
 
+/* Override for inline SVG icons inside buttons and flex containers */
+button svg,
+a svg,
+[role="button"] svg {
+  display: inline-block;
+  width: auto;
+  height: auto;
+  max-width: none;
+  flex-shrink: 0;
+}
+
 input,
 textarea,
 select {

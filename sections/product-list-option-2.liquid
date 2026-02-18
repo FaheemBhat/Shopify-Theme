@@ -39,6 +39,8 @@
                     {% if product.featured_image != blank %}
                       <img
                         src="{{ product.featured_image | image_url: width: 600 }}"
+                        srcset="{{ product.featured_image | image_url: width: 300 }} 300w, {{ product.featured_image | image_url: width: 450 }} 450w, {{ product.featured_image | image_url: width: 600 }} 600w"
+                        sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, 25vw"
                         alt="{{ product.featured_image.alt | escape }}"
                         class="product-tabs-card-image main-tabs-image"
                         loading="lazy"
@@ -147,84 +149,74 @@
 </section>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const section = document.querySelector('[data-section-id="{{ section.id }}"]');
-    if (!section) return;
+(function() {
+  function initProductListTabs(sectionEl) {
+    if (!sectionEl) return;
 
-    // Tab switching functionality
-    const tabButtons = section.querySelectorAll('.tab-button');
-    const tabContents = section.querySelectorAll('.tab-content');
+    // Tab switching
+    var tabButtons = sectionEl.querySelectorAll('.tab-button');
+    var tabContents = sectionEl.querySelectorAll('.tab-content');
 
-    tabButtons.forEach(button => {
+    tabButtons.forEach(function(button) {
       button.addEventListener('click', function() {
-        const tabId = this.dataset.tab;
-
-        // Remove active class from all buttons and contents
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        tabContents.forEach(content => content.classList.remove('active'));
-
-        // Add active class to clicked button and corresponding content
+        var tabId = this.dataset.tab;
+        tabButtons.forEach(function(btn) { btn.classList.remove('active'); });
+        tabContents.forEach(function(content) { content.classList.remove('active'); });
         this.classList.add('active');
-        const targetContent = section.querySelector(`[data-content="${tabId}"]`);
-        if (targetContent) {
-          targetContent.classList.add('active');
-        }
+        var targetContent = sectionEl.querySelector('[data-content="' + tabId + '"]');
+        if (targetContent) { targetContent.classList.add('active'); }
       });
     });
 
-    // Image cycling functionality for each product card
-    const productCards = section.querySelectorAll('.product-tabs-card');
+    // Image cycling for each product card
+    var productCards = sectionEl.querySelectorAll('.product-tabs-card');
 
-    productCards.forEach(card => {
-      const thumbnails = card.querySelectorAll('.thumbnail-tabs-item');
-      const thumbnailContainer = card.querySelector('.product-tabs-thumbnails');
-      const mainImage = card.querySelector('.main-tabs-image');
-      const mainImageLink = card.querySelector('.product-tabs-card-link');
-      let currentIndex = 0;
+    productCards.forEach(function(card) {
+      var thumbnails = card.querySelectorAll('.thumbnail-tabs-item');
+      var thumbnailContainer = card.querySelector('.product-tabs-thumbnails');
+      var mainImage = card.querySelector('.main-tabs-image');
+      var currentIndex = 0;
 
       if (thumbnails.length === 0) return;
 
       function updateImage(index) {
-        // Ensure index wraps around
-        if (index >= thumbnails.length) {
-          currentIndex = 0;
-        } else if (index < 0) {
-          currentIndex = thumbnails.length - 1;
-        } else {
-          currentIndex = index;
-        }
+        if (index >= thumbnails.length) { currentIndex = 0; }
+        else if (index < 0) { currentIndex = thumbnails.length - 1; }
+        else { currentIndex = index; }
 
-        // Update active state on thumbnails
-        thumbnails.forEach(t => t.classList.remove('active'));
+        thumbnails.forEach(function(t) { t.classList.remove('active'); });
         thumbnails[currentIndex].classList.add('active');
 
-        // Update main image
         if (mainImage) {
           mainImage.src = thumbnails[currentIndex].dataset.imageUrl;
           mainImage.alt = thumbnails[currentIndex].dataset.imageAlt || '';
         }
 
-        // Center the active thumbnail within its container
         if (thumbnailContainer && thumbnails[currentIndex]) {
           var thumb = thumbnails[currentIndex];
           thumbnailContainer.scrollLeft = thumb.offsetLeft - thumbnailContainer.offsetWidth / 2 + thumb.offsetWidth / 2;
         }
       }
 
-
-
-      // Click on thumbnail to select specific image
-      thumbnails.forEach((thumb, index) => {
+      thumbnails.forEach(function(thumb, index) {
         thumb.addEventListener('click', function(e) {
           e.stopPropagation();
           updateImage(index);
         });
       });
 
-      // Initialize
       updateImage(0);
     });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initProductListTabs(document.querySelector('[data-section-id="{{ section.id }}"]'));
   });
+
+  document.addEventListener('shopify:section:load', function(e) {
+    initProductListTabs(e.target.querySelector('[data-section-id]') || e.target);
+  });
+})();
 </script>
 
 {% schema %}

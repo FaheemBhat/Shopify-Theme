@@ -351,7 +351,7 @@
 }
 
 .header-sticky.scrolled .header__search-form {
-  background: rgba(0, 0, 0, 0.04);
+  background: #ffffff;
   border-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -528,7 +528,7 @@
   position: absolute;
   top: 100%;
   left: 0;
-  background: var(--color-background);
+  background: #ffffff;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   border-radius: 8px;
   padding: 10px 0;
@@ -555,14 +555,14 @@
 .header__submenu-link {
   display: block;
   padding: 10px 20px;
-  color: var(--color-foreground);
+  color: #333333;
   text-decoration: none;
   font-size: 14px;
   transition: background 0.2s;
 }
 
 .header__submenu-link:hover {
-  background: var(--color-secondary);
+  background: #f5f5f5;
 }
 
 /* Mega Menu */
@@ -575,7 +575,7 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--color-background);
+  background: #ffffff;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   padding: 0;
@@ -624,7 +624,7 @@
 .mega-menu-title {
   display: inline-block;
   font-weight: 600;
-  color: var(--color-foreground);
+  color: #333333;
   margin-bottom: 16px;
   text-decoration: none;
   font-size: 15px;
@@ -662,7 +662,7 @@
 .mega-menu-list a {
   display: inline-block;
   padding: 6px 0;
-  color: var(--color-foreground);
+  color: #333333;
   text-decoration: none;
   font-size: 14px;
   opacity: 0.7;
@@ -787,7 +787,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.04);
+  background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 20px;
   padding: 8px 16px;
@@ -796,7 +796,7 @@
 }
 
 .header__search-form:focus-within {
-  background: var(--color-background);
+  background: #ffffff;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(92, 155, 221, 0.1);
   min-width: 250px;
@@ -807,22 +807,22 @@
   border: none;
   background: transparent;
   outline: none;
-  color: inherit;
+  color: #333333;
   font-size: 14px;
   width: 100%;
   transition: color 0.4s ease;
 }
 
 .search-input::placeholder {
-  color: inherit;
-  opacity: 0.5;
+  color: #999999;
+  opacity: 1;
   transition: color 0.4s ease;
 }
 
 .search-btn {
   background: none;
   border: none;
-  color: inherit;
+  color: #666666;
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -844,7 +844,7 @@
   left: 0;
   right: 0;
   min-width: 300px;
-  background: var(--color-background);
+  background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -859,15 +859,15 @@
 .recent-searches div {
   display: block;
   padding: 12px 15px;
-  border-bottom: 1px solid var(--color-secondary);
+  border-bottom: 1px solid #f0f0f0;
   font-size: 14px;
-  color: var(--color-foreground);
+  color: #333333;
   text-decoration: none;
 }
 
 .predictive-search a:hover,
 .recent-searches div:hover {
-  background: var(--color-secondary);
+  background: #f5f5f5;
 }
 
 .search-item {
@@ -1412,8 +1412,9 @@
 {% endstylesheet %}
 
 <script>
+(function() {
 // Sticky Header Scroll Effect
-document.addEventListener('DOMContentLoaded', function() {
+function initHeader() {
   const header = document.querySelector('.site-header');
   const announcementBar = document.querySelector('.announcement-bar');
 
@@ -1673,7 +1674,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Listen for cart:updated event from product pages
   document.addEventListener('cart:updated', updateCartCount);
-});
+}
+
+document.addEventListener('DOMContentLoaded', initHeader);
+document.addEventListener('shopify:section:load', initHeader);
+})();
 </script>
 
 {% schema %}

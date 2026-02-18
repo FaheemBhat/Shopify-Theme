@@ -219,23 +219,28 @@
      JAVASCRIPT
      ============================================================ {%- endcomment -%}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  var overlay = document.getElementById('ctThankYouPopup');
-  var closeBtn = document.getElementById('ctPopupClose');
-  var okBtn = document.getElementById('ctPopupOk');
+(function() {
+  function initContactPopup() {
+    var overlay = document.getElementById('ctThankYouPopup');
+    var closeBtn = document.getElementById('ctPopupClose');
+    var okBtn = document.getElementById('ctPopupOk');
 
-  function closePopup() {
-    if (overlay) overlay.classList.remove('ct-popup--visible');
+    function closePopup() {
+      if (overlay) overlay.classList.remove('ct-popup--visible');
+    }
+
+    if (closeBtn) closeBtn.addEventListener('click', closePopup);
+    if (okBtn) okBtn.addEventListener('click', closePopup);
+    if (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closePopup();
+      });
+    }
   }
 
-  if (closeBtn) closeBtn.addEventListener('click', closePopup);
-  if (okBtn) okBtn.addEventListener('click', closePopup);
-  if (overlay) {
-    overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) closePopup();
-    });
-  }
-});
+  document.addEventListener('DOMContentLoaded', initContactPopup);
+  document.addEventListener('shopify:section:load', initContactPopup);
+})();
 </script>
 
 {%- comment -%} ============================================================
@@ -243,6 +248,9 @@ document.addEventListener('DOMContentLoaded', function () {
      ============================================================ {%- endcomment -%}
 <style>
   /* ========== SECTION ========== */
+  .breadcrumbs{
+  margin-top: 10px
+}
   .ct-section {
     font-family: inherit;
     color: var(--ct-text-color);
