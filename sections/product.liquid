@@ -723,6 +723,7 @@ function initProductSection() {
       }
       // Use the thumbnail's sized URL if available, otherwise use variant image src
       if (matchThumb && matchThumb.dataset.imageUrl) {
+        mainImage.srcset = '';
         mainImage.src = matchThumb.dataset.imageUrl;
       } else {
         // Append width param for consistent sizing
@@ -730,6 +731,7 @@ function initProductSection() {
         if (imgSrc.indexOf('width=') === -1) {
           imgSrc += (imgSrc.indexOf('?') !== -1 ? '&' : '?') + 'width=800';
         }
+        mainImage.srcset = '';
         mainImage.src = imgSrc;
       }
       // Activate matching thumbnail
@@ -762,6 +764,7 @@ function initProductSection() {
         if (newImageUrl) {
           var imgEl = mainImageContainer.querySelector('#main-product-image');
           if (imgEl) {
+            imgEl.srcset = '';
             imgEl.src = newImageUrl;
             imgEl.alt = this.querySelector('img') ? this.querySelector('img').alt : '';
           } else {
@@ -774,6 +777,20 @@ function initProductSection() {
       }
       thumbnails.forEach(function(t) { t.classList.remove('active'); });
       this.classList.add('active');
+
+      // Scroll active thumbnail into view
+      var container = document.getElementById('product-thumbnails');
+      if (container) {
+        var thumbLeft = this.offsetLeft - container.offsetLeft;
+        var thumbRight = thumbLeft + this.offsetWidth;
+        var visibleLeft = container.scrollLeft;
+        var visibleRight = visibleLeft + container.clientWidth;
+        if (thumbLeft < visibleLeft) {
+          container.scrollLeft = thumbLeft - 5;
+        } else if (thumbRight > visibleRight) {
+          container.scrollLeft = thumbRight - container.clientWidth + 5;
+        }
+      }
     });
   });
 
@@ -783,11 +800,23 @@ function initProductSection() {
   var nextBtn = document.querySelector('.thumb-next');
 
   if (thumbContainer && prevBtn && nextBtn) {
+    function getActiveThumbIndex() {
+      var active = thumbContainer.querySelector('.product-thumbnail.active');
+      if (!active) return 0;
+      return parseInt(active.dataset.index) || 0;
+    }
+
+    function goToThumb(index) {
+      if (index < 0) index = thumbnails.length - 1;
+      if (index >= thumbnails.length) index = 0;
+      thumbnails[index].click();
+    }
+
     prevBtn.addEventListener('click', function() {
-      thumbContainer.scrollBy({ left: -100, behavior: 'smooth' });
+      goToThumb(getActiveThumbIndex() - 1);
     });
     nextBtn.addEventListener('click', function() {
-      thumbContainer.scrollBy({ left: 100, behavior: 'smooth' });
+      goToThumb(getActiveThumbIndex() + 1);
     });
   }
 
@@ -868,7 +897,7 @@ document.addEventListener('shopify:section:load', initProductSection);
 .product-section {
   padding: 40px 20px;
   max-width: 1440px;
-  margin: 0;
+  
 }
 
 .product-container {
@@ -944,6 +973,7 @@ document.addEventListener('shopify:section:load', initProductSection);
   flex: 1;
   min-width: 0;
   padding: 5px;
+  scroll-behavior: smooth;
 }
 
 .product-thumbnails::-webkit-scrollbar { display: none; }
@@ -1621,11 +1651,39 @@ document.addEventListener('shopify:section:load', initProductSection);
   .product-gallery {
     position: static;
     align-self: auto;
+    max-width: 100%;
   }
   .product-title { font-size: 24px; }
   .product-price { font-size: 28px; }
   .feature-item { padding: 8px 14px; font-size: 13px; }
-  .product-thumbnail { flex: 0 0 70px; width: 70px; height: 70px; }
+  .product-thumbnails-wrapper {
+    overflow: hidden;
+  }
+
+  .product-thumbnails {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+  }
+
+  .product-thumbnails::-webkit-scrollbar {
+    display: none;
+  }
+
+  .product-thumbnail {
+    flex: 0 0 calc((100% - 30px) / 4);
+    width: calc((100% - 30px) / 4);
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .thumb-nav {
+    width: 16px;
+    height: 16px;
+    padding: 8px;
+    flex-shrink: 0;
+  }
 
   .product-tabs-nav {
     overflow-x: auto;

@@ -151,9 +151,14 @@
       let slideWidth = 0;
       let maxIndex = 0;
 
+      function getTrackGap() {
+        var styles = getComputedStyle(track);
+        return parseFloat(styles.columnGap) || parseFloat(styles.gap) || 16;
+      }
+
       function calculateDimensions() {
         const sliderWidth = slider.offsetWidth;
-        const gap = 16;
+        const gap = getTrackGap();
 
         if (window.innerWidth <= 480) {
           slidesToShow = 1;
@@ -177,7 +182,7 @@
 
       function updateSlider(animate) {
         if (animate === undefined) animate = true;
-        const gap = 16;
+        const gap = getTrackGap();
         const translateX = currentIndex * (slideWidth + gap);
         track.style.transition = animate ? 'transform 0.4s ease' : 'none';
         track.style.transform = 'translateX(-' + translateX + 'px)';
@@ -238,8 +243,7 @@
         isDragging = true;
         dragStartX = e.clientX;
         dragDelta = 0;
-        var gap = 16;
-        dragStartTranslate = currentIndex * (slideWidth + gap);
+        dragStartTranslate = currentIndex * (slideWidth + getTrackGap());
         track.style.transition = 'none';
         slider.style.cursor = 'grabbing';
         e.preventDefault();
@@ -513,6 +517,7 @@
 
   .slide-add-to-cart {
     width: 100%;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -520,10 +525,11 @@
     padding: 10px 12px;
     background: {{ section.settings.cart_button_bg }};
     color: white;
-    border:none;
-    border-radius:8px;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-size: 12px;
   }
 
   .slide-add-to-cart:hover:not(:disabled) {
@@ -626,13 +632,13 @@
     }
 
     .slide-card-actions {
-      padding: 8px;
+      padding: 6px;
     }
 
     .slide-add-to-cart {
-      padding: 8px 10px;
-      font-size: 10px;
-      gap: 6px;
+      padding: 6px 8px;
+      font-size: 9px;
+      gap: 4px;
     }
 
     .slide-add-to-cart svg {

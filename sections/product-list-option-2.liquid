@@ -188,13 +188,18 @@
         thumbnails[currentIndex].classList.add('active');
 
         if (mainImage) {
+          mainImage.srcset = '';
           mainImage.src = thumbnails[currentIndex].dataset.imageUrl;
           mainImage.alt = thumbnails[currentIndex].dataset.imageAlt || '';
         }
 
         if (thumbnailContainer && thumbnails[currentIndex]) {
-          var thumb = thumbnails[currentIndex];
-          thumbnailContainer.scrollLeft = thumb.offsetLeft - thumbnailContainer.offsetWidth / 2 + thumb.offsetWidth / 2;
+          if (currentIndex === 0) {
+            thumbnailContainer.scrollLeft = 0;
+          } else {
+            var thumb = thumbnails[currentIndex];
+            thumbnailContainer.scrollLeft = thumb.offsetLeft - thumbnailContainer.offsetWidth / 2 + thumb.offsetWidth / 2;
+          }
         }
       }
 

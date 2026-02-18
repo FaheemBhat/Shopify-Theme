@@ -85,9 +85,8 @@
 <script>
 (function() {
   function initAnnouncementBar(sectionEl) {
-    var bar = sectionEl ? sectionEl.querySelector('.announcement-bar') : document.querySelector('.announcement-bar');
-    if (!bar) bar = sectionEl;
-    if (!bar || !bar.classList.contains('announcement-bar')) return;
+    var bar = (sectionEl || document).querySelector('.announcement-bar');
+    if (!bar) return;
 
     var slides = bar.querySelectorAll('.announcement-slide');
     var slider = bar.querySelector('.announcement-slider');
