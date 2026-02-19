@@ -1,7 +1,7 @@
 {% liquid
   assign layout = section.settings.layout
   assign video_type = section.settings.video_type
-  assign video_url = section.settings.video_url
+  assign hosted_video = section.settings.hosted_video
   assign iframe_code = section.settings.iframe_code
   assign poster = section.settings.poster_image
   assign mobile_poster = section.settings.mobile_poster_image
@@ -24,7 +24,7 @@
      data-autoplay="{{ autoplay }}"
      data-loop="{{ loop_video }}"
      data-muted="{{ muted }}"
-     style="--banner-height: {{ banner_height }}px; --overlay-opacity: {{ overlay_opacity | divided_by: 100.0 }}; --play-size: {{ play_button_size }}px;">
+     style="--banner-height: {{ banner_height }}px; --overlay-opacity: {{ overlay_opacity | divided_by: 100.0 }}; --play-size: {{ play_button_size }}px; padding-top: {{ section.settings.padding_top }}px; padding-bottom: {{ section.settings.padding_bottom }}px;">
 
   <div class="video-banner-inner">
 
@@ -53,7 +53,7 @@
 
     <!-- Video Layer (hidden until play) -->
     <div class="video-player-layer" data-video-layer style="display: none;">
-      {% if video_type == 'hosted' and video_url != blank %}
+      {% if video_type == 'hosted' and hosted_video != blank %}
         <video
           class="video-element"
           data-video-el
@@ -62,7 +62,9 @@
           {% if muted %}muted{% endif %}
           {% if autoplay %}autoplay muted{% endif %}
           {% if poster %}poster="{{ poster | image_url: width: 1920 }}"{% endif %}>
-          <source src="{{ video_url }}" type="video/mp4">
+          {% for source in hosted_video.sources %}
+            <source src="{{ source.url }}" type="{{ source.mime_type }}">
+          {% endfor %}
         </video>
       {% elsif video_type == 'iframe' and iframe_code != blank %}
         <div class="video-iframe-wrap" data-iframe-wrap>
@@ -103,6 +105,18 @@
 
       </div>
     </div>
+
+    <!-- Mute / Unmute Button (visible when video is playing) -->
+    <button class="video-mute-btn" data-mute-btn aria-label="Unmute video" type="button" style="display: none;">
+      <svg class="mute-icon icon-muted" data-icon-muted width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+      </svg>
+      <svg class="mute-icon icon-unmuted" data-icon-unmuted width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M19.07 4.93a10 10 0 010 14.14"/><path d="M15.54 8.46a5 5 0 010 7.07"/>
+      </svg>
+    </button>
 
     <!-- Close / Pause Button (visible when video is playing) -->
     <button class="video-close-btn" data-close-btn aria-label="Close video" type="button" style="display: none;">
@@ -178,7 +192,7 @@
   }
 
   .video-poster-placeholder .placeholder-svg {
-    width: 40%;
+    width: 50%;
     opacity: 0.15;
   }
 
@@ -409,6 +423,36 @@
     opacity: 0.7;
   }
 
+  /* ---- Mute/Unmute Button ---- */
+  .video-mute-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 5;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    transition: transform 0.3s ease, background 0.3s ease;
+    backdrop-filter: blur(4px);
+  }
+
+  .video-mute-btn:hover {
+    transform: scale(1.08);
+    background: rgba(0, 0, 0, 0.7);
+  }
+
+  .video-mute-btn .mute-icon {
+    width: 20px;
+    height: 20px;
+  }
+
   /* ---- Close Button ---- */
   .video-close-btn {
     position: absolute;
@@ -482,6 +526,18 @@
       right: 12px;
     }
 
+    .video-mute-btn {
+      width: 36px;
+      height: 36px;
+      bottom: 12px;
+      right: 12px;
+    }
+
+    .video-mute-btn .mute-icon {
+      width: 16px;
+      height: 16px;
+    }
+
     .video-button {
       font-size: 11px;
     }
@@ -495,6 +551,9 @@
 
     var playBtn = section.querySelector('[data-play-btn]');
     var closeBtn = section.querySelector('[data-close-btn]');
+    var muteBtn = section.querySelector('[data-mute-btn]');
+    var iconMuted = section.querySelector('[data-icon-muted]');
+    var iconUnmuted = section.querySelector('[data-icon-unmuted]');
     var posterLayer = section.querySelector('[data-poster-layer]');
     var videoLayer = section.querySelector('[data-video-layer]');
     var videoEl = section.querySelector('[data-video-el]');
@@ -503,6 +562,19 @@
     var videoType = section.getAttribute('data-video-type');
     var shouldAutoplay = section.getAttribute('data-autoplay') === 'true';
     var isPlaying = false;
+
+    function updateMuteIcon() {
+      if (!videoEl || !iconMuted || !iconUnmuted) return;
+      if (videoEl.muted) {
+        iconMuted.style.display = '';
+        iconUnmuted.style.display = 'none';
+        muteBtn.setAttribute('aria-label', 'Unmute video');
+      } else {
+        iconMuted.style.display = 'none';
+        iconUnmuted.style.display = '';
+        muteBtn.setAttribute('aria-label', 'Mute video');
+      }
+    }
 
     if (shouldAutoplay && videoEl) { startVideo(); }
 
@@ -514,6 +586,13 @@
       closeBtn.addEventListener('click', function() { stopVideo(); });
     }
 
+    if (muteBtn && videoEl) {
+      muteBtn.addEventListener('click', function() {
+        videoEl.muted = !videoEl.muted;
+        updateMuteIcon();
+      });
+    }
+
     function startVideo() {
       if (!videoLayer) return;
       videoLayer.style.display = 'block';
@@ -523,6 +602,7 @@
         posterLayer.classList.add('hidden');
         content.classList.add('fade-out');
         closeBtn.style.display = 'flex';
+        if (muteBtn && videoType === 'hosted') { muteBtn.style.display = 'flex'; updateMuteIcon(); }
         isPlaying = true;
 
         if (videoType === 'hosted' && videoEl) { videoEl.play().catch(function() {}); }
@@ -544,6 +624,7 @@
       posterLayer.classList.remove('hidden');
       content.classList.remove('fade-out');
       closeBtn.style.display = 'none';
+      if (muteBtn) { muteBtn.style.display = 'none'; }
       isPlaying = false;
 
       if (videoType === 'hosted' && videoEl) { videoEl.pause(); videoEl.currentTime = 0; }
@@ -591,6 +672,30 @@
   "settings": [
     {
       "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 0
+    },
+    {
+      "type": "header",
       "content": "Layout"
     },
     {
@@ -635,17 +740,17 @@
       "id": "video_type",
       "label": "Video type",
       "options": [
-        { "value": "hosted", "label": "Hosted video (MP4 URL)" },
+        { "value": "hosted", "label": "Uploaded video" },
         { "value": "iframe", "label": "Embed / iFrame" }
       ],
       "default": "hosted",
-      "info": "Choose 'Hosted video' for a direct MP4 link, or 'Embed' to paste a YouTube/Vimeo iframe"
+      "info": "Choose 'Uploaded video' for a video from your Shopify files, or 'Embed' to paste a YouTube/Vimeo iframe"
     },
     {
-      "type": "text",
-      "id": "video_url",
-      "label": "Video URL (MP4)",
-      "info": "Paste a direct link to an MP4 video file. Used when type is 'Hosted video'."
+      "type": "video",
+      "id": "hosted_video",
+      "label": "Upload video",
+      "info": "Upload or select a video from your Shopify files. Used when type is 'Hosted video'."
     },
     {
       "type": "html",

@@ -11,3 +11,8 @@
 #
 # Ignore templates and sections with a regular expression:
 #   /(templates|sections)/.*\.json/
+
+# Prevent theme customizer settings from being overwritten on push
+config/settings_data.json
+templates/*.json
+sections/*.json

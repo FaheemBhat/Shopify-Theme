@@ -98,20 +98,7 @@
             </div>
           </div>
 
-          {% if section.settings.show_state_field %}
-            <div class="ct-form-row">
-              <div class="ct-field">
-                <label class="ct-label" for="ct-state">State</label>
-                <select id="ct-state" name="contact[state]" class="ct-input ct-select">
-                  <option value="" disabled selected>Select</option>
-                  {% assign states = section.settings.state_options | split: ',' %}
-                  {% for state in states %}
-                    <option value="{{ state | strip }}">{{ state | strip }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-            </div>
-          {% endif %}
+        
 
           <div class="ct-form-row">
             <div class="ct-field">

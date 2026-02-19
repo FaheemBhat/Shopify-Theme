@@ -219,11 +219,11 @@
                 {% if block.settings.show_description %}
                   <button class="tab-btn active" data-tab="description">{{ block.settings.description_label }}</button>
                 {% endif %}
-                {% if block.settings.show_benefits %}
-                  <button class="tab-btn {% unless block.settings.show_description %}active{% endunless %}" data-tab="benefits">{{ block.settings.benefits_label }}</button>
+                {% if block.settings.show_tab_2 %}
+                  <button class="tab-btn {% unless block.settings.show_description %}active{% endunless %}" data-tab="tab2">{{ block.settings.tab_2_label }}</button>
                 {% endif %}
-                {% if block.settings.show_ingredients %}
-                  <button class="tab-btn {% unless block.settings.show_description or block.settings.show_benefits %}active{% endunless %}" data-tab="ingredients">{{ block.settings.ingredients_label }}</button>
+                {% if block.settings.show_tab_3 %}
+                  <button class="tab-btn {% unless block.settings.show_description or block.settings.show_tab_2 %}active{% endunless %}" data-tab="tab3">{{ block.settings.tab_3_label }}</button>
                 {% endif %}
               </div>
 
@@ -236,34 +236,76 @@
                   </div>
                 {% endif %}
 
-                {% if block.settings.show_benefits %}
-                  <div class="tab-content {% unless block.settings.show_description %}active{% endunless %}" id="tab-benefits">
+                {% if block.settings.show_tab_2 %}
+                  <div class="tab-content {% unless block.settings.show_description %}active{% endunless %}" id="tab-tab2">
                     <div class="tab-content-inner">
-                      {% if block.settings.benefits_content != blank %}
-                        {{ block.settings.benefits_content }}
+                      {% if block.settings.tab_2_content != blank %}
+                        {{ block.settings.tab_2_content }}
                       {% else %}
-                        {% assign benefits_meta = product.metafields.custom.benefits.value | default: product.metafields.custom.benefits %}
-                        {% if benefits_meta != blank %}
-                          {{ benefits_meta }}
+                        {% assign t2_heading_key = block.settings.tab_2_meta_heading %}
+                        {% assign t2_text_key = block.settings.tab_2_meta_text %}
+                        {% assign t2_list_key = block.settings.tab_2_meta_list %}
+                        {% assign t2_heading = product.metafields.custom[t2_heading_key].value | default: product.metafields.custom[t2_heading_key] %}
+                        {% assign t2_text = product.metafields.custom[t2_text_key].value | default: product.metafields.custom[t2_text_key] %}
+                        {% assign t2_list = product.metafields.custom[t2_list_key].value | default: product.metafields.custom[t2_list_key] %}
+                        {% if t2_heading != blank or t2_text != blank or t2_list != blank %}
+                          {% if t2_heading != blank %}
+                            <h3 class="meta-heading">{{ t2_heading }}</h3>
+                          {% endif %}
+                          {% if t2_text != blank %}
+                            <p>{{ t2_text }}</p>
+                          {% endif %}
+                          {% if t2_list != blank %}
+                            <ul class="meta-list">
+                              {% assign t2_items = t2_list | split: '|' %}
+                              {% for item in t2_items %}
+                                {% assign trimmed = item | strip %}
+                                {% if trimmed != blank %}
+                                  <li>{{ trimmed }}</li>
+                                {% endif %}
+                              {% endfor %}
+                            </ul>
+                          {% endif %}
                         {% else %}
-                          <p class="no-content">No benefits information available.</p>
+                          <p class="no-content">No content available.</p>
                         {% endif %}
                       {% endif %}
                     </div>
                   </div>
                 {% endif %}
 
-                {% if block.settings.show_ingredients %}
-                  <div class="tab-content {% unless block.settings.show_description or block.settings.show_benefits %}active{% endunless %}" id="tab-ingredients">
+                {% if block.settings.show_tab_3 %}
+                  <div class="tab-content {% unless block.settings.show_description or block.settings.show_tab_2 %}active{% endunless %}" id="tab-tab3">
                     <div class="tab-content-inner">
-                      {% if block.settings.ingredients_content != blank %}
-                        {{ block.settings.ingredients_content }}
+                      {% if block.settings.tab_3_content != blank %}
+                        {{ block.settings.tab_3_content }}
                       {% else %}
-                        {% assign ingredients_meta = product.metafields.custom.ingredients.value | default: product.metafields.custom.ingredients %}
-                        {% if ingredients_meta != blank %}
-                          {{ ingredients_meta }}
+                        {% assign t3_heading_key = block.settings.tab_3_meta_heading %}
+                        {% assign t3_text_key = block.settings.tab_3_meta_text %}
+                        {% assign t3_list_key = block.settings.tab_3_meta_list %}
+                        {% assign t3_heading = product.metafields.custom[t3_heading_key].value | default: product.metafields.custom[t3_heading_key] %}
+                        {% assign t3_text = product.metafields.custom[t3_text_key].value | default: product.metafields.custom[t3_text_key] %}
+                        {% assign t3_list = product.metafields.custom[t3_list_key].value | default: product.metafields.custom[t3_list_key] %}
+                        {% if t3_heading != blank or t3_text != blank or t3_list != blank %}
+                          {% if t3_heading != blank %}
+                            <h3 class="meta-heading">{{ t3_heading }}</h3>
+                          {% endif %}
+                          {% if t3_text != blank %}
+                            <p>{{ t3_text }}</p>
+                          {% endif %}
+                          {% if t3_list != blank %}
+                            <ul class="meta-list">
+                              {% assign t3_items = t3_list | split: '|' %}
+                              {% for item in t3_items %}
+                                {% assign trimmed = item | strip %}
+                                {% if trimmed != blank %}
+                                  <li>{{ trimmed }}</li>
+                                {% endif %}
+                              {% endfor %}
+                            </ul>
+                          {% endif %}
                         {% else %}
-                          <p class="no-content">No ingredients information available.</p>
+                          <p class="no-content">No content available.</p>
                         {% endif %}
                       {% endif %}
                     </div>
@@ -313,10 +355,10 @@
                 </details>
               {% endif %}
 
-              {% if block.settings.show_specifications %}
+              {% if block.settings.show_accordion_2 %}
                 <details class="product-accordion__item">
                   <summary class="product-accordion__trigger">
-                    <span class="product-accordion__title">{{ block.settings.specifications_label }}</span>
+                    <span class="product-accordion__title">{{ block.settings.accordion_2_label }}</span>
                     <span class="product-accordion__icon" aria-hidden="true">
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path class="product-accordion__icon-h" d="M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -326,14 +368,35 @@
                   </summary>
                   <div class="product-accordion__content">
                     <div class="product-accordion__body">
-                      {% if block.settings.specifications_content != blank %}
-                        {{ block.settings.specifications_content }}
+                      {% if block.settings.accordion_2_content != blank %}
+                        {{ block.settings.accordion_2_content }}
                       {% else %}
-                        {% assign spec_meta = product.metafields.custom.specifications.value | default: product.metafields.custom.specifications %}
-                        {% if spec_meta != blank %}
-                          {{ spec_meta }}
+                        {% assign a2_heading_key = block.settings.accordion_2_meta_heading %}
+                        {% assign a2_text_key = block.settings.accordion_2_meta_text %}
+                        {% assign a2_list_key = block.settings.accordion_2_meta_list %}
+                        {% assign a2_heading = product.metafields.custom[a2_heading_key].value | default: product.metafields.custom[a2_heading_key] %}
+                        {% assign a2_text = product.metafields.custom[a2_text_key].value | default: product.metafields.custom[a2_text_key] %}
+                        {% assign a2_list = product.metafields.custom[a2_list_key].value | default: product.metafields.custom[a2_list_key] %}
+                        {% if a2_heading != blank or a2_text != blank or a2_list != blank %}
+                          {% if a2_heading != blank %}
+                            <h3 class="meta-heading">{{ a2_heading }}</h3>
+                          {% endif %}
+                          {% if a2_text != blank %}
+                            <p>{{ a2_text }}</p>
+                          {% endif %}
+                          {% if a2_list != blank %}
+                            <ul class="meta-list">
+                              {% assign a2_items = a2_list | split: '|' %}
+                              {% for item in a2_items %}
+                                {% assign trimmed = item | strip %}
+                                {% if trimmed != blank %}
+                                  <li>{{ trimmed }}</li>
+                                {% endif %}
+                              {% endfor %}
+                            </ul>
+                          {% endif %}
                         {% else %}
-                          <p>No specifications available.</p>
+                          <p class="no-content">No content available.</p>
                         {% endif %}
                       {% endif %}
                     </div>
@@ -341,10 +404,10 @@
                 </details>
               {% endif %}
 
-              {% if block.settings.show_how_to_use %}
+              {% if block.settings.show_accordion_3 %}
                 <details class="product-accordion__item">
                   <summary class="product-accordion__trigger">
-                    <span class="product-accordion__title">{{ block.settings.how_to_use_label }}</span>
+                    <span class="product-accordion__title">{{ block.settings.accordion_3_label }}</span>
                     <span class="product-accordion__icon" aria-hidden="true">
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path class="product-accordion__icon-h" d="M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -354,14 +417,35 @@
                   </summary>
                   <div class="product-accordion__content">
                     <div class="product-accordion__body">
-                      {% if block.settings.how_to_use_content != blank %}
-                        {{ block.settings.how_to_use_content }}
+                      {% if block.settings.accordion_3_content != blank %}
+                        {{ block.settings.accordion_3_content }}
                       {% else %}
-                        {% assign how_to_meta = product.metafields.custom.how_to_use.value | default: product.metafields.custom.how_to_use %}
-                        {% if how_to_meta != blank %}
-                          {{ how_to_meta }}
+                        {% assign a3_heading_key = block.settings.accordion_3_meta_heading %}
+                        {% assign a3_text_key = block.settings.accordion_3_meta_text %}
+                        {% assign a3_list_key = block.settings.accordion_3_meta_list %}
+                        {% assign a3_heading = product.metafields.custom[a3_heading_key].value | default: product.metafields.custom[a3_heading_key] %}
+                        {% assign a3_text = product.metafields.custom[a3_text_key].value | default: product.metafields.custom[a3_text_key] %}
+                        {% assign a3_list = product.metafields.custom[a3_list_key].value | default: product.metafields.custom[a3_list_key] %}
+                        {% if a3_heading != blank or a3_text != blank or a3_list != blank %}
+                          {% if a3_heading != blank %}
+                            <h3 class="meta-heading">{{ a3_heading }}</h3>
+                          {% endif %}
+                          {% if a3_text != blank %}
+                            <p>{{ a3_text }}</p>
+                          {% endif %}
+                          {% if a3_list != blank %}
+                            <ul class="meta-list">
+                              {% assign a3_items = a3_list | split: '|' %}
+                              {% for item in a3_items %}
+                                {% assign trimmed = item | strip %}
+                                {% if trimmed != blank %}
+                                  <li>{{ trimmed }}</li>
+                                {% endif %}
+                              {% endfor %}
+                            </ul>
+                          {% endif %}
                         {% else %}
-                          <p>No usage instructions available.</p>
+                          <p class="no-content">No content available.</p>
                         {% endif %}
                       {% endif %}
                     </div>
@@ -1992,38 +2076,88 @@ document.addEventListener('shopify:section:load', initProductSection);
           "default": "Description"
         },
         {
+          "type": "header",
+          "content": "Tab 2"
+        },
+        {
           "type": "checkbox",
-          "id": "show_benefits",
-          "label": "Show benefits tab",
+          "id": "show_tab_2",
+          "label": "Show tab 2",
           "default": true
         },
         {
           "type": "text",
-          "id": "benefits_label",
-          "label": "Benefits tab label",
+          "id": "tab_2_label",
+          "label": "Tab label",
           "default": "Benefits"
         },
         {
           "type": "richtext",
-          "id": "benefits_content",
-          "label": "Content (or uses metafield custom.benefits)"
+          "id": "tab_2_content",
+          "label": "Content (leave empty to use metafields)"
+        },
+        {
+          "type": "text",
+          "id": "tab_2_meta_heading",
+          "label": "Metafield key: heading",
+          "default": "benefits_heading",
+          "info": "Enter the metafield key for the heading (under custom namespace)"
+        },
+        {
+          "type": "text",
+          "id": "tab_2_meta_text",
+          "label": "Metafield key: text",
+          "default": "benefits_text",
+          "info": "Enter the metafield key for the text content"
+        },
+        {
+          "type": "text",
+          "id": "tab_2_meta_list",
+          "label": "Metafield key: list",
+          "default": "benefits_list",
+          "info": "Enter the metafield key for the list (pipe | separated)"
+        },
+        {
+          "type": "header",
+          "content": "Tab 3"
         },
         {
           "type": "checkbox",
-          "id": "show_ingredients",
-          "label": "Show ingredients tab",
+          "id": "show_tab_3",
+          "label": "Show tab 3",
           "default": true
         },
         {
           "type": "text",
-          "id": "ingredients_label",
-          "label": "Ingredients tab label",
+          "id": "tab_3_label",
+          "label": "Tab label",
           "default": "Ingredients"
         },
         {
           "type": "richtext",
-          "id": "ingredients_content",
-          "label": "Content (or uses metafield custom.ingredients)"
+          "id": "tab_3_content",
+          "label": "Content (leave empty to use metafields)"
+        },
+        {
+          "type": "text",
+          "id": "tab_3_meta_heading",
+          "label": "Metafield key: heading",
+          "default": "ingredients_heading",
+          "info": "Enter the metafield key for the heading (under custom namespace)"
+        },
+        {
+          "type": "text",
+          "id": "tab_3_meta_text",
+          "label": "Metafield key: text",
+          "default": "ingredients_text",
+          "info": "Enter the metafield key for the text content"
+        },
+        {
+          "type": "text",
+          "id": "tab_3_meta_list",
+          "label": "Metafield key: list",
+          "default": "ingredients_list",
+          "info": "Enter the metafield key for the list (pipe | separated)"
         },
         {
           "type": "header",
@@ -2084,45 +2218,87 @@ document.addEventListener('shopify:section:load', initProductSection);
         },
         {
           "type": "header",
-          "content": "Specifications"
+          "content": "Accordion 2"
         },
         {
           "type": "checkbox",
-          "id": "show_specifications",
-          "label": "Show specifications",
+          "id": "show_accordion_2",
+          "label": "Show accordion 2",
           "default": true
         },
         {
           "type": "text",
-          "id": "specifications_label",
+          "id": "accordion_2_label",
           "label": "Label",
           "default": "Specifications"
         },
         {
           "type": "richtext",
-          "id": "specifications_content",
-          "label": "Content (or uses metafield custom.specifications)"
+          "id": "accordion_2_content",
+          "label": "Content (leave empty to use metafields)"
+        },
+        {
+          "type": "text",
+          "id": "accordion_2_meta_heading",
+          "label": "Metafield key: heading",
+          "default": "specifications_heading",
+          "info": "Enter the metafield key for the heading (under custom namespace)"
+        },
+        {
+          "type": "text",
+          "id": "accordion_2_meta_text",
+          "label": "Metafield key: text",
+          "default": "specifications_text",
+          "info": "Enter the metafield key for the text content"
+        },
+        {
+          "type": "text",
+          "id": "accordion_2_meta_list",
+          "label": "Metafield key: list",
+          "default": "specifications_list",
+          "info": "Enter the metafield key for the list (pipe | separated)"
         },
         {
           "type": "header",
-          "content": "How to use"
+          "content": "Accordion 3"
         },
         {
           "type": "checkbox",
-          "id": "show_how_to_use",
-          "label": "Show how to use",
+          "id": "show_accordion_3",
+          "label": "Show accordion 3",
           "default": true
         },
         {
           "type": "text",
-          "id": "how_to_use_label",
+          "id": "accordion_3_label",
           "label": "Label",
           "default": "How to use"
         },
         {
           "type": "richtext",
-          "id": "how_to_use_content",
-          "label": "Content (or uses metafield custom.how_to_use)"
+          "id": "accordion_3_content",
+          "label": "Content (leave empty to use metafields)"
+        },
+        {
+          "type": "text",
+          "id": "accordion_3_meta_heading",
+          "label": "Metafield key: heading",
+          "default": "how_to_use_heading",
+          "info": "Enter the metafield key for the heading (under custom namespace)"
+        },
+        {
+          "type": "text",
+          "id": "accordion_3_meta_text",
+          "label": "Metafield key: text",
+          "default": "how_to_use_text",
+          "info": "Enter the metafield key for the text content"
+        },
+        {
+          "type": "text",
+          "id": "accordion_3_meta_list",
+          "label": "Metafield key: list",
+          "default": "how_to_use_list",
+          "info": "Enter the metafield key for the list (pipe | separated)"
         }
       ]
     },
