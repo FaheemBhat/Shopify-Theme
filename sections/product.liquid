@@ -635,6 +635,17 @@
   </div>
 </section>
 
+{% liquid
+  assign atc_button_text = 'Add to cart'
+  assign atc_sold_out_text = 'Sold out'
+  for block in section.blocks
+    if block.type == 'add_to_cart'
+      assign atc_button_text = block.settings.button_text
+      assign atc_sold_out_text = block.settings.sold_out_text
+      break
+    endif
+  endfor
+%}
 <script>
 (function() {
 function initProductSection() {
@@ -779,11 +790,11 @@ function initProductSection() {
     if (addToCartBtn) {
       if (variant.available) {
         addToCartBtn.disabled = false;
-        if (addToCartText) addToCartText.textContent = '{{ section.blocks | map: "settings" | where: "button_text" | first | default: "Add to cart" }}' || 'Add to cart';
+        if (addToCartText) addToCartText.textContent = {{ atc_button_text | json }};
         if (addToCartPrice) addToCartPrice.textContent = formatMoney(variant.price);
       } else {
         addToCartBtn.disabled = true;
-        if (addToCartText) addToCartText.textContent = '{{ section.blocks | map: "settings" | where: "sold_out_text" | first | default: "Sold out" }}' || 'Sold out';
+        if (addToCartText) addToCartText.textContent = {{ atc_sold_out_text | json }};
         if (addToCartPrice) addToCartPrice.style.display = 'none';
       }
     }
