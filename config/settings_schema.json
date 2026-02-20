@@ -3,9 +3,9 @@
     "name": "theme_info",
     "theme_name": "Ice King",
     "theme_version": "1.0.0",
-    "theme_author": "Arismeta Technologies Pvt Ltd",
-    "theme_documentation_url": "",
-    "theme_support_url": ""
+    "theme_author": "Arismeta Technologies",
+    "theme_documentation_url": "https://arismeta.com/themes/ice-king/doc.html",
+    "theme_support_url": "https://arismeta.com/themes/ice-king/support.html"
   },
   {
     "name": "t:general.typography",

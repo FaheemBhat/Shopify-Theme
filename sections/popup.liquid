@@ -300,6 +300,29 @@
     background: #f5f5f5;
   }
 
+  /* ===== SUCCESS STATE ===== */
+  .popup__success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+    gap: 12px;
+  }
+  .popup__success-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+  }
+  .popup__success-msg {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+  }
+
   /* ===== TEASER BUTTON ===== */
   .popup-teaser {
     position: fixed;
@@ -387,6 +410,44 @@
       modal.classList.remove('popup--open');
       document.body.style.overflow = '';
       if (teaser) teaser.classList.add('popup-teaser--visible');
+    }
+
+    /* AJAX form submission */
+    var form = document.getElementById('popupForm');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        var email = form.querySelector('input[type="email"]');
+        if (!email || !email.value.trim()) return;
+
+        var submitBtn = form.querySelector('.popup__submit');
+        var originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting…';
+
+        var data = new FormData(form);
+
+        fetch('/contact', {
+          method: 'POST',
+          body: data,
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function() {
+          var content = form.closest('.popup__content');
+          content.innerHTML =
+            '<div class="popup__success">' +
+              '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>' +
+              '<h3 class="popup__success-title">You\'re in!</h3>' +
+              '<p class="popup__success-msg">Thank you for subscribing. Look out for exclusive offers in your inbox.</p>' +
+            '</div>';
+          setTimeout(closePopup, 3000);
+        })
+        .catch(function() {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        });
+      });
     }
 
     if (closeBtn) closeBtn.addEventListener('click', closePopup);

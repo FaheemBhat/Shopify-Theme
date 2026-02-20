@@ -60,7 +60,8 @@
             {% if section.settings.show_date or section.settings.show_author %}
               <div class="blog-card__meta">
                 {% if section.settings.show_date and section.settings.show_author %}
-                  {{ 'blog.article_metadata_html' | t: date: article.published_at | date: "%B %d, %Y", author: article.author }}
+                  {% assign formatted_date = article.published_at | date: "%B %d, %Y" %}
+                  {{ 'blog.article_metadata_html' | t: date: formatted_date, author: article.author }}
                 {% elsif section.settings.show_date %}
                   {{ article.published_at | date: "%B %d, %Y" }}
                 {% elsif section.settings.show_author %}
@@ -135,6 +136,9 @@
 {% endpaginate %}
 
 {% stylesheet %}
+.breadcrumbs{
+  margin-top:30px
+}
 .blog-section {
   max-width: var(--page-width, 1200px);
   margin: 0 auto;

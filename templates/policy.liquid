@@ -1,0 +1,39 @@
+{% layout 'theme' %}
+
+<div class="policy-page">
+  <div class="policy-container">
+    <h1 class="policy-title">{{ policy.title }}</h1>
+    <div class="policy-content rte">
+      {{ policy.body }}
+    </div>
+  </div>
+</div>
+
+<style>
+  .policy-page {
+    margin-top: 60px;
+    padding-bottom: 80px;
+  }
+  .policy-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  .policy-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+  .policy-content {
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  @media (max-width: 768px) {
+    .policy-page {
+      margin-top: 40px;
+    }
+    .policy-title {
+      font-size: 24px;
+    }
+  }
+</style>
