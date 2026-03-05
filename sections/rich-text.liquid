@@ -3,17 +3,37 @@
   Displays heading and rich text content with customizable styling
 {% endcomment %}
 
-<section class="rich-text-section" data-section-id="{{ section.id }}">
+<section class="rich-text-section animate-on-scroll animate-fade" data-section-id="{{ section.id }}">
   <div class="rich-text-container">
     <div class="rich-text-content">
-      
+
+      {% if section.settings.eyebrow != blank %}
+        <p class="rich-text-eyebrow">{{ section.settings.eyebrow }}</p>
+      {% endif %}
+
       {% if section.settings.heading != blank %}
-        <h2 class="rich-text-heading">{{ section.settings.heading }}</h2>
+        <h2 class="rich-text-heading{% if section.settings.show_heading_accent %} rich-text-heading--accent{% endif %}">{{ section.settings.heading }}</h2>
       {% endif %}
 
       {% if section.settings.text != blank %}
         <div class="rich-text-body">
           {{ section.settings.text }}
+        </div>
+      {% endif %}
+
+      {% if section.settings.button_label != blank %}
+        <div class="rich-text-cta">
+          <a
+            href="{{ section.settings.button_link }}"
+            class="rich-text-btn{% if section.settings.button_style == 'outline' %} rich-text-btn--outline{% endif %}"
+            style="
+              --rt-btn-bg: {{ section.settings.button_color }};
+              --rt-btn-text: {{ section.settings.button_text_color }};
+              --rt-btn-radius: {{ section.settings.button_radius }}px;
+            "
+          >
+            {{ section.settings.button_label }}
+          </a>
         </div>
       {% endif %}
 
@@ -148,6 +168,88 @@
       margin-bottom: 16px;
     }
   }
+
+  /* ============================================================
+     Phase 4: Rich Text Upgrades
+     ============================================================ */
+
+  /* Eyebrow label */
+  .rich-text-eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--heading-color);
+    opacity: 0.6;
+    margin: 0 0 14px;
+    padding: 5px 14px;
+    border: 1.5px solid var(--heading-color);
+    border-radius: 100px;
+    opacity: 0.65;
+  }
+
+  /* Accent underline on heading */
+  .rich-text-heading--accent {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 12px;
+  }
+  .rich-text-heading--accent::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 3px;
+    background: var(--heading-color);
+    border-radius: 2px;
+    opacity: 0.4;
+  }
+  .rich-text-content[style*="text-align: left"] .rich-text-heading--accent::after,
+  .rich-text-content[style*="text-align:left"] .rich-text-heading--accent::after {
+    left: 0;
+    transform: none;
+  }
+  .rich-text-content[style*="text-align: right"] .rich-text-heading--accent::after,
+  .rich-text-content[style*="text-align:right"] .rich-text-heading--accent::after {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+
+  /* CTA button */
+  .rich-text-cta {
+    margin-top: 28px;
+  }
+  .rich-text-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 14px 36px;
+    background: var(--rt-btn-bg, #1a1a2e);
+    color: var(--rt-btn-text, #fff);
+    border-radius: var(--rt-btn-radius, 50px);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
+  }
+  .rich-text-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    opacity: 0.9;
+  }
+  .rich-text-btn--outline {
+    background: transparent;
+    border: 2px solid var(--rt-btn-bg, #1a1a2e);
+    color: var(--rt-btn-bg, #1a1a2e);
+  }
+  .rich-text-btn--outline:hover {
+    background: var(--rt-btn-bg, #1a1a2e);
+    color: var(--rt-btn-text, #fff);
+  }
 </style>
 
 {% schema %}
@@ -158,15 +260,73 @@
   "settings": [
     {
       "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "info": "Small uppercase label above the heading"
+    },
+    {
+      "type": "text",
       "id": "heading",
       "label": "Heading",
       "default": "Heading"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_heading_accent",
+      "label": "Show accent underline on heading",
+      "default": false
     },
     {
       "type": "richtext",
       "id": "text",
       "label": "Text",
       "default": "<p> text </p>"
+    },
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Button style",
+      "options": [
+        { "value": "solid", "label": "Solid" },
+        { "value": "outline", "label": "Outline" }
+      ],
+      "default": "solid"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button color",
+      "default": "#1a1a2e"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "button_radius",
+      "label": "Button border radius",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "default": 50,
+      "unit": "px"
     },
     {
       "type": "text_alignment",

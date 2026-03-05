@@ -1409,6 +1409,78 @@
     display: block !important;
   }
 }
+
+/* ============================================================
+   Phase 5: Header Upgrades
+   ============================================================ */
+
+/* Sliding underline on nav links */
+.header__menu-link {
+  position: relative;
+}
+.header__menu-link::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.header__menu-link:hover::after { width: 100%; }
+.header__menu-link:hover { opacity: 1; }
+
+/* Frosted glass on sticky-scrolled header */
+.header-sticky.scrolled {
+  background: rgba(255,255,255,0.88) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+/* Mega menu column stagger entrance */
+.mega-menu-column {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.26s ease, transform 0.26s ease;
+}
+.has-mega-menu:hover .mega-menu-column { opacity: 1; transform: translateY(0); }
+.has-mega-menu:hover .mega-menu-column:nth-child(1) { transition-delay: 0.04s; }
+.has-mega-menu:hover .mega-menu-column:nth-child(2) { transition-delay: 0.10s; }
+.has-mega-menu:hover .mega-menu-column:nth-child(3) { transition-delay: 0.16s; }
+.has-mega-menu:hover .mega-menu-column:nth-child(4) { transition-delay: 0.22s; }
+.has-mega-menu:hover .mega-menu-column:nth-child(5) { transition-delay: 0.28s; }
+.has-mega-menu:hover .mega-menu-column:nth-child(n+6) { transition-delay: 0.34s; }
+
+/* Cart count pulse */
+@keyframes ikCartPulse {
+  0%, 80%, 100% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+}
+.cart-count { animation: ikCartPulse 3s ease infinite; }
+
+/* Mobile menu item stagger on open */
+@keyframes ikMobileItem {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.mobile-menu-drawer.active .mobile-menu-item {
+  animation: ikMobileItem 0.3s ease both;
+}
+.mobile-menu-drawer.active .mobile-menu-item:nth-child(1)  { animation-delay: 0.05s; }
+.mobile-menu-drawer.active .mobile-menu-item:nth-child(2)  { animation-delay: 0.10s; }
+.mobile-menu-drawer.active .mobile-menu-item:nth-child(3)  { animation-delay: 0.15s; }
+.mobile-menu-drawer.active .mobile-menu-item:nth-child(4)  { animation-delay: 0.20s; }
+.mobile-menu-drawer.active .mobile-menu-item:nth-child(5)  { animation-delay: 0.25s; }
+.mobile-menu-drawer.active .mobile-menu-item:nth-child(n+6){ animation-delay: 0.30s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .header__menu-link::after { transition: none; }
+  .mega-menu-column { transition: none; animation: none; }
+  .cart-count { animation: none; }
+  .mobile-menu-drawer.active .mobile-menu-item { animation: none; }
+}
 {% endstylesheet %}
 
 <script>

@@ -24,7 +24,7 @@
     <div class="iwt-grid iwt-grid--image-{{ image_position }} iwt-grid--align-{{ vertical_align }}">
 
       <!-- Image Column -->
-      <div class="iwt-image">
+      <div class="iwt-image animate-on-scroll {% if image_position == 'left' %}animate-slide-left{% else %}animate-slide-right{% endif %}">
         {% if section.settings.image != blank %}
           {{ section.settings.image | image_url: width: 1200 | image_tag:
             class: 'iwt-image__img',
@@ -41,7 +41,7 @@
       </div>
 
       <!-- Content Column -->
-      <div class="iwt-content">
+      <div class="iwt-content animate-on-scroll {% if image_position == 'left' %}animate-slide-right{% else %}animate-slide-left{% endif %}">
         {% if section.settings.subheading != blank %}
           <span class="iwt-content__subheading">{{ section.settings.subheading }}</span>
         {% endif %}
@@ -54,18 +54,64 @@
           <div class="iwt-content__text">{{ section.settings.text }}</div>
         {% endif %}
 
-        {% if section.settings.button_label != blank %}
-          <a
-            href="{{ section.settings.button_link }}"
-            class="iwt-content__button"
-            style="
-              --btn-bg: {{ section.settings.button_color }};
-              --btn-text: {{ section.settings.button_text_color }};
-              --btn-radius: {{ section.settings.button_radius }}px;
-            "
-          >
-            {{ section.settings.button_label }}
-          </a>
+        {% if section.settings.feature_1 != blank or section.settings.feature_2 != blank or section.settings.feature_3 != blank %}
+          <ul class="iwt-features">
+            {% if section.settings.feature_1 != blank %}
+              <li class="iwt-features__item">
+                <span class="iwt-features__icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="currentColor" opacity="0.12"/><path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span>{{ section.settings.feature_1 }}</span>
+              </li>
+            {% endif %}
+            {% if section.settings.feature_2 != blank %}
+              <li class="iwt-features__item">
+                <span class="iwt-features__icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="currentColor" opacity="0.12"/><path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span>{{ section.settings.feature_2 }}</span>
+              </li>
+            {% endif %}
+            {% if section.settings.feature_3 != blank %}
+              <li class="iwt-features__item">
+                <span class="iwt-features__icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="currentColor" opacity="0.12"/><path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span>{{ section.settings.feature_3 }}</span>
+              </li>
+            {% endif %}
+          </ul>
+        {% endif %}
+
+        {% if section.settings.button_label != blank or section.settings.button2_label != blank %}
+          <div class="iwt-content__buttons">
+            {% if section.settings.button_label != blank %}
+              <a
+                href="{{ section.settings.button_link }}"
+                class="iwt-content__button"
+                style="
+                  --btn-bg: {{ section.settings.button_color }};
+                  --btn-text: {{ section.settings.button_text_color }};
+                  --btn-radius: {{ section.settings.button_radius }}px;
+                "
+              >
+                {{ section.settings.button_label }}
+              </a>
+            {% endif %}
+            {% if section.settings.button2_label != blank %}
+              <a
+                href="{{ section.settings.button2_link }}"
+                class="iwt-content__button iwt-content__button--outline"
+                style="
+                  --btn-bg: {{ section.settings.button_color }};
+                  --btn-text: {{ section.settings.button_color }};
+                  --btn-radius: {{ section.settings.button_radius }}px;
+                "
+              >
+                {{ section.settings.button2_label }}
+              </a>
+            {% endif %}
+          </div>
         {% endif %}
       </div>
 
@@ -223,6 +269,73 @@
       padding: 0 20px;
     }
   }
+
+  /* ============================================================
+     Phase 4: Image-with-Text Upgrades
+     ============================================================ */
+
+  /* Image hover zoom */
+  .iwt-image {
+    overflow: hidden;
+  }
+  .iwt-image__img {
+    transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .iwt-image:hover .iwt-image__img {
+    transform: scale(1.04);
+  }
+
+  /* Feature list */
+  .iwt-features {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .iwt-features__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 15px;
+    color: var(--iwt-text);
+    line-height: 1.5;
+  }
+  .iwt-features__icon {
+    flex-shrink: 0;
+    color: var(--iwt-subheading-color, #5c9bdd);
+    margin-top: 2px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Button group */
+  .iwt-content__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  /* Outline button variant */
+  .iwt-content__button--outline {
+    background: transparent !important;
+    border: 2px solid var(--btn-bg, #1a1a2e) !important;
+    color: var(--btn-bg, #1a1a2e) !important;
+    box-shadow: none !important;
+  }
+  .iwt-content__button--outline:hover {
+    background: var(--btn-bg, #1a1a2e) !important;
+    color: #fff !important;
+  }
+
+  /* Stagger scroll animation delay for content vs image */
+  .iwt-image.animate-on-scroll { transition-delay: 0s; }
+  .iwt-content.animate-on-scroll { transition-delay: 0.1s; }
 </style>
 
 {% schema %}
@@ -342,7 +455,26 @@
     },
     {
       "type": "header",
-      "content": "Button"
+      "content": "Feature list"
+    },
+    {
+      "type": "text",
+      "id": "feature_1",
+      "label": "Feature 1"
+    },
+    {
+      "type": "text",
+      "id": "feature_2",
+      "label": "Feature 2"
+    },
+    {
+      "type": "text",
+      "id": "feature_3",
+      "label": "Feature 3"
+    },
+    {
+      "type": "header",
+      "content": "Primary button"
     },
     {
       "type": "text",
@@ -376,6 +508,20 @@
       "step": 2,
       "unit": "px",
       "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Secondary button (outline)"
+    },
+    {
+      "type": "text",
+      "id": "button2_label",
+      "label": "Button label"
+    },
+    {
+      "type": "url",
+      "id": "button2_link",
+      "label": "Button link"
     },
     {
       "type": "header",

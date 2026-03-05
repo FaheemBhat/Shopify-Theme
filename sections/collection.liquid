@@ -1,47 +1,1016 @@
 {% comment %}
-  This section is used in the collection template to render collection page
-  listing all products within a collection.
-
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
+  Collection Page — Ice King Premium Theme
+  Features: sort bar, premium product grid, hover image swap,
+            quick-add, sale badges, pagination, scroll animations
 {% endcomment %}
 
-<h1>{{ collection.title }}</h1>
+{%- liquid
+  assign products_per_page  = section.settings.products_per_page
+  assign cols_desktop        = section.settings.columns_desktop
+  assign cols_mobile         = section.settings.columns_mobile
+  assign show_vendor         = section.settings.show_vendor
+  assign show_quick_add      = section.settings.show_quick_add
+  assign show_sort_bar       = section.settings.show_sort_bar
+  assign show_image_swap     = section.settings.show_image_swap
+  assign show_ratings        = section.settings.show_ratings
+  assign card_style          = section.settings.card_style
+-%}
 
-<div class="collection-products">
-  {% paginate collection.products by 20 %}
-    {% for product in collection.products %}
-      <div class="collection-product">
-        {% if product.featured_image %}
-          {% render 'image',
-            class: 'collection-product__image',
-            image: product.featured_image,
-            url: product.url,
-            width: 400,
-            height: 400,
-            crop: 'center'
-          %}
-        {% endif %}
-        <div class="collection-product__content">
-          <p>{{ product.title | escape | link_to: product.url }}</p>
-          <p>{{ product.price | money }}</p>
+<div class="ik-collection" data-section-id="{{ section.id }}">
+
+  {%- comment -%} ── Collection Header ── {%- endcomment -%}
+  <div class="ik-collection__header animate-on-scroll">
+    {% if collection.image and section.settings.show_collection_image %}
+      <div class="ik-collection__hero">
+        <img
+          src="{{ collection.image | image_url: width: 1600 }}"
+          srcset="{{ collection.image | image_url: width: 800 }} 800w, {{ collection.image | image_url: width: 1200 }} 1200w, {{ collection.image | image_url: width: 1600 }} 1600w"
+          sizes="100vw"
+          alt="{{ collection.image.alt | default: collection.title | escape }}"
+          class="ik-collection__hero-img"
+          loading="eager"
+          width="1600"
+          height="480"
+        >
+        <div class="ik-collection__hero-overlay">
+          <h1 class="ik-collection__title ik-collection__title--on-image">{{ collection.title }}</h1>
+          {% if collection.description != blank %}
+            <p class="ik-collection__description ik-collection__description--on-image">{{ collection.description | strip_html | truncate: 200 }}</p>
+          {% endif %}
         </div>
       </div>
-    {% endfor %}
+    {% else %}
+      <div class="ik-collection__title-wrap">
+        <h1 class="ik-collection__title">{{ collection.title }}</h1>
+        {% if collection.description != blank %}
+          <div class="ik-collection__description">{{ collection.description }}</div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
 
-    {{ paginate | default_pagination }}
+  {%- comment -%} ── Products Grid with Pagination ── {%- endcomment -%}
+  {% paginate collection.products by products_per_page %}
+
+    {%- comment -%} ── Sort & Count Toolbar ── {%- endcomment -%}
+    {% if show_sort_bar %}
+      <div class="ik-collection__toolbar animate-on-scroll anim-delay-1">
+        <p class="ik-collection__count">
+          <span>{{ collection.products_count }}</span> {{ collection.products_count | pluralize: 'product', 'products' }}
+        </p>
+        <div class="ik-sort-wrap">
+          <label class="ik-sort__label visually-hidden" for="SortBy-{{ section.id }}">Sort by</label>
+          <div class="ik-sort__select-wrap">
+            <svg class="ik-sort__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="9" y2="18"/></svg>
+            <select
+              id="SortBy-{{ section.id }}"
+              class="ik-sort__select"
+              aria-label="Sort products"
+              onchange="window.location = this.value"
+            >
+              <option value="{{ collection.url }}?sort_by=manual"{% if collection.sort_by == 'manual' %} selected{% endif %}>Featured</option>
+              <option value="{{ collection.url }}?sort_by=best-selling"{% if collection.sort_by == 'best-selling' %} selected{% endif %}>Best Selling</option>
+              <option value="{{ collection.url }}?sort_by=title-ascending"{% if collection.sort_by == 'title-ascending' %} selected{% endif %}>Alphabetically, A–Z</option>
+              <option value="{{ collection.url }}?sort_by=title-descending"{% if collection.sort_by == 'title-descending' %} selected{% endif %}>Alphabetically, Z–A</option>
+              <option value="{{ collection.url }}?sort_by=price-ascending"{% if collection.sort_by == 'price-ascending' %} selected{% endif %}>Price, Low to High</option>
+              <option value="{{ collection.url }}?sort_by=price-descending"{% if collection.sort_by == 'price-descending' %} selected{% endif %}>Price, High to Low</option>
+              <option value="{{ collection.url }}?sort_by=created-descending"{% if collection.sort_by == 'created-descending' %} selected{% endif %}>Date, Newest First</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {%- comment -%} ── Product Grid ── {%- endcomment -%}
+    {% if collection.products.size > 0 %}
+      <div
+        class="ik-collection__grid"
+        style="--cols-desktop: {{ cols_desktop }}; --cols-mobile: {{ cols_mobile }};"
+      >
+        {% for product in collection.products %}
+          {%- liquid
+            assign has_compare  = false
+            if product.compare_at_price > product.price
+              assign has_compare = true
+              assign savings_pct = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price
+            endif
+            assign is_new = false
+            assign published_days = 'now' | date: '%s' | minus: product.published_at | date: '%s' | divided_by: 86400
+            if published_days < 30
+              assign is_new = true
+            endif
+            assign hover_image = product.images[1]
+            assign has_hover   = false
+            if show_image_swap and hover_image != blank
+              assign has_hover = true
+            endif
+          -%}
+
+          <div class="ik-card animate-on-scroll{% if card_style == 'minimal' %} ik-card--minimal{% endif %}" data-product-id="{{ product.id }}">
+
+            {%- comment -%} Card Media {%- endcomment -%}
+            <div class="ik-card__media">
+              <a href="{{ product.url }}" class="ik-card__media-link" aria-label="{{ product.title | escape }}">
+
+                {%- comment -%} Primary Image {%- endcomment -%}
+                {% if product.featured_image %}
+                  <img
+                    class="ik-card__img ik-card__img--primary"
+                    src="{{ product.featured_image | image_url: width: 600 }}"
+                    srcset="{{ product.featured_image | image_url: width: 300 }} 300w, {{ product.featured_image | image_url: width: 500 }} 500w, {{ product.featured_image | image_url: width: 700 }} 700w"
+                    sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, 25vw"
+                    alt="{{ product.featured_image.alt | default: product.title | escape }}"
+                    loading="lazy"
+                    width="600"
+                    height="600"
+                  >
+                {% else %}
+                  {{ 'product-1' | placeholder_svg_tag: 'ik-card__img ik-card__img--primary placeholder-svg' }}
+                {% endif %}
+
+                {%- comment -%} Hover / Secondary Image {%- endcomment -%}
+                {% if has_hover %}
+                  <img
+                    class="ik-card__img ik-card__img--hover"
+                    src="{{ hover_image | image_url: width: 600 }}"
+                    srcset="{{ hover_image | image_url: width: 300 }} 300w, {{ hover_image | image_url: width: 500 }} 500w, {{ hover_image | image_url: width: 700 }} 700w"
+                    sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, 25vw"
+                    alt="{{ hover_image.alt | default: product.title | escape }}"
+                    loading="lazy"
+                    width="600"
+                    height="600"
+                  >
+                {% endif %}
+
+              </a>
+
+              {%- comment -%} Sold Out Overlay {%- endcomment -%}
+              {% unless product.available %}
+                <div class="ik-card__soldout-overlay" aria-hidden="true">
+                  <span>Sold Out</span>
+                </div>
+              {% endunless %}
+
+              {%- comment -%} Badges {%- endcomment -%}
+              <div class="ik-card__badges">
+                {% if has_compare %}
+                  <span class="ik-card__badge ik-card__badge--sale">-{{ savings_pct }}%</span>
+                {% elsif is_new %}
+                  <span class="ik-card__badge ik-card__badge--new">New</span>
+                {% endif %}
+              </div>
+
+              {%- comment -%} Wishlist Button {%- endcomment -%}
+              <button class="ik-card__wishlist" aria-label="Save {{ product.title | escape }}" type="button">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </button>
+
+              {%- comment -%} Quick Add {%- endcomment -%}
+              {% if show_quick_add %}
+                <div class="ik-card__quick-add">
+                  {% if product.variants.size == 1 and product.available %}
+                    {% form 'product', product, class: 'ik-card__quick-form' %}
+                      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                      <input type="hidden" name="quantity" value="1">
+                      <button
+                        type="submit"
+                        name="add"
+                        class="ik-card__quick-btn"
+                        aria-label="Add {{ product.title | escape }} to cart"
+                        data-quick-add
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                        Quick Add
+                      </button>
+                    {% endform %}
+                  {% elsif product.available %}
+                    <a href="{{ product.url }}" class="ik-card__quick-btn" aria-label="Choose options for {{ product.title | escape }}">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+                      Choose Options
+                    </a>
+                  {% else %}
+                    <span class="ik-card__quick-btn ik-card__quick-btn--disabled">Sold Out</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+            </div>{%- comment -%} /ik-card__media {%- endcomment -%}
+
+            {%- comment -%} Card Info {%- endcomment -%}
+            <div class="ik-card__info">
+
+              {% if show_vendor and product.vendor != blank %}
+                <p class="ik-card__vendor">{{ product.vendor }}</p>
+              {% endif %}
+
+              <h3 class="ik-card__title">
+                <a href="{{ product.url }}" class="ik-card__title-link">{{ product.title | escape }}</a>
+              </h3>
+
+              <div class="ik-card__price-row">
+                {% if has_compare %}
+                  <span class="ik-card__price ik-card__price--sale">{{ product.price | money }}</span>
+                  <s class="ik-card__price ik-card__price--compare">{{ product.compare_at_price | money }}</s>
+                {% else %}
+                  <span class="ik-card__price">
+                    {% if product.price_varies %}From {% endif %}
+                    {{ product.price | money }}
+                  </span>
+                {% endif %}
+              </div>
+
+            </div>{%- comment -%} /ik-card__info {%- endcomment -%}
+
+          </div>{%- comment -%} /ik-card {%- endcomment -%}
+
+        {% endfor %}
+      </div>
+
+      {%- comment -%} ── Pagination ── {%- endcomment -%}
+      {% if paginate.pages > 1 %}
+        <nav class="ik-pagination animate-on-scroll" role="navigation" aria-label="Pagination">
+          {% if paginate.previous %}
+            <a href="{{ paginate.previous.url }}" class="ik-pagination__btn ik-pagination__btn--prev" aria-label="Previous page">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+              <span>Prev</span>
+            </a>
+          {% endif %}
+
+          <div class="ik-pagination__pages">
+            {% for part in paginate.parts %}
+              {% if part.is_link %}
+                <a href="{{ part.url }}" class="ik-pagination__page" aria-label="Page {{ part.title }}">{{ part.title }}</a>
+              {% elsif part.title == paginate.current_page %}
+                <span class="ik-pagination__page ik-pagination__page--current" aria-current="page">{{ part.title }}</span>
+              {% else %}
+                <span class="ik-pagination__ellipsis">{{ part.title }}</span>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          {% if paginate.next %}
+            <a href="{{ paginate.next.url }}" class="ik-pagination__btn ik-pagination__btn--next" aria-label="Next page">
+              <span>Next</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          {% endif %}
+        </nav>
+      {% endif %}
+
+    {% else %}
+      {%- comment -%} Empty State {%- endcomment -%}
+      <div class="ik-collection__empty animate-on-scroll">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <h2>No products found</h2>
+        <p>This collection doesn't have any products yet.</p>
+        <a href="{{ routes.root_url }}" class="ik-btn ik-btn--primary">Continue Shopping</a>
+      </div>
+    {% endif %}
+
   {% endpaginate %}
+
 </div>
 
-{% stylesheet %}
-  .collection-products {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-  }
-{% endstylesheet %}
+<script>
+(function() {
+  'use strict';
+
+  // Quick Add — AJAX cart integration
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    if (!form.querySelector('[data-quick-add]')) return;
+    e.preventDefault();
+
+    var btn = form.querySelector('[data-quick-add]');
+    var originalHTML = btn.innerHTML;
+
+    btn.classList.add('button--loading');
+    btn.innerHTML = '';
+
+    var formData = new FormData(form);
+    formData.append('sections', 'cart-drawer');
+
+    fetch(window.Shopify.routes.root + 'cart/add.js', {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: formData
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      btn.classList.remove('button--loading');
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Added!';
+      btn.style.background = '#2ed573';
+
+      // Dispatch cart updated event
+      document.dispatchEvent(new CustomEvent('cart:updated', {
+        detail: { itemCount: (data && data.quantity) || 1 }
+      }));
+
+      // Open cart drawer if it exists
+      var cartDrawerOpen = document.querySelector('[data-cart-drawer-open]');
+      if (cartDrawerOpen) cartDrawerOpen.click();
+
+      setTimeout(function() {
+        btn.innerHTML = originalHTML;
+        btn.style.background = '';
+      }, 2000);
+    })
+    .catch(function() {
+      btn.classList.remove('button--loading');
+      btn.innerHTML = originalHTML;
+    });
+  });
+})();
+</script>
 
 {% schema %}
 {
-  "name": "t:general.collection",
-  "settings": []
+  "name": "Collection",
+  "tag": "section",
+  "class": "ik-collection-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 24,
+      "label": "Products per page"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "label": "Columns on desktop"
+    },
+    {
+      "type": "range",
+      "id": "columns_mobile",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "default": 2,
+      "label": "Columns on mobile"
+    },
+    {
+      "type": "select",
+      "id": "card_style",
+      "label": "Card style",
+      "options": [
+        { "value": "default", "label": "Default (with border)" },
+        { "value": "minimal", "label": "Minimal (borderless)" }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "header",
+      "content": "Collection Header"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_image",
+      "label": "Show collection image",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Toolbar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sort_bar",
+      "label": "Show sort bar",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Product Cards"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show product vendor",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quick_add",
+      "label": "Show quick add button",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_swap",
+      "label": "Show second image on hover",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_ratings",
+      "label": "Show star ratings (if app installed)",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 64
+    }
+  ]
 }
 {% endschema %}
+
+<style>
+  .ik-collection-section {
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+
+  /* ── Collection Header ── */
+  .ik-collection__header {
+    margin-bottom: var(--space-8, 32px);
+  }
+
+  .ik-collection__hero {
+    position: relative;
+    width: 100%;
+    height: clamp(200px, 30vw, 400px);
+    overflow: hidden;
+    margin-bottom: var(--space-8, 32px);
+  }
+
+  .ik-collection__hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .ik-collection__hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 60%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: var(--space-10, 40px) var(--space-6, 24px);
+    text-align: center;
+  }
+
+  .ik-collection__title--on-image {
+    color: #fff;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.3);
+    margin-bottom: var(--space-2, 8px);
+  }
+
+  .ik-collection__description--on-image {
+    color: rgba(255,255,255,0.85);
+    max-width: 60ch;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .ik-collection__title-wrap {
+    padding: {{ section.settings.padding_top }}px var(--page-margin, 20px) 0;
+    text-align: center;
+    max-width: var(--page-width, 1400px);
+    margin: 0 auto;
+  }
+
+  .ik-collection__title {
+    margin-bottom: var(--space-3, 12px);
+  }
+
+  .ik-collection__description {
+    color: var(--color-text-muted, #777);
+    max-width: 60ch;
+    margin: 0 auto;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  /* ── Toolbar ── */
+  .ik-collection__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4, 16px);
+    padding: var(--space-4, 16px) var(--page-margin, 20px);
+    max-width: var(--page-width, 1400px);
+    margin: 0 auto var(--space-6, 24px);
+    border-bottom: 1px solid var(--color-border, #e5e5e5);
+    flex-wrap: wrap;
+  }
+
+  .ik-collection__count {
+    font-size: 0.875rem;
+    color: var(--color-text-muted, #777);
+    margin: 0;
+  }
+
+  .ik-sort-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+  }
+
+  .ik-sort__select-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .ik-sort__icon {
+    position: absolute;
+    left: 10px;
+    pointer-events: none;
+    color: var(--color-text-muted, #777);
+  }
+
+  .ik-sort__select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 8px 16px 8px 34px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: var(--radius-md, 10px);
+    background: var(--color-surface, #fff);
+    color: var(--color-foreground);
+    cursor: pointer;
+    transition: border-color var(--transition-fast, 150ms);
+    min-width: 180px;
+  }
+
+  .ik-sort__select:hover {
+    border-color: var(--color-text-muted, #777);
+  }
+
+  .ik-sort__select:focus-visible {
+    outline: var(--focus-ring-width, 3px) solid var(--color-primary);
+    outline-offset: var(--focus-ring-offset, 3px);
+  }
+
+  /* ── Product Grid ── */
+  .ik-collection__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols-mobile, 2), 1fr);
+    gap: var(--space-4, 16px);
+    padding: 0 var(--page-margin, 20px);
+    max-width: var(--page-width, 1400px);
+    margin: 0 auto;
+  }
+
+  @media (min-width: 768px) {
+    .ik-collection__grid {
+      grid-template-columns: repeat(var(--cols-desktop, 4), 1fr);
+      gap: var(--space-6, 24px);
+    }
+  }
+
+  /* ── Product Card ── */
+  .ik-card {
+    background: var(--color-surface, #fff);
+    border-radius: var(--card-border-radius, var(--radius-lg, 16px));
+    overflow: hidden;
+    border: 1px solid var(--color-border-light, rgba(0,0,0,0.06));
+    transition: var(--card-transition, transform 250ms, box-shadow 250ms);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .ik-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-hover, var(--shadow-lg));
+    border-color: transparent;
+  }
+
+  .ik-card--minimal {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .ik-card--minimal:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ── Card Media ── */
+  .ik-card__media {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--color-surface-alt, #f5f5f5);
+    flex-shrink: 0;
+  }
+
+  .ik-card__media-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Primary image */
+  .ik-card__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.45s ease, transform 0.6s var(--ease-out-expo, cubic-bezier(0.16,1,0.3,1));
+  }
+
+  .ik-card__img--primary {
+    opacity: 1;
+    z-index: 1;
+  }
+
+  /* Hover image swap */
+  .ik-card__img--hover {
+    opacity: 0;
+    z-index: 2;
+  }
+
+  .ik-card:hover .ik-card__img--primary {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+
+  .ik-card:hover .ik-card__img--hover {
+    opacity: 1;
+  }
+
+  /* Zoom on cards without second image */
+  .ik-card:not(:has(.ik-card__img--hover)):hover .ik-card__img--primary {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+
+  /* Sold out overlay */
+  .ik-card__soldout-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    backdrop-filter: blur(2px);
+  }
+
+  .ik-card__soldout-overlay span {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted, #777);
+    border: 1px solid currentColor;
+    padding: 6px 16px;
+    border-radius: var(--radius-full, 9999px);
+  }
+
+  /* Badges */
+  .ik-card__badges {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1, 4px);
+  }
+
+  .ik-card__badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: var(--radius-full, 9999px);
+    line-height: 1;
+  }
+
+  .ik-card__badge--sale {
+    background: #ff4757;
+    color: #fff;
+  }
+
+  .ik-card__badge--new {
+    background: var(--color-button, #000);
+    color: var(--color-button-label, #fff);
+  }
+
+  /* Wishlist */
+  .ik-card__wishlist {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 4;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-full, 9999px);
+    background: rgba(255,255,255,0.9);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity var(--transition-base), transform var(--transition-base), background var(--transition-fast), color var(--transition-fast);
+    color: var(--color-text-body, #333);
+    box-shadow: var(--shadow-sm);
+    padding: 0;
+  }
+
+  .ik-card:hover .ik-card__wishlist {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .ik-card__wishlist:hover {
+    background: #ff4757;
+    color: #fff;
+  }
+
+  /* Quick Add */
+  .ik-card__quick-add {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 4;
+    transform: translateY(100%);
+    transition: transform var(--transition-base, 250ms cubic-bezier(0.16,1,0.3,1));
+  }
+
+  .ik-card:hover .ik-card__quick-add {
+    transform: translateY(0);
+  }
+
+  .ik-card__quick-form {
+    width: 100%;
+  }
+
+  .ik-card__quick-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2, 8px);
+    width: 100%;
+    padding: 13px 16px;
+    background: var(--color-button, #000);
+    color: var(--color-button-label, #fff);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background var(--transition-fast);
+  }
+
+  .ik-card__quick-btn:hover:not(.ik-card__quick-btn--disabled) {
+    background: var(--color-text-heading, #111);
+    transform: none;
+    box-shadow: none;
+  }
+
+  .ik-card__quick-btn--disabled {
+    background: var(--color-surface-alt, #f5f5f5);
+    color: var(--color-text-muted, #777);
+    cursor: default;
+  }
+
+  /* ── Card Info ── */
+  .ik-card__info {
+    padding: var(--space-4, 16px);
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1, 4px);
+  }
+
+  .ik-card__vendor {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted, #777);
+    margin: 0;
+  }
+
+  .ik-card__title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .ik-card__title-link {
+    color: var(--color-text-heading, #1a1a1a);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .ik-card__title-link:hover {
+    color: var(--color-primary, var(--color-button));
+  }
+
+  .ik-card__price-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2, 8px);
+    margin-top: var(--space-1, 4px);
+    flex-wrap: wrap;
+  }
+
+  .ik-card__price {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-heading, #1a1a1a);
+  }
+
+  .ik-card__price--sale {
+    color: #ff4757;
+  }
+
+  .ik-card__price--compare {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--color-text-muted, #777);
+    text-decoration: line-through;
+  }
+
+  /* ── Pagination ── */
+  .ik-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2, 8px);
+    padding: var(--space-12, 48px) var(--page-margin, 20px) var(--space-6, 24px);
+    flex-wrap: wrap;
+  }
+
+  .ik-pagination__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1, 4px);
+    padding: 10px 20px;
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: var(--radius-md, 10px);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-foreground);
+    text-decoration: none;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+  }
+
+  .ik-pagination__btn:hover {
+    background: var(--color-surface-alt, #f5f5f5);
+    border-color: var(--color-text-muted, #777);
+  }
+
+  .ik-pagination__pages {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1, 4px);
+  }
+
+  .ik-pagination__page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 var(--space-2, 8px);
+    border-radius: var(--radius-md, 10px);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--color-foreground);
+    transition: background var(--transition-fast);
+  }
+
+  .ik-pagination__page:hover {
+    background: var(--color-surface-alt, #f5f5f5);
+  }
+
+  .ik-pagination__page--current {
+    background: var(--color-button, #000);
+    color: var(--color-button-label, #fff);
+    font-weight: 700;
+    cursor: default;
+  }
+
+  .ik-pagination__ellipsis {
+    padding: 0 var(--space-1, 4px);
+    color: var(--color-text-muted, #777);
+  }
+
+  /* ── Empty State ── */
+  .ik-collection__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4, 16px);
+    padding: var(--space-20, 80px) var(--page-margin, 20px);
+    text-align: center;
+    color: var(--color-text-muted, #777);
+  }
+
+  .ik-collection__empty h2 {
+    color: var(--color-text-heading, #1a1a1a);
+    margin: 0;
+  }
+
+  .ik-collection__empty p {
+    margin: 0;
+  }
+
+  .ik-btn--primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--btn-padding-md, 13px 28px);
+    background: var(--color-button, #000);
+    color: var(--color-button-label, #fff);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    border-radius: var(--btn-border-radius, var(--radius-md, 10px));
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+  }
+
+  .ik-btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ── Mobile adjustments ── */
+  @media (max-width: 480px) {
+    .ik-collection__toolbar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-3, 12px);
+    }
+
+    .ik-sort__select {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .ik-card__info {
+      padding: var(--space-3, 12px);
+    }
+
+    .ik-card__title {
+      font-size: 0.875rem;
+    }
+
+    .ik-card__price {
+      font-size: 0.9375rem;
+    }
+
+    .ik-card__quick-add {
+      transform: translateY(0);
+    }
+  }
+</style>

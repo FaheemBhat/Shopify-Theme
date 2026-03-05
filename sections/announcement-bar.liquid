@@ -1,25 +1,51 @@
 {% if section.blocks.size > 0 %}
-<div class="announcement-bar full-width color-{{ section.settings.color_scheme }}" data-interval="{{ section.settings.slide_time | times: 1000 }}">
-  <div class="announcement-slider">
+<div class="announcement-bar full-width color-{{ section.settings.color_scheme }}{% if section.settings.marquee_mode %} ik-marquee-bar{% endif %}" id="ikAnnBar" data-interval="{{ section.settings.slide_time | times: 1000 }}" data-marquee="{{ section.settings.marquee_mode }}">
 
-    {% for block in section.blocks %}
-      <div class="announcement-slide" {{ block.shopify_attributes }}>
-        {% if block.settings.link != blank %}
-          <a href="{{ block.settings.link }}">
-        {% endif %}
-          <span>{{ block.settings.text }}</span>
-        {% if block.settings.link != blank %}
-          </a>
-        {% endif %}
+  {% if section.settings.marquee_mode %}
+    <div class="ik-marquee-track">
+      <div class="ik-marquee-inner" style="--ik-mq-dur: {{ section.settings.marquee_speed }}s;">
+        {% for block in section.blocks %}
+          <span class="ik-marquee-item" {{ block.shopify_attributes }}>
+            {% if block.settings.icon != blank %}<span class="ik-marquee-icon" aria-hidden="true">{{ block.settings.icon }}</span>{% endif %}
+            {% if block.settings.link != blank %}<a href="{{ block.settings.link }}">{{ block.settings.text }}</a>{% else %}{{ block.settings.text }}{% endif %}
+            <span class="ik-marquee-sep" aria-hidden="true">•</span>
+          </span>
+        {% endfor %}
+        {% for block in section.blocks %}
+          <span class="ik-marquee-item" aria-hidden="true">
+            {% if block.settings.icon != blank %}<span class="ik-marquee-icon" aria-hidden="true">{{ block.settings.icon }}</span>{% endif %}
+            {% if block.settings.link != blank %}<a href="{{ block.settings.link }}">{{ block.settings.text }}</a>{% else %}{{ block.settings.text }}{% endif %}
+            <span class="ik-marquee-sep" aria-hidden="true">•</span>
+          </span>
+        {% endfor %}
       </div>
-    {% endfor %}
+    </div>
+  {% else %}
+    <div class="announcement-slider">
+      {% for block in section.blocks %}
+        <div class="announcement-slide" {{ block.shopify_attributes }}>
+          {% if block.settings.icon != blank %}<span class="ik-ann-icon" aria-hidden="true">{{ block.settings.icon }}</span> {% endif %}
+          {% if block.settings.link != blank %}
+            <a href="{{ block.settings.link }}">
+          {% endif %}
+            <span>{{ block.settings.text }}</span>
+          {% if block.settings.link != blank %}
+            </a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
 
-  </div>
-
-  {% if section.settings.show_arrows %}
-  <button class="announcement-prev">‹</button>
-  <button class="announcement-next">›</button>
+    {% if section.settings.show_arrows %}
+    <button class="announcement-prev">‹</button>
+    <button class="announcement-next">›</button>
+    {% endif %}
   {% endif %}
+
+  {% if section.settings.show_close %}
+    <button class="ik-ann-close" id="ikAnnClose" aria-label="Close announcement">×</button>
+  {% endif %}
+
 </div>
 {% endif %}
 
@@ -80,6 +106,62 @@
 
 .announcement-prev { left: 10px; }
 .announcement-next { right: 10px; }
+
+/* ============================================================
+   Phase 5: Announcement Bar Upgrades
+   ============================================================ */
+
+/* Emoji icon in slide mode */
+.ik-ann-icon { margin-right: 5px; }
+
+/* Marquee / ticker mode */
+.ik-marquee-bar { overflow: hidden; }
+.ik-marquee-track { overflow: hidden; width: 100%; }
+.ik-marquee-inner {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: ikMarquee var(--ik-mq-dur, 30s) linear infinite;
+  will-change: transform;
+}
+.ik-marquee-inner:hover { animation-play-state: paused; }
+@keyframes ikMarquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ik-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 24px;
+  font-size: inherit;
+  font-weight: inherit;
+}
+.ik-marquee-item a { color: inherit; text-decoration: none; }
+.ik-marquee-item a:hover { text-decoration: underline; }
+.ik-marquee-icon { margin-right: 7px; }
+.ik-marquee-sep { margin: 0 4px; opacity: 0.35; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ik-marquee-inner { animation: none; }
+}
+
+/* Close button */
+.ik-ann-close {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+  z-index: 2;
+}
+.ik-ann-close:hover { opacity: 1; }
 </style>
 
 <script>
@@ -93,6 +175,41 @@
     var interval = parseInt(bar.dataset.interval);
     var header = document.querySelector('.header-sticky');
     var index = 0;
+    var isMarquee = bar.dataset.marquee === 'true';
+
+    /* Close button */
+    var annCloseBtn = document.getElementById('ikAnnClose');
+    if (annCloseBtn) {
+      annCloseBtn.addEventListener('click', function () {
+        bar.style.transition = 'opacity 0.3s ease, max-height 0.4s ease';
+        bar.style.opacity = '0';
+        bar.style.maxHeight = bar.offsetHeight + 'px';
+        setTimeout(function () {
+          bar.style.maxHeight = '0';
+          bar.style.overflow = 'hidden';
+        }, 10);
+        setTimeout(function () {
+          bar.style.display = 'none';
+          document.documentElement.style.setProperty('--announcement-bar-height', '0px');
+        }, 400);
+      });
+    }
+
+    /* In marquee mode, skip interval / slider logic */
+    if (isMarquee) {
+      updateAnnouncementHeight();
+      window.addEventListener('resize', updateAnnouncementHeight);
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > 50) {
+          bar.classList.add('scrolled');
+          if (header) header.classList.add('scrolled');
+        } else {
+          bar.classList.remove('scrolled');
+          if (header) header.classList.remove('scrolled');
+        }
+      });
+      return;
+    }
 
     function updateAnnouncementHeight() {
       var barHeight = bar.offsetHeight;
@@ -172,6 +289,30 @@
     },
     {
       "type": "checkbox",
+      "id": "marquee_mode",
+      "label": "Marquee / ticker mode",
+      "default": false,
+      "info": "All messages scroll continuously as a horizontal ticker"
+    },
+    {
+      "type": "range",
+      "id": "marquee_speed",
+      "label": "Marquee scroll speed",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "s",
+      "default": 30,
+      "info": "Duration for one full scroll — lower = faster"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_close",
+      "label": "Show close / dismiss button",
+      "default": false
+    },
+    {
+      "type": "checkbox",
       "id": "show_arrows",
       "label": "Show navigation arrows",
       "default": false
@@ -208,6 +349,12 @@
       "type": "announcement",
       "name": "Announcement",
       "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon (emoji)",
+          "info": "Optional emoji shown before the text, e.g. 🚚"
+        },
         {
           "type": "text",
           "id": "text",

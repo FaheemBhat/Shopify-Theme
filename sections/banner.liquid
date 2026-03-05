@@ -14,7 +14,6 @@
     margin-top: 100px;
     background-color: var(--color-background);
     color: var(--color-foreground);
-    M
   }
 
   .banner-slideshow.full-width {
@@ -462,6 +461,180 @@
       font-size: 12px;
     }
   }
+
+  /* ============================================================
+     Phase 4: Cinematic Banner Upgrades
+     ============================================================ */
+
+  /* Ken Burns slow zoom on active image */
+  @keyframes ik-kenburns {
+    from { transform: scale(1.06); }
+    to   { transform: scale(1.0); }
+  }
+  .slide.active-slide .slide-image {
+    animation: ik-kenburns 9s ease-out forwards;
+  }
+
+  /* Content entrance animations */
+  .slide-eyebrow,
+  .slide-heading,
+  .slide-subheading,
+  .slide-button-wrap {
+    opacity: 0;
+    transform: translateY(28px);
+    will-change: opacity, transform;
+  }
+  /* Instant reset when slide is NOT active */
+  .slide:not(.active-slide) .slide-eyebrow,
+  .slide:not(.active-slide) .slide-heading,
+  .slide:not(.active-slide) .slide-subheading,
+  .slide:not(.active-slide) .slide-button-wrap {
+    transition: none !important;
+    opacity: 0 !important;
+    transform: translateY(28px) !important;
+  }
+  /* Staggered entrance when active */
+  .slide.active-slide .slide-eyebrow {
+    transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1) 0.05s,
+                transform 0.6s cubic-bezier(0.16,1,0.3,1) 0.05s;
+    opacity: 1; transform: translateY(0);
+  }
+  .slide.active-slide .slide-heading {
+    transition: opacity 0.72s cubic-bezier(0.16,1,0.3,1) 0.2s,
+                transform 0.72s cubic-bezier(0.16,1,0.3,1) 0.2s;
+    opacity: 1; transform: translateY(0);
+  }
+  .slide.active-slide .slide-subheading {
+    transition: opacity 0.72s cubic-bezier(0.16,1,0.3,1) 0.35s,
+                transform 0.72s cubic-bezier(0.16,1,0.3,1) 0.35s;
+    opacity: 1; transform: translateY(0);
+  }
+  .slide.active-slide .slide-button-wrap {
+    transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1) 0.5s,
+                transform 0.65s cubic-bezier(0.16,1,0.3,1) 0.5s;
+    opacity: 1; transform: translateY(0);
+  }
+
+  /* Eyebrow pill badge */
+  .slide-eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: currentColor;
+    margin-bottom: 14px;
+    padding: 6px 16px;
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 100px;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Premium round navigation arrows (replace plain text) */
+  .prev, .next {
+    width: 52px !important;
+    height: 52px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: rgba(255,255,255,0.15) !important;
+    border: 1.5px solid rgba(255,255,255,0.35) !important;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0 !important;
+    color: transparent !important;
+    margin-top: -26px !important;
+    transition: background 0.25s ease, transform 0.22s ease !important;
+  }
+  .prev { left: 20px !important; border-radius: 50% 0 0 50% !important; border-radius: 50% !important; }
+  .next { right: 20px !important; }
+  .prev:hover, .next:hover {
+    background: rgba(255,255,255,0.3) !important;
+    transform: scale(1.1) !important;
+  }
+  /* SVG chevron via pseudo-elements */
+  .prev::after, .next::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-right: 2.5px solid white;
+    border-top: 2.5px solid white;
+    display: block;
+    flex-shrink: 0;
+  }
+  .prev::after { transform: rotate(-135deg) translate(2px, -2px); }
+  .next::after { transform: rotate(45deg) translate(-2px, 2px); }
+
+  /* Outline button variant */
+  .slide-button--outline {
+    background: transparent !important;
+    border: 2px solid currentColor !important;
+    box-shadow: none !important;
+  }
+  .slide-button--outline:hover {
+    background: rgba(255,255,255,0.15) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+  }
+
+  /* Scroll indicator (line + bounce arrow) */
+  .banner-scroll-indicator {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+    opacity: 0.8;
+  }
+  .banner-scroll-indicator__line {
+    width: 1px;
+    height: 30px;
+    background: white;
+    animation: ik-scrollLine 1.8s ease-in-out infinite;
+    transform-origin: top;
+  }
+  @keyframes ik-scrollLine {
+    0%,100% { transform: scaleY(1); opacity: 0.9; }
+    50% { transform: scaleY(0.35); opacity: 0.35; }
+  }
+  .banner-scroll-indicator__arrow {
+    width: 10px;
+    height: 10px;
+    border-right: 1.5px solid white;
+    border-bottom: 1.5px solid white;
+    transform: rotate(45deg);
+    animation: ik-scrollArrow 1.8s ease-in-out infinite;
+  }
+  @keyframes ik-scrollArrow {
+    0%,100% { transform: rotate(45deg) translateY(0); opacity: 0.9; }
+    50% { transform: rotate(45deg) translateY(5px); opacity: 0.4; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active-slide .slide-image { animation: none !important; }
+    .slide-eyebrow, .slide-heading, .slide-subheading, .slide-button-wrap {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    .slide:not(.active-slide) .slide-eyebrow,
+    .slide:not(.active-slide) .slide-heading,
+    .slide:not(.active-slide) .slide-subheading,
+    .slide:not(.active-slide) .slide-button-wrap {
+      opacity: 0 !important;
+    }
+    .banner-scroll-indicator__line,
+    .banner-scroll-indicator__arrow { animation: none !important; }
+  }
 </style>
 
 <div class="banner-slideshow {% if layout == 'full-width' %}full-width{% else %}container{% endif %} color-{{ section.settings.color_scheme }}"
@@ -526,6 +699,10 @@
                         {% if mobile_layout == 'below' %}mobile-below{% endif %}
                         color-{{ block.settings.color_scheme }}">
               <div class="slide-content-inner">
+                {% if block.settings.eyebrow_text != blank %}
+                  <p class="slide-eyebrow">{{ block.settings.eyebrow_text }}</p>
+                {% endif %}
+
                 {% if block.settings.heading != blank %}
                   <h2 class="slide-heading heading-size-{{ block.settings.heading_size }}">
                     {{ block.settings.heading }}
@@ -537,7 +714,9 @@
                 {% endif %}
 
                 {% if block.settings.button_text != blank %}
-                  <span class="slide-button">{{ block.settings.button_text }}</span>
+                  <div class="slide-button-wrap">
+                    <span class="slide-button{% if block.settings.button_style == 'outline' %} slide-button--outline{% endif %}">{{ block.settings.button_text }}</span>
+                  </div>
                 {% endif %}
               </div>
             </div>
@@ -548,8 +727,15 @@
 
     <!-- Navigation arrows -->
     {% if section.settings.show_arrows %}
-      <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
-      <a class="next" onclick="plusSlides(1)">&#10095;</a>
+      <a class="prev" onclick="plusSlides(-1)" aria-label="Previous slide">&#10094;</a>
+      <a class="next" onclick="plusSlides(1)" aria-label="Next slide">&#10095;</a>
+    {% endif %}
+
+    {% if section.settings.show_scroll_indicator %}
+      <div class="banner-scroll-indicator" aria-hidden="true">
+        <div class="banner-scroll-indicator__line"></div>
+        <div class="banner-scroll-indicator__arrow"></div>
+      </div>
     {% endif %}
   </div>
 
@@ -620,6 +806,13 @@
       }
 
       if (slides[slideIndex - 1]) {
+        // Restart Ken Burns animation for the incoming slide's image
+        var kbImg = slides[slideIndex - 1].querySelector('.slide-image');
+        if (kbImg) {
+          kbImg.style.animation = 'none';
+          void kbImg.offsetHeight; // force reflow
+          kbImg.style.animation = '';
+        }
         slides[slideIndex - 1].classList.add('active-slide');
       }
       if (dots[slideIndex - 1]) {
@@ -848,6 +1041,13 @@
       "info": "Choose whether content appears over the image or below it on mobile"
     },
     {
+      "type": "checkbox",
+      "id": "show_scroll_indicator",
+      "label": "Show scroll indicator",
+      "default": false,
+      "info": "Displays an animated scroll cue at the bottom of the banner"
+    },
+    {
       "type": "header",
       "content": "Color"
     },
@@ -902,6 +1102,12 @@
           "type": "url",
           "id": "link",
           "label": "Link URL"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow_text",
+          "label": "Eyebrow text",
+          "info": "Small label displayed above the heading (e.g., 'New Arrival', 'Limited Edition')"
         },
         {
           "type": "text",
@@ -960,6 +1166,16 @@
           "id": "button_text",
           "label": "Button text",
           "default": "Shop Now"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Button style",
+          "options": [
+            { "value": "solid", "label": "Solid" },
+            { "value": "outline", "label": "Outline" }
+          ],
+          "default": "solid"
         },
         {
           "type": "header",

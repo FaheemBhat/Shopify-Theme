@@ -151,5 +151,72 @@
       });
     }, { timeout: 2000 });
     </script>
+
+    {% # Scroll Animation System — Intersection Observer %}
+    {% # Powers .animate-on-scroll, .animate-fade, .animate-slide-left, .animate-slide-right, .animate-scale %}
+    <script>
+    (function() {
+      'use strict';
+      var ANIMATED_CLASS = 'animated';
+      var SELECTORS = [
+        '.animate-on-scroll',
+        '.animate-fade',
+        '.animate-slide-left',
+        '.animate-slide-right',
+        '.animate-scale'
+      ].join(',');
+
+      function initObserver() {
+        if (!('IntersectionObserver' in window)) {
+          // Fallback: show all elements immediately
+          document.querySelectorAll(SELECTORS).forEach(function(el) {
+            el.classList.add(ANIMATED_CLASS);
+          });
+          return;
+        }
+
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add(ANIMATED_CLASS);
+              observer.unobserve(entry.target);
+            }
+          });
+        }, {
+          threshold: 0.12,
+          rootMargin: '0px 0px -40px 0px'
+        });
+
+        document.querySelectorAll(SELECTORS).forEach(function(el) {
+          observer.observe(el);
+        });
+
+        // Re-init on Shopify section load/reload
+        document.addEventListener('shopify:section:load', function() {
+          document.querySelectorAll(SELECTORS + ':not(.' + ANIMATED_CLASS + ')').forEach(function(el) {
+            observer.observe(el);
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initObserver);
+      } else {
+        initObserver();
+      }
+    })();
+    </script>
+
+    {% # Cart count sync — keep header badge updated across page %}
+    <script>
+    document.addEventListener('cart:updated', function(e) {
+      var count = e.detail && e.detail.itemCount !== undefined ? e.detail.itemCount : null;
+      if (count === null) return;
+      document.querySelectorAll('[data-cart-count]').forEach(function(el) {
+        el.textContent = count;
+        el.style.display = count > 0 ? '' : 'none';
+      });
+    });
+    </script>
   </body>
 </html>

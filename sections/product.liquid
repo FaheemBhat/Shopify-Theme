@@ -593,6 +593,34 @@
               </div>
             </div>
 
+          {% when 'trust_badges' %}
+            <div class="ik-trust-badges" {{ block.shopify_attributes }}>
+              {% if block.settings.show_badge_1 %}
+                <div class="ik-trust-badge">
+                  <span class="ik-trust-badge__icon">{{ block.settings.badge_1_icon }}</span>
+                  <span class="ik-trust-badge__text">{{ block.settings.badge_1_text }}</span>
+                </div>
+              {% endif %}
+              {% if block.settings.show_badge_2 %}
+                <div class="ik-trust-badge">
+                  <span class="ik-trust-badge__icon">{{ block.settings.badge_2_icon }}</span>
+                  <span class="ik-trust-badge__text">{{ block.settings.badge_2_text }}</span>
+                </div>
+              {% endif %}
+              {% if block.settings.show_badge_3 %}
+                <div class="ik-trust-badge">
+                  <span class="ik-trust-badge__icon">{{ block.settings.badge_3_icon }}</span>
+                  <span class="ik-trust-badge__text">{{ block.settings.badge_3_text }}</span>
+                </div>
+              {% endif %}
+              {% if block.settings.show_badge_4 %}
+                <div class="ik-trust-badge">
+                  <span class="ik-trust-badge__icon">{{ block.settings.badge_4_icon }}</span>
+                  <span class="ik-trust-badge__text">{{ block.settings.badge_4_text }}</span>
+                </div>
+              {% endif %}
+            </div>
+
           {% when 'custom_liquid' %}
             <div class="product-custom-liquid" {{ block.shopify_attributes }}>
               {{ block.settings.custom_liquid }}
@@ -638,14 +666,62 @@
 {% liquid
   assign atc_button_text = 'Add to cart'
   assign atc_sold_out_text = 'Sold out'
+  assign atc_button_color = '#5c9bdd'
+  assign atc_button_text_color = '#ffffff'
+  assign atc_button_radius = 50
   for block in section.blocks
     if block.type == 'add_to_cart'
       assign atc_button_text = block.settings.button_text
       assign atc_sold_out_text = block.settings.sold_out_text
+      assign atc_button_color = block.settings.button_color
+      assign atc_button_text_color = block.settings.button_text_color
+      assign atc_button_radius = block.settings.button_radius
       break
     endif
   endfor
 %}
+
+{%- comment -%} Sticky Add-to-Cart Bar {%- endcomment -%}
+<div class="ik-sticky-atc" id="ik-sticky-atc" aria-hidden="true" style="--satc-btn-bg: {{ atc_button_color }}; --satc-btn-text: {{ atc_button_text_color }}; --satc-btn-radius: {{ atc_button_radius }}px;">
+  <div class="ik-sticky-atc__inner">
+    <div class="ik-sticky-atc__product">
+      {%- if product.featured_image -%}
+        <img
+          src="{{ product.featured_image | image_url: width: 80 }}"
+          alt="{{ product.title | escape }}"
+          class="ik-sticky-atc__img"
+          width="40"
+          height="40"
+          loading="lazy"
+        >
+      {%- endif -%}
+      <div class="ik-sticky-atc__details">
+        <p class="ik-sticky-atc__title">{{ product.title }}</p>
+        <p class="ik-sticky-atc__price" id="ik-sticky-price">{{ current_variant.price | money }}</p>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="ik-sticky-atc__btn"
+      id="ik-sticky-btn"
+      {% unless current_variant.available %}disabled{% endunless %}
+    >
+      {%- if current_variant.available -%}
+        {{ atc_button_text }}
+      {%- else -%}
+        {{ atc_sold_out_text }}
+      {%- endif -%}
+    </button>
+  </div>
+</div>
+
+{%- comment -%} Image Zoom Overlay {%- endcomment -%}
+<div class="ik-zoom-overlay" id="ik-zoom-overlay" role="dialog" aria-modal="true" aria-label="{{ 'product.zoom' | t | default: 'Product image zoom' }}">
+  <button class="ik-zoom-close" id="ik-zoom-close" aria-label="{{ 'general.close' | t | default: 'Close' }}">&times;</button>
+  <div class="ik-zoom-content" id="ik-zoom-content">
+    <img src="" alt="" id="ik-zoom-img" class="ik-zoom-img">
+  </div>
+</div>
 <script>
 (function() {
 function initProductSection() {
@@ -982,6 +1058,147 @@ function initProductSection() {
 
 document.addEventListener('DOMContentLoaded', initProductSection);
 document.addEventListener('shopify:section:load', initProductSection);
+})();
+
+/* ===== Phase 3: Sticky ATC Bar ===== */
+(function() {
+  function initStickyAtc() {
+    var stickyBar = document.getElementById('ik-sticky-atc');
+    var stickyBtn = document.getElementById('ik-sticky-btn');
+    var stickyPrice = document.getElementById('ik-sticky-price');
+    var atcBtn = document.getElementById('add-to-cart-button');
+    if (!stickyBar || !atcBtn) return;
+
+    // Sync sticky bar color with ATC button inline CSS vars
+    var btnBg = atcBtn.style.getPropertyValue('--btn-bg');
+    var btnText = atcBtn.style.getPropertyValue('--btn-text');
+    var btnRadius = atcBtn.style.getPropertyValue('--btn-radius');
+    if (btnBg) stickyBar.style.setProperty('--satc-btn-bg', btnBg);
+    if (btnText) stickyBar.style.setProperty('--satc-btn-text', btnText);
+    if (btnRadius) stickyBar.style.setProperty('--satc-btn-radius', btnRadius);
+
+    // Update when variant changes
+    document.addEventListener('variant:changed', function(e) {
+      var v = e.detail && e.detail.variant;
+      if (!v) return;
+      if (stickyPrice) {
+        stickyPrice.textContent = (window.Shopify && Shopify.formatMoney)
+          ? Shopify.formatMoney(v.price)
+          : '\u0024' + (v.price / 100).toFixed(2);
+      }
+      if (stickyBtn) {
+        stickyBtn.disabled = !v.available;
+        stickyBtn.textContent = v.available
+          ? (atcBtn.querySelector('#add-to-cart-text') ? atcBtn.querySelector('#add-to-cart-text').textContent : 'Add to cart')
+          : 'Sold out';
+      }
+    });
+
+    // Show/hide bar based on ATC button visibility
+    if ('IntersectionObserver' in window) {
+      var atcObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            stickyBar.classList.remove('is-visible');
+            stickyBar.setAttribute('aria-hidden', 'true');
+          } else {
+            stickyBar.classList.add('is-visible');
+            stickyBar.setAttribute('aria-hidden', 'false');
+          }
+        });
+      }, { threshold: 0.5 });
+      atcObserver.observe(atcBtn);
+    }
+
+    // Sticky button AJAX add-to-cart
+    if (stickyBtn) {
+      stickyBtn.addEventListener('click', function() {
+        var variantInput = document.getElementById('product-variant-id');
+        var qtyInput = document.getElementById('product-quantity');
+        if (!variantInput) return;
+        var variantId = variantInput.value;
+        var qty = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+        var originalText = stickyBtn.textContent;
+        stickyBtn.disabled = true;
+        stickyBtn.textContent = 'Adding\u2026';
+        var fd = new FormData();
+        fd.append('id', variantId);
+        fd.append('quantity', qty);
+        fetch((window.Shopify && Shopify.routes ? Shopify.routes.root : '/') + 'cart/add.js', {
+          method: 'POST',
+          body: fd
+        })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data.id) {
+              stickyBtn.textContent = 'Added!';
+              document.dispatchEvent(new CustomEvent('cart:updated'));
+              setTimeout(function() {
+                stickyBtn.disabled = false;
+                stickyBtn.textContent = originalText;
+              }, 1800);
+            } else {
+              stickyBtn.disabled = false;
+              stickyBtn.textContent = originalText;
+            }
+          })
+          .catch(function() {
+            stickyBtn.disabled = false;
+            stickyBtn.textContent = originalText;
+          });
+      });
+    }
+  }
+  document.addEventListener('DOMContentLoaded', initStickyAtc);
+  document.addEventListener('shopify:section:load', initStickyAtc);
+})();
+
+/* ===== Phase 3: Image Zoom ===== */
+(function() {
+  function initZoom() {
+    var overlay = document.getElementById('ik-zoom-overlay');
+    var zoomImg = document.getElementById('ik-zoom-img');
+    var closeBtn = document.getElementById('ik-zoom-close');
+    var mainImgContainer = document.querySelector('.product-main-image');
+    if (!overlay || !mainImgContainer) return;
+
+    function openZoom(src, alt) {
+      zoomImg.src = src;
+      zoomImg.alt = alt || '';
+      overlay.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+      closeBtn && closeBtn.focus();
+    }
+    function closeZoom() {
+      overlay.classList.remove('is-open');
+      document.body.style.overflow = '';
+    }
+
+    mainImgContainer.addEventListener('click', function() {
+      var img = document.getElementById('main-product-image');
+      if (!img) return;
+      var src = img.src;
+      // Upgrade to largest available size
+      src = src.replace(/[?&]width=\d+/, '').replace(/&$/, '').replace(/\?$/, '');
+      src = src + (src.indexOf('?') !== -1 ? '&' : '?') + 'width=2000';
+      openZoom(src, img.alt);
+    });
+
+    // Close on overlay background click
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay || e.target === document.getElementById('ik-zoom-content')) {
+        closeZoom();
+      }
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', closeZoom);
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && overlay.classList.contains('is-open')) closeZoom();
+    });
+  }
+  document.addEventListener('DOMContentLoaded', initZoom);
+  document.addEventListener('shopify:section:load', initZoom);
 })();
 </script>
 
@@ -1912,6 +2129,263 @@ document.addEventListener('shopify:section:load', initProductSection);
 .product-accordion__body li {
   margin-bottom: 6px;
 }
+
+/* ============================================================
+   Phase 3 Upgrades: Sticky ATC · Image Zoom · Trust Badges
+   ============================================================ */
+
+/* --- Image Zoom cursor hint --- */
+.product-main-image {
+  cursor: zoom-in;
+}
+
+/* --- Zoom Overlay --- */
+.ik-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.ik-zoom-overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+.ik-zoom-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ik-zoom-img {
+  display: block;
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  transform: scale(0.88);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+.ik-zoom-overlay.is-open .ik-zoom-img {
+  transform: scale(1);
+}
+.ik-zoom-close {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 1;
+  padding: 0;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.ik-zoom-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* --- Sticky ATC Bar --- */
+.ik-sticky-atc {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  background: #fff;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.1), 0 -1px 4px rgba(0, 0, 0, 0.05);
+  transform: translateY(100%);
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 12px 20px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+}
+.ik-sticky-atc.is-visible {
+  transform: translateY(0);
+}
+.ik-sticky-atc__inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ik-sticky-atc__product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.ik-sticky-atc__img {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.ik-sticky-atc__details {
+  min-width: 0;
+  flex: 1;
+}
+.ik-sticky-atc__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ik-sticky-atc__price {
+  font-size: 13px;
+  color: #666;
+  margin: 2px 0 0;
+}
+.ik-sticky-atc__btn {
+  flex-shrink: 0;
+  padding: 14px 36px;
+  background: var(--satc-btn-bg, #5c9bdd);
+  color: var(--satc-btn-text, #fff);
+  border: none;
+  border-radius: var(--satc-btn-radius, 50px);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+.ik-sticky-atc__btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  opacity: 0.92;
+}
+.ik-sticky-atc__btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+.ik-sticky-atc__btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  color: #fff;
+}
+@media (max-width: 540px) {
+  .ik-sticky-atc__img { display: none; }
+  .ik-sticky-atc__btn { padding: 13px 22px; font-size: 14px; }
+  .ik-sticky-atc__title { font-size: 13px; }
+}
+
+/* --- Trust Badges --- */
+.ik-trust-badges {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 16px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin: 0 0 20px;
+}
+.ik-trust-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ik-trust-badge__icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.ik-trust-badge__text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #444;
+  line-height: 1.35;
+}
+@media (max-width: 480px) {
+  .ik-trust-badges { grid-template-columns: 1fr; }
+}
+
+/* --- Smooth Accordion (CSS open animation) --- */
+.product-accordion__content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.product-accordion__item[open] > .product-accordion__content {
+  grid-template-rows: 1fr;
+}
+
+/* --- Enhanced variant picker --- */
+.variant-option-value {
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+.variant-option-value:hover:not(.selected) {
+  border-color: #aaa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+.variant-option-value.selected {
+  box-shadow: 0 0 0 3px rgba(92, 155, 221, 0.2);
+}
+.variant-option-value.is-swatch:hover:not(.selected) {
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.12);
+}
+
+/* --- Gallery zoom icon hint --- */
+@media (hover: hover) {
+  .product-main-image::after {
+    content: '';
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    background: rgba(255, 255, 255, 0.88)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.35-4.35M11 8v6M8 11h6'/%3E%3C/svg%3E")
+      center / 16px no-repeat;
+    border-radius: 50%;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.22s ease;
+    pointer-events: none;
+  }
+  .product-main-image:hover::after {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ik-sticky-atc,
+  .ik-zoom-overlay,
+  .ik-zoom-img,
+  .product-accordion__content {
+    transition: none !important;
+  }
+}
 </style>
 
 {% schema %}
@@ -2594,6 +3068,101 @@ document.addEventListener('shopify:section:load', initProductSection);
       ]
     },
     {
+      "type": "trust_badges",
+      "name": "Trust badges",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "header",
+          "content": "Badge 1"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_badge_1",
+          "label": "Show badge 1",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "badge_1_icon",
+          "label": "Icon (emoji)",
+          "default": "\uD83D\uDD12"
+        },
+        {
+          "type": "text",
+          "id": "badge_1_text",
+          "label": "Badge text",
+          "default": "Secure Payment"
+        },
+        {
+          "type": "header",
+          "content": "Badge 2"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_badge_2",
+          "label": "Show badge 2",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "badge_2_icon",
+          "label": "Icon (emoji)",
+          "default": "\uD83D\uDE9A"
+        },
+        {
+          "type": "text",
+          "id": "badge_2_text",
+          "label": "Badge text",
+          "default": "Free Shipping"
+        },
+        {
+          "type": "header",
+          "content": "Badge 3"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_badge_3",
+          "label": "Show badge 3",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "badge_3_icon",
+          "label": "Icon (emoji)",
+          "default": "\u21A9\uFE0F"
+        },
+        {
+          "type": "text",
+          "id": "badge_3_text",
+          "label": "Badge text",
+          "default": "Easy Returns"
+        },
+        {
+          "type": "header",
+          "content": "Badge 4"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_badge_4",
+          "label": "Show badge 4",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "badge_4_icon",
+          "label": "Icon (emoji)",
+          "default": "\u2B50"
+        },
+        {
+          "type": "text",
+          "id": "badge_4_text",
+          "label": "Badge text",
+          "default": "Top Rated"
+        }
+      ]
+    },
+    {
       "type": "@app"
     }
   ],
@@ -2607,6 +3176,7 @@ document.addEventListener('shopify:section:load', initProductSection);
         { "type": "variant_selector" },
         { "type": "quantity" },
         { "type": "add_to_cart" },
+        { "type": "trust_badges" },
         { "type": "social_share" }
       ]
     }

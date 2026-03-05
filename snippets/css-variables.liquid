@@ -67,6 +67,94 @@
     --page-width: {{ settings.max_page_width }};
     --page-margin: {{ settings.min_page_margin }}px;
     --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
+
+    /* === SPACING SCALE (4px base) === */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-7: 28px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-14: 56px;
+    --space-16: 64px;
+    --space-20: 80px;
+    --space-24: 96px;
+    --space-32: 128px;
+
+    /* === BORDER RADIUS SYSTEM === */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-2xl: 32px;
+    --radius-full: 9999px;
+
+    /* === SHADOW SYSTEM === */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.10), 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.07);
+    --shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.15);
+    --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+
+    /* === TRANSITIONS & EASING === */
+    --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-base: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-slower: 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* === Z-INDEX SYSTEM === */
+    --z-below: -1;
+    --z-base: 0;
+    --z-raised: 10;
+    --z-floating: 50;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-overlay: 300;
+    --z-modal: 400;
+    --z-toast: 500;
+
+    /* === BUTTON TOKENS === */
+    --btn-padding-sm: 8px 18px;
+    --btn-padding-md: 13px 28px;
+    --btn-padding-lg: 16px 40px;
+    --btn-font-size-sm: 12px;
+    --btn-font-size-md: 14px;
+    --btn-font-size-lg: 16px;
+    --btn-border-radius: var(--radius-md);
+    --btn-border-width: 2px;
+    --btn-letter-spacing: 0.04em;
+
+    /* === SECTION SPACING === */
+    --section-padding-sm: 48px;
+    --section-padding-md: 80px;
+    --section-padding-lg: 120px;
+
+    /* === CARD TOKENS === */
+    --card-border-radius: var(--radius-lg);
+    --card-padding: var(--space-4);
+    --card-shadow: var(--shadow-sm);
+    --card-shadow-hover: var(--shadow-lg);
+    --card-transition: transform var(--transition-base), box-shadow var(--transition-base);
+
+    /* === ANIMATION DURATIONS === */
+    --anim-duration-fast: 200ms;
+    --anim-duration-base: 350ms;
+    --anim-duration-slow: 600ms;
+    --anim-duration-slower: 900ms;
+
+    /* === FOCUS RING === */
+    --focus-ring-width: 3px;
+    --focus-ring-offset: 3px;
   }
 
   {% # Color scheme CSS variables %}
