@@ -19,7 +19,7 @@
 >
   <div class="header-wrapper">
     <!-- Mobile Menu Button (Left) -->
-    <button class="header__mobile-menu-btn mobile-only" aria-label="Open menu">
+    <button class="header__mobile-menu-btn mobile-only" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenuDrawer">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
@@ -33,12 +33,11 @@
             src="{{ settings.logo | image_url: width: section.settings.logo_width }}"
             alt="{{ shop.name }}"
             width="{{ section.settings.logo_width }}"
-            height="auto"
             loading="eager"
             class="header__logo-image"
           />
         {% else %}
-          <h1 class="header__title">{{ shop.name }}</h1>
+          {% if template.name == 'index' %}<h1 class="header__title">{{ shop.name }}</h1>{% else %}<p class="header__title">{{ shop.name }}</p>{% endif %}
         {% endif %}
       </a>
     </div>
@@ -56,6 +55,7 @@
           id="MobileHeaderSearchInput"
           name="q"
           placeholder="Search products..."
+          aria-label="Search products"
           autocomplete="off"
           class="mobile-header-search-input"
         />
@@ -201,6 +201,7 @@
               id="HeaderSearchInput"
               name="q"
               placeholder="Search..."
+              aria-label="Search products"
               autocomplete="off"
               class="search-input"
             />
@@ -211,7 +212,7 @@
               </svg>
             </button>
           </form>
-          <div id="PredictiveResults" class="predictive-search"></div>
+          <div id="PredictiveResults" class="predictive-search" role="status" aria-live="polite" aria-atomic="true"></div>
           <div id="RecentSearches" class="recent-searches"></div>
         </div>
       {% endif %}
@@ -234,7 +235,7 @@
             <circle cx="15" cy="17" r="1" fill="currentColor"/>
           </svg>
           {% if cart.item_count > 0 %}
-            <span class="cart-count">{{ cart.item_count }}</span>
+            <span class="cart-count" aria-label="{{ cart.item_count }} {{ cart.item_count | pluralize: 'item', 'items' }} in cart">{{ cart.item_count }}</span>
           {% endif %}
         </a>
       </div>
@@ -244,13 +245,13 @@
 
 <!-- Mobile Menu Drawer - Outside header for proper z-index stacking -->
 {% assign mobile_logo_pos = section.settings.mobile_menu_logo_position | default: 'top-left' %}
-<div class="mobile-menu-drawer mobile-only mobile-logo-{{ mobile_logo_pos }}">
+<div class="mobile-menu-drawer mobile-only mobile-logo-{{ mobile_logo_pos }}" id="mobileMenuDrawer" role="dialog" aria-modal="true" aria-label="Site navigation">
   <div class="mobile-menu-header">
     {% if mobile_logo_pos == 'top-left' or mobile_logo_pos == 'top-center' or mobile_logo_pos == 'top-right' %}
       <div class="mobile-menu-logo">
         <a href="{{ routes.root_url }}">
           {% if settings.logo != blank %}
-            <img src="{{ settings.logo | image_url: width: section.settings.mobile_menu_logo_width }}" alt="{{ shop.name }}" class="mobile-menu-logo-img" width="{{ section.settings.mobile_menu_logo_width }}" height="auto" loading="lazy">
+            <img src="{{ settings.logo | image_url: width: section.settings.mobile_menu_logo_width }}" alt="{{ shop.name }}" class="mobile-menu-logo-img" width="{{ section.settings.mobile_menu_logo_width }}" loading="lazy">
           {% else %}
             <span class="mobile-menu-logo-text">{{ shop.name }}</span>
           {% endif %}
@@ -272,7 +273,7 @@
             {{ link.title }}
           </a>
           {% if link.links != blank %}
-            <button class="mobile-submenu-toggle" aria-label="Toggle submenu">
+            <button class="mobile-submenu-toggle" aria-expanded="false" aria-label="Toggle {{ link.title }} submenu">
               <svg width="12" height="12" viewBox="0 0 12 12">
                 <path d="M6 8L2 4h8z" fill="currentColor"/>
               </svg>
@@ -295,7 +296,7 @@
     <div class="mobile-menu-logo mobile-menu-logo--bottom">
       <a href="{{ routes.root_url }}">
         {% if settings.logo != blank %}
-          <img src="{{ settings.logo | image_url: width: section.settings.mobile_menu_logo_width }}" alt="{{ shop.name }}" class="mobile-menu-logo-img" width="{{ section.settings.mobile_menu_logo_width }}" height="auto" loading="lazy">
+          <img src="{{ settings.logo | image_url: width: section.settings.mobile_menu_logo_width }}" alt="{{ shop.name }}" class="mobile-menu-logo-img" width="{{ section.settings.mobile_menu_logo_width }}" loading="lazy">
         {% else %}
           <span class="mobile-menu-logo-text">{{ shop.name }}</span>
         {% endif %}
@@ -1531,39 +1532,62 @@ function initHeader() {
     }, { passive: true });
   }
 
-  // Mobile Menu Toggle
+  // Mobile Menu Toggle — with focus trap + ARIA
   const menuBtn = document.querySelector('.header__mobile-menu-btn');
   const menuDrawer = document.querySelector('.mobile-menu-drawer');
   const menuClose = document.querySelector('.mobile-menu-close');
   const menuOverlay = document.querySelector('.mobile-menu-overlay');
+  let menuTrapHandler = null;
 
-  if (menuBtn && menuDrawer && menuOverlay) {
-    menuBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      menuDrawer.classList.add('active');
-      menuOverlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    });
+  function trapFocusInEl(el, e) {
+    const focusable = el.querySelectorAll('a[href],button:not([disabled]),input,textarea,select,[tabindex]:not([tabindex="-1"])');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.key === 'Tab') {
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    }
+    if (e.key === 'Escape') { closeMobileMenu(); }
+  }
+
+  function openMobileMenu() {
+    if (!menuDrawer || !menuOverlay) return;
+    menuDrawer.classList.add('active');
+    menuOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    if (menuBtn) menuBtn.setAttribute('aria-expanded', 'true');
+    if (menuClose) setTimeout(function() { menuClose.focus(); }, 50);
+    menuTrapHandler = function(e) { trapFocusInEl(menuDrawer, e); };
+    menuDrawer.addEventListener('keydown', menuTrapHandler);
   }
 
   function closeMobileMenu() {
     if (menuDrawer) menuDrawer.classList.remove('active');
     if (menuOverlay) menuOverlay.classList.remove('active');
     document.body.style.overflow = '';
+    if (menuBtn) { menuBtn.setAttribute('aria-expanded', 'false'); menuBtn.focus(); }
+    if (menuTrapHandler && menuDrawer) {
+      menuDrawer.removeEventListener('keydown', menuTrapHandler);
+      menuTrapHandler = null;
+    }
+  }
+
+  if (menuBtn && menuDrawer && menuOverlay) {
+    menuBtn.addEventListener('click', function(e) { e.preventDefault(); openMobileMenu(); });
   }
 
   if (menuClose) {
-    menuClose.addEventListener('click', function(e) {
-      e.preventDefault();
-      closeMobileMenu();
-    });
+    menuClose.addEventListener('click', function(e) { e.preventDefault(); closeMobileMenu(); });
   }
 
   if (menuOverlay) {
     menuOverlay.addEventListener('click', closeMobileMenu);
   }
 
-  // Mobile Submenu Toggle
+  // Mobile Submenu Toggle — with ARIA
   const submenuToggles = document.querySelectorAll('.mobile-submenu-toggle');
   submenuToggles.forEach(toggle => {
     toggle.addEventListener('click', function(e) {
@@ -1572,6 +1596,7 @@ function initHeader() {
       if (submenu) {
         submenu.classList.toggle('active');
         this.classList.toggle('active');
+        this.setAttribute('aria-expanded', submenu.classList.contains('active') ? 'true' : 'false');
       }
     });
   });
@@ -1596,11 +1621,12 @@ function initHeader() {
       localStorage.setItem('recent_searches', JSON.stringify(searches.slice(0, 5)));
     }
 
+    const escH = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
     function showRecent() {
       const searches = JSON.parse(localStorage.getItem('recent_searches') || '[]');
       if (!searches.length) return;
-
-      recentBox.innerHTML = searches.map(s => `<div>${s}</div>`).join('');
+      recentBox.innerHTML = searches.map(s => `<div>${escH(s)}</div>`).join('');
       recentBox.style.display = 'block';
     }
 
@@ -1637,7 +1663,7 @@ function initHeader() {
         saveRecent(query);
 
         if (!products.length) {
-          results.innerHTML = `<div class="no-results">No results found for "${query}"</div>`;
+          results.innerHTML = `<div class="no-results">No results found for &ldquo;${escH(query)}&rdquo;</div>`;
           return;
         }
 

@@ -57,6 +57,7 @@
                   data-image-url="{{ media | image_url: width: 800 }}"
                 {% endif %}
                 data-index="{{ forloop.index0 }}"
+                aria-label="View {% if media.alt != blank %}{{ media.alt | escape }}: {% endif %}image {{ forloop.index }} of {{ product.media.size }}"
               >
                 {% if media.media_type == 'video' or media.media_type == 'external_video' %}
                   <div class="thumb-video-badge">
@@ -102,7 +103,7 @@
             <h1 class="product-title" {{ block.shopify_attributes }}>{{ product.title }}</h1>
 
           {% when 'price' %}
-            <div class="product-price-wrapper" id="product-price-wrapper" {{ block.shopify_attributes }}>
+            <div class="product-price-wrapper" id="product-price-wrapper" aria-live="polite" aria-atomic="true" {{ block.shopify_attributes }}>
               <span class="product-price" id="product-price">{{ current_variant.price | money }}</span>
               <span class="product-compare-price" id="product-compare-price" {% unless current_variant.compare_at_price > current_variant.price %}style="display:none"{% endunless %}>
                 {{ current_variant.compare_at_price | money }}
@@ -215,21 +216,21 @@
 
           {% when 'tabs' %}
             <div class="product-tabs" {{ block.shopify_attributes }} style="--tab-bg: {{ block.settings.tab_background_color }}; --tab-text: {{ block.settings.tab_text_color }}; --tab-active: {{ block.settings.tab_active_color }}; --tab-content-bg: {{ block.settings.content_background_color }}; --tab-content-text: {{ block.settings.content_text_color }};">
-              <div class="product-tabs-nav">
+              <div class="product-tabs-nav" role="tablist">
                 {% if block.settings.show_description %}
-                  <button class="tab-btn active" data-tab="description">{{ block.settings.description_label }}</button>
+                  <button class="tab-btn active" data-tab="description" role="tab" aria-selected="true" aria-controls="tab-description" id="tab-btn-description">{{ block.settings.description_label }}</button>
                 {% endif %}
                 {% if block.settings.show_tab_2 %}
-                  <button class="tab-btn {% unless block.settings.show_description %}active{% endunless %}" data-tab="tab2">{{ block.settings.tab_2_label }}</button>
+                  <button class="tab-btn {% unless block.settings.show_description %}active{% endunless %}" data-tab="tab2" role="tab" aria-selected="{% unless block.settings.show_description %}true{% else %}false{% endunless %}" aria-controls="tab-tab2" id="tab-btn-tab2">{{ block.settings.tab_2_label }}</button>
                 {% endif %}
                 {% if block.settings.show_tab_3 %}
-                  <button class="tab-btn {% unless block.settings.show_description or block.settings.show_tab_2 %}active{% endunless %}" data-tab="tab3">{{ block.settings.tab_3_label }}</button>
+                  <button class="tab-btn {% unless block.settings.show_description or block.settings.show_tab_2 %}active{% endunless %}" data-tab="tab3" role="tab" aria-selected="{% unless block.settings.show_description or block.settings.show_tab_2 %}true{% else %}false{% endunless %}" aria-controls="tab-tab3" id="tab-btn-tab3">{{ block.settings.tab_3_label }}</button>
                 {% endif %}
               </div>
 
               <div class="product-tabs-content">
                 {% if block.settings.show_description %}
-                  <div class="tab-content active" id="tab-description">
+                  <div class="tab-content active" id="tab-description" role="tabpanel" tabindex="0" aria-labelledby="tab-btn-description">
                     <div class="tab-content-inner">
                       {{ product.description }}
                     </div>
@@ -237,7 +238,7 @@
                 {% endif %}
 
                 {% if block.settings.show_tab_2 %}
-                  <div class="tab-content {% unless block.settings.show_description %}active{% endunless %}" id="tab-tab2">
+                  <div class="tab-content {% unless block.settings.show_description %}active{% endunless %}" id="tab-tab2" role="tabpanel" tabindex="0" aria-labelledby="tab-btn-tab2">
                     <div class="tab-content-inner">
                       {% if block.settings.tab_2_content != blank %}
                         {{ block.settings.tab_2_content }}
@@ -275,7 +276,7 @@
                 {% endif %}
 
                 {% if block.settings.show_tab_3 %}
-                  <div class="tab-content {% unless block.settings.show_description or block.settings.show_tab_2 %}active{% endunless %}" id="tab-tab3">
+                  <div class="tab-content {% unless block.settings.show_description or block.settings.show_tab_2 %}active{% endunless %}" id="tab-tab3" role="tabpanel" tabindex="0" aria-labelledby="tab-btn-tab3">
                     <div class="tab-content-inner">
                       {% if block.settings.tab_3_content != blank %}
                         {{ block.settings.tab_3_content }}
@@ -515,27 +516,24 @@
               </button>
 
               {% if block.settings.show_buy_now %}
-                <form action="{{ routes.cart_url }}" method="post" id="buy-now-form" class="buy-now-form">
-                  <input type="hidden" name="id" id="buy-now-variant-id" value="{{ current_variant.id }}">
-                  <input type="hidden" name="quantity" value="1">
-                  <button
-                    type="submit"
-                    class="buy-now-btn"
-                    id="buy-now-button"
-                    name="checkout"
-                    style="
-                      --buynow-bg: {{ block.settings.buy_now_color }};
-                      --buynow-text: {{ block.settings.buy_now_text_color }};
-                      --buynow-font-size: {{ block.settings.buy_now_font_size }}px;
-                      --buynow-radius: {{ block.settings.button_radius }}px;
-                      --buynow-width: {{ block.settings.button_width_desktop }}%;
-                      --buynow-width-mobile: {{ block.settings.button_width_mobile }}%;
-                    "
-                    {% unless current_variant.available %}disabled{% endunless %}
-                  >
-                    {{ block.settings.buy_now_text }}
-                  </button>
-                </form>
+                <button
+                  type="submit"
+                  class="buy-now-btn"
+                  id="buy-now-button"
+                  name="checkout"
+                  formaction="{{ routes.cart_url }}"
+                  style="
+                    --buynow-bg: {{ block.settings.buy_now_color }};
+                    --buynow-text: {{ block.settings.buy_now_text_color }};
+                    --buynow-font-size: {{ block.settings.buy_now_font_size }}px;
+                    --buynow-radius: {{ block.settings.button_radius }}px;
+                    --buynow-width: {{ block.settings.button_width_desktop }}%;
+                    --buynow-width-mobile: {{ block.settings.button_width_mobile }}%;
+                  "
+                  {% unless current_variant.available %}disabled{% endunless %}
+                >
+                  {{ block.settings.buy_now_text }}
+                </button>
               {% endif %}
 
               {% if block.settings.show_dynamic_checkout %}
@@ -636,27 +634,34 @@
 
       {%- comment -%} Gift card recipient form {%- endcomment -%}
       {% if product.gift_card? %}
-        <div class="gift-card-recipient-form">
-          <h3 class="gift-card-recipient__heading">{{ 'product.gift_card_recipient' | t | default: 'Send as a gift' }}</h3>
-          <div class="gift-card-recipient__fields">
-            <div class="gift-card-field">
-              <label for="gift-card-recipient-email">{{ 'product.recipient_email' | t | default: 'Recipient email' }}</label>
-              <input type="email" id="gift-card-recipient-email" name="properties[Recipient email]" placeholder="{{ 'product.recipient_email_placeholder' | t | default: 'email@example.com' }}">
-            </div>
-            <div class="gift-card-field">
-              <label for="gift-card-recipient-name">{{ 'product.recipient_name' | t | default: 'Recipient name' }}</label>
-              <input type="text" id="gift-card-recipient-name" name="properties[Recipient name]" placeholder="{{ 'product.recipient_name_placeholder' | t | default: 'Name' }}">
-            </div>
-            <div class="gift-card-field">
-              <label for="gift-card-recipient-message">{{ 'product.recipient_message' | t | default: 'Message' }}</label>
-              <textarea id="gift-card-recipient-message" name="properties[Message]" rows="3" placeholder="{{ 'product.recipient_message_placeholder' | t | default: 'Write a personal message' }}"></textarea>
-            </div>
-            <div class="gift-card-field">
-              <label for="gift-card-recipient-send-on">{{ 'product.send_on' | t | default: 'Send on' }}</label>
-              <input type="date" id="gift-card-recipient-send-on" name="properties[Send on]">
+        {%- form 'gift_card_recipient', product -%}
+          <div class="gift-card-recipient-form">
+            <h3 class="gift-card-recipient__heading">{{ 'product.gift_card_recipient' | t | default: 'Send as a gift' }}</h3>
+            {% if form.errors %}
+              <div class="gift-card-recipient__errors" role="alert">
+                {{ form.errors | default_errors }}
+              </div>
+            {% endif %}
+            <div class="gift-card-recipient__fields">
+              <div class="gift-card-field">
+                <label for="gift-card-recipient-email">{{ 'product.recipient_email' | t | default: 'Recipient email' }}</label>
+                <input type="email" id="gift-card-recipient-email" name="properties[Recipient email]" placeholder="{{ 'product.recipient_email_placeholder' | t | default: 'email@example.com' }}" value="{{ form.email }}">
+              </div>
+              <div class="gift-card-field">
+                <label for="gift-card-recipient-name">{{ 'product.recipient_name' | t | default: 'Recipient name' }}</label>
+                <input type="text" id="gift-card-recipient-name" name="properties[Recipient name]" placeholder="{{ 'product.recipient_name_placeholder' | t | default: 'Name' }}" value="{{ form.name }}">
+              </div>
+              <div class="gift-card-field">
+                <label for="gift-card-recipient-message">{{ 'product.recipient_message' | t | default: 'Message' }}</label>
+                <textarea id="gift-card-recipient-message" name="properties[Message]" rows="3" placeholder="{{ 'product.recipient_message_placeholder' | t | default: 'Write a personal message' }}">{{ form.message }}</textarea>
+              </div>
+              <div class="gift-card-field">
+                <label for="gift-card-recipient-send-on">{{ 'product.send_on' | t | default: 'Send on' }}</label>
+                <input type="date" id="gift-card-recipient-send-on" name="properties[Send on]" value="{{ form.send_on }}">
+              </div>
             </div>
           </div>
-        </div>
+        {%- endform -%}
       {% endif %}
 
     </div>
@@ -916,10 +921,6 @@ function initProductSection() {
       buyNowBtn.disabled = !variant.available;
     }
 
-    // Update buy now hidden input
-    var buyNowVariantInput = document.getElementById('buy-now-variant-id');
-    if (buyNowVariantInput) buyNowVariantInput.value = variant.id;
-
     // Dispatch event for other sections
     document.dispatchEvent(new CustomEvent('variant:changed', { detail: { variant: variant } }));
   }
@@ -998,9 +999,10 @@ function initProductSection() {
   tabBtns.forEach(function(btn) {
     btn.addEventListener('click', function() {
       var targetTab = this.dataset.tab;
-      tabBtns.forEach(function(b) { b.classList.remove('active'); });
+      tabBtns.forEach(function(b) { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
       tabContents.forEach(function(c) { c.classList.remove('active'); });
       this.classList.add('active');
+      this.setAttribute('aria-selected', 'true');
       var tabEl = document.getElementById('tab-' + targetTab);
       if (tabEl) tabEl.classList.add('active');
     });

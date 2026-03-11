@@ -500,6 +500,8 @@
   var drawer, overlay, closeBtn, itemsWrap, totalEl, countEl,
       progressMsg, progressFill, upsellWrap, upsellScroll;
   var bannerIntervalId;
+  var _cdLastFocus = null;
+  var _cdTrapHandler = null;
 
   var FREE_SHIP = {{ free_ship_threshold | json }};
   var moneyFmt  = {{ shop.money_format | json }};
@@ -529,12 +531,28 @@
                     .replace(/\{\{\s*amount_no_decimals_with_comma_separator\s*\}\}/, Math.round(cents / 100));
   }
 
+  /* --- Focus trap helper --- */
+  function trapFocusInDrawer(e) {
+    var focusable = drawer.querySelectorAll('a[href],button:not([disabled]),input,textarea,select,[tabindex]:not([tabindex="-1"])');
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (e.key === 'Tab') {
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  }
+
   /* --- Open / Close --- */
   function openDrawer() {
     if (!drawer || !overlay) return;
+    _cdLastFocus = document.activeElement;
     drawer.classList.add('cd-open');
     overlay.classList.add('cd-open');
     document.body.style.overflow = 'hidden';
+    var firstFocusable = drawer.querySelector('button:not([disabled]),a[href],input,[tabindex]:not([tabindex="-1"])');
+    if (firstFocusable) setTimeout(function() { firstFocusable.focus(); }, 60);
+    _cdTrapHandler = trapFocusInDrawer;
+    drawer.addEventListener('keydown', _cdTrapHandler);
   }
 
   function closeDrawer() {
@@ -542,6 +560,8 @@
     drawer.classList.remove('cd-open');
     overlay.classList.remove('cd-open');
     document.body.style.overflow = '';
+    if (_cdTrapHandler) { drawer.removeEventListener('keydown', _cdTrapHandler); _cdTrapHandler = null; }
+    if (_cdLastFocus) { try { _cdLastFocus.focus(); } catch(e) {} _cdLastFocus = null; }
   }
 
   /* --- Refresh drawer --- */
@@ -613,15 +633,15 @@
           '<div class="cd-item__details">' +
             '<div class="cd-item__top">' +
               '<a href="' + item.url + '" class="cd-item__title">' + item.product_title + '</a>' +
-              '<button class="cd-item__remove" data-key="' + item.key + '" aria-label="Remove">' +
+              '<button class="cd-item__remove" data-key="' + item.key + '" aria-label="Remove ' + item.product_title.replace(/"/g, '&quot;') + '">' +
                 '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
               '</button>' +
             '</div>' + variantTitle +
             '<div class="cd-item__bottom">' +
               '<div class="cd-qty">' +
-                '<button class="cd-qty__btn cd-qty__minus" data-key="' + item.key + '">−</button>' +
-                '<span class="cd-qty__val" data-key="' + item.key + '">' + item.quantity + '</span>' +
-                '<button class="cd-qty__btn cd-qty__plus" data-key="' + item.key + '">+</button>' +
+                '<button class="cd-qty__btn cd-qty__minus" data-key="' + item.key + '" aria-label="Decrease quantity">−</button>' +
+                '<span class="cd-qty__val" data-key="' + item.key + '" aria-live="polite">' + item.quantity + '</span>' +
+                '<button class="cd-qty__btn cd-qty__plus" data-key="' + item.key + '" aria-label="Increase quantity">+</button>' +
               '</div>' +
               '<span class="cd-item__price" data-key="' + item.key + '">' + formatMoney(item.final_line_price) + '</span>' +
             '</div>' + compareHtml +

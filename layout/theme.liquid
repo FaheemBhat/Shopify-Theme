@@ -60,9 +60,12 @@
       if (t === 'dark') { document.body.classList.remove('color-scheme-1'); document.body.classList.add('color-scheme-2'); }
     })();
     </script>
+    <a href="#MainContent" class="skip-to-content-link">Skip to content</a>
     {% sections 'header-group' %}
 
-    {{ content_for_layout }}
+    <main id="MainContent" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
 
     {% sections 'footer-group' %}
 
@@ -96,10 +99,14 @@
         localStorage.setItem("recent_searches", JSON.stringify(searches.slice(0,5)));
       }
 
+      function escHtml(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
       function showRecent() {
         var searches = JSON.parse(localStorage.getItem("recent_searches") || "[]");
         if (!searches.length) return;
-        recentBox.innerHTML = searches.map(function(s) { return "<div>" + s + "</div>"; }).join("");
+        recentBox.innerHTML = searches.map(function(s) { return "<div>" + escHtml(s) + "</div>"; }).join("");
         recentBox.style.display = "block";
       }
 
@@ -132,7 +139,7 @@
             saveRecent(query);
 
             if (!products.length) {
-              results.innerHTML = '<div class="no-results">No results found for "' + query + '"</div>';
+              results.innerHTML = '<div class="no-results">No results found for &ldquo;' + escHtml(query) + '&rdquo;</div>';
               return;
             }
 

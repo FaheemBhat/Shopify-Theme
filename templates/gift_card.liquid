@@ -288,6 +288,12 @@
           </p>
         {% endif %}
 
+        {% if gift_card.send_on %}
+          <p class="gift-card__send-on">
+            {{ 'gift_card.send_on' | t | default: 'Scheduled to send on' }}: {{ gift_card.send_on | date: '%B %e, %Y' }}
+          </p>
+        {% endif %}
+
         {%- comment -%} Gift card code {%- endcomment -%}
         <div class="gift-card__code-section">
           <p class="gift-card__code-label">{{ 'gift_card.use_at_checkout' | t }}</p>
